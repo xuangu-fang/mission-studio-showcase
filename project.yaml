@@ -1,0 +1,49 @@
+project:
+  name: mission-studio-showcase
+  display_name: Mission Studio Showcase
+  status: planning
+  visibility: public
+  repository: https://github.com/xuangu-fang/mission-studio-showcase
+  primary_branch: main
+
+strategy:
+  hub_repository: https://github.com/xuangu-fang/mission-intelligence-research-hub
+  hub_project_id: X1
+
+companion_repositories:
+  private_core: private://xuangu-fang/mission-studio
+
+experience:
+  primary_scenario: mission-adaptive-hyperspectral-intelligence
+  modes:
+    - story
+    - operator
+  runtime_modes:
+    - static
+    - live-future
+
+contracts:
+  status: proposed
+  consumes:
+    - PublicRuntimeEvent
+    - PublicResourceState
+    - PublicEvidenceSummary
+    - PublicBeliefSummary
+    - PublicCasefileSummary
+
+gates:
+  current: showcase-A
+  next: trace-driven-visual-skeleton
+
+deployment:
+  target: github-pages
+  base_path: /mission-studio-showcase/
+  reference_ci_os: linux
+
+boundaries:
+  no_private_repository_dependency: true
+  no_secrets: true
+  no_partner_data: true
+  no_flight_claims: true
+  license_status: pending-owner-decision
+
