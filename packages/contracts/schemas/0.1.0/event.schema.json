@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mission-studio.local/contracts/public/0.1.0/event.schema.json",
+  "title": "Mission Studio Public Runtime Event 0.1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "event_id", "run_id", "comparison_group_id", "seq", "sim_time_s", "event_time", "type", "actor", "correlation_id", "causation_event_ids", "payload", "provenance"],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "event_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "comparison_group_id": {"type": "string", "minLength": 1},
+    "seq": {"type": "integer", "minimum": 0},
+    "sim_time_s": {"type": "integer", "minimum": 0},
+    "event_time": {"type": "string", "format": "date-time"},
+    "type": {
+      "enum": [
+        "mission.started", "plan.validated", "observation.acquired", "evidence.produced",
+        "belief.updated", "resource.updated", "constraint.activated", "constraint.cleared",
+        "action.proposed", "action.selected", "action.rejected", "action.started",
+        "action.completed", "action.failed", "action.abstained", "outcome.updated"
+      ]
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "id"],
+      "properties": {
+        "category": {"enum": ["engine", "validator", "policy", "sensor", "evidence", "authorizer"]},
+        "id": {"type": "string", "minLength": 1}
+      }
+    },
+    "correlation_id": {"type": "string", "minLength": 1},
+    "causation_event_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "payload": {"type": "object"},
+    "provenance": {"$ref": "#/$defs/provenance"}
+  },
+  "allOf": [
+    {"if": {"properties": {"type": {"const": "mission.started"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/mission_started"}}}},
+    {"if": {"properties": {"type": {"const": "plan.validated"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/plan_validated"}}}},
+    {"if": {"properties": {"type": {"const": "resource.updated"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/resource_updated"}}}},
+    {"if": {"properties": {"type": {"const": "action.selected"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/action_selected"}}}},
+    {"if": {"properties": {"type": {"const": "action.rejected"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/action_rejected"}}}},
+    {"if": {"properties": {"type": {"const": "action.started"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/action_lifecycle"}}}},
+    {"if": {"properties": {"type": {"const": "action.completed"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/action_lifecycle"}}}},
+    {"if": {"properties": {"type": {"const": "observation.acquired"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/observation_acquired"}}}},
+    {"if": {"properties": {"type": {"const": "evidence.produced"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/evidence_produced"}}}},
+    {"if": {"properties": {"type": {"const": "belief.updated"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/belief_updated"}}}},
+    {"if": {"properties": {"type": {"const": "constraint.activated"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/constraint"}}}},
+    {"if": {"properties": {"type": {"const": "constraint.cleared"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/constraint"}}}},
+    {"if": {"properties": {"type": {"const": "outcome.updated"}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/outcome_updated"}}}},
+    {"if": {"properties": {"type": {"enum": ["action.proposed", "action.failed", "action.abstained"]}}}, "then": {"properties": {"payload": {"$ref": "#/$defs/action_reason"}}}}
+  ],
+  "$defs": {
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producer", "producer_version", "value_status"],
+      "properties": {
+        "producer": {"type": "string", "minLength": 1},
+        "producer_version": {"type": "string", "minLength": 1},
+        "value_status": {"enum": ["synthetic", "replayed", "derived", "inferred", "counterfactual"]}
+      }
+    },
+    "mission_started": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mission_id", "objective", "area_of_interest", "success_gate", "deadline_s", "policy_id", "policy_kind", "policy_version", "seed"],
+      "properties": {
+        "mission_id": {"type": "string"}, "objective": {"type": "string"},
+        "area_of_interest": {
+          "type": "array", "prefixItems": [{"type": "number"}, {"type": "number"}, {"type": "number"}, {"type": "number"}],
+          "items": false, "minItems": 4, "maxItems": 4
+        },
+        "success_gate": {"type": "number", "minimum": 0, "maximum": 1},
+        "deadline_s": {"type": "integer", "minimum": 1}, "policy_id": {"type": "string"},
+        "policy_kind": {"enum": ["fixed", "adaptive"]}, "policy_version": {"type": "string"},
+        "seed": {"type": "integer"}
+      }
+    },
+    "plan_validated": {
+      "type": "object", "additionalProperties": false,
+      "required": ["graph_id", "action_count", "validation_layers", "actions"],
+      "properties": {
+        "graph_id": {"type": "string"}, "action_count": {"type": "integer", "minimum": 1},
+        "validation_layers": {"type": "array", "items": {"type": "string"}},
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["id", "type", "depends_on"],
+            "properties": {
+              "id": {"type": "string"}, "type": {"type": "string"},
+              "depends_on": {"type": "array", "items": {"type": "string"}}
+            }
+          }
+        }
+      }
+    },
+    "resource_updated": {
+      "type": "object", "additionalProperties": false,
+      "required": ["storage_used_mb", "storage_capacity_mb", "downlink_used_mb", "downlink_budget_mb", "compute_used_units", "network_available"],
+      "properties": {
+        "storage_used_mb": {"type": "number"}, "storage_capacity_mb": {"type": "number"},
+        "downlink_used_mb": {"type": "number"}, "downlink_budget_mb": {"type": "number"},
+        "compute_used_units": {"type": "number"}, "network_available": {"type": "boolean"}
+      }
+    },
+    "action_selected": {
+      "type": "object", "additionalProperties": false,
+      "required": ["action_id", "action_type", "policy_id", "reason", "belief", "evidence_event_ids", "constraints"],
+      "properties": {
+        "action_id": {"type": "string"}, "action_type": {"type": "string"},
+        "policy_id": {"type": "string"}, "reason": {"type": "string"}, "belief": {"type": "number"},
+        "evidence_event_ids": {"type": "array", "items": {"type": "string"}},
+        "constraints": {
+          "type": "object", "additionalProperties": false,
+          "required": ["storage_capacity_mb", "downlink_budget_mb", "network_available"],
+          "properties": {
+            "storage_capacity_mb": {"type": "number"}, "downlink_budget_mb": {"type": "number"},
+            "network_available": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "action_rejected": {
+      "type": "object", "additionalProperties": false,
+      "required": ["action_id", "action_type", "reason"],
+      "properties": {"action_id": {"type": "string"}, "action_type": {"type": "string"}, "reason": {"type": "string"}}
+    },
+    "action_lifecycle": {
+      "type": "object", "additionalProperties": false,
+      "required": ["action_id", "action_type"],
+      "properties": {"action_id": {"type": "string"}, "action_type": {"type": "string"}}
+    },
+    "action_reason": {
+      "type": "object", "additionalProperties": false,
+      "required": ["action_id", "action_type", "reason"],
+      "properties": {"action_id": {"type": "string"}, "action_type": {"type": "string"}, "reason": {"type": "string"}}
+    },
+    "observation_acquired": {
+      "type": "object", "additionalProperties": false,
+      "required": ["action_id", "observation_id", "quality", "rare_evidence", "source_label", "footprint"],
+      "properties": {
+        "action_id": {"type": "string"}, "observation_id": {"type": "string"},
+        "quality": {"type": "string"}, "rare_evidence": {"type": "boolean"}, "source_label": {"type": "string"},
+        "footprint": {
+          "type": "array", "prefixItems": [{"type": "number"}, {"type": "number"}, {"type": "number"}, {"type": "number"}],
+          "items": false, "minItems": 4, "maxItems": 4
+        }
+      }
+    },
+    "evidence_produced": {
+      "type": "object", "additionalProperties": false,
+      "required": ["evidence_id", "action_id", "hypothesis", "method", "belief_delta"],
+      "properties": {
+        "evidence_id": {"type": "string"}, "action_id": {"type": "string"}, "hypothesis": {"type": "string"},
+        "method": {"type": "string"}, "belief_delta": {"type": "number"}
+      }
+    },
+    "belief_updated": {
+      "type": "object", "additionalProperties": false,
+      "required": ["hypothesis", "previous_belief", "belief", "threshold", "gate_passed"],
+      "properties": {
+        "hypothesis": {"type": "string"}, "previous_belief": {"type": "number"}, "belief": {"type": "number"},
+        "threshold": {"type": "number"}, "gate_passed": {"type": "boolean"}
+      }
+    },
+    "constraint": {
+      "type": "object", "additionalProperties": false,
+      "required": ["constraint_id", "kind", "reason"],
+      "properties": {"constraint_id": {"type": "string"}, "kind": {"type": "string"}, "reason": {"type": "string"}}
+    },
+    "outcome_updated": {
+      "type": "object", "additionalProperties": false,
+      "required": ["outcome_id", "completed", "final_belief", "transmitted_mb", "summary"],
+      "properties": {
+        "outcome_id": {"type": "string"}, "completed": {"type": "boolean"}, "final_belief": {"type": "number"},
+        "transmitted_mb": {"type": "number"}, "summary": {"type": "string"}
+      }
+    }
+  }
+}

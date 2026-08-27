@@ -1,0 +1,66 @@
+{
+  "attribution": [
+    {
+      "note": "No public hyperspectral cube is redistributed in this Gate 1 fixture.",
+      "title": "Mission Studio project-authored synthetic scenario",
+      "url": "https://github.com/xuangu-fang/mission-studio"
+    }
+  ],
+  "clock": {
+    "duration_s": 60,
+    "epoch": "2026-01-01T00:00:00Z",
+    "time_unit": "second"
+  },
+  "comparison_group_id": "cmp-adaptive-hsi-demo-seed-7",
+  "contracts": {
+    "event": "0.1.0",
+    "manifest": "0.1.0",
+    "outcome": "0.1.0"
+  },
+  "fixture_id": "adaptive-hsi-policy-comparison-v0",
+  "producer": {
+    "id": "mission-studio-core",
+    "version": "0.1.0"
+  },
+  "runs": [
+    {
+      "initial_conditions_digest": "sha256:0cc9b60462e03e1a56debd1e6b7d11add0b95085abf6577eeda1c55a80965a89",
+      "outcome_path": "outcomes/fixed.json",
+      "policy": {
+        "id": "fixed-v0",
+        "kind": "fixed",
+        "label": "Fixed policy",
+        "version": "0.1.0"
+      },
+      "run_id": "run-fixed-seed-7",
+      "trace_path": "traces/fixed.jsonl"
+    },
+    {
+      "initial_conditions_digest": "sha256:0cc9b60462e03e1a56debd1e6b7d11add0b95085abf6577eeda1c55a80965a89",
+      "outcome_path": "outcomes/adaptive.json",
+      "policy": {
+        "id": "adaptive-v0",
+        "kind": "adaptive",
+        "label": "Adaptive policy",
+        "version": "0.1.0"
+      },
+      "run_id": "run-adaptive-seed-7",
+      "trace_path": "traces/adaptive.jsonl"
+    }
+  ],
+  "scenario": {
+    "id": "adaptive-hsi",
+    "title": "Mission-Adaptive Hyperspectral Intelligence",
+    "value_status": "synthetic",
+    "version": "0.1.0"
+  },
+  "schema_version": "0.1.0",
+  "title": "Adaptive HSI evidence-action policy comparison",
+  "value_status_legend": {
+    "counterfactual": "Alternative-policy result under the same initial conditions.",
+    "derived": "Deterministically computed from contract-valid inputs.",
+    "inferred": "Synthetic evidence method output; not a scientific performance claim.",
+    "replayed": "Deterministic replay shaped like an observation; no public cube is included.",
+    "synthetic": "Project-authored scenario or resource value; not calibrated."
+  }
+}

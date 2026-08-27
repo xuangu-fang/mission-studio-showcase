@@ -1,0 +1,22 @@
+{
+  "name": "@mission-studio/contracts",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.3.0",
+    "typescript": "7.0.2",
+    "vitest": "4.1.11"
+  }
+}

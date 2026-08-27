@@ -1,16 +1,16 @@
-# Development and Deployment
+# 开发与部署
 
-## Reference environment
+## 参考环境
 
-- Linux CI and deployment build;
-- Node active LTS and pnpm, exact versions pinned in the first coding PR;
-- modern evergreen desktop browser with WebGL;
-- Playwright browsers installed in a pinned CI image/container;
-- no Python or private service required for static mode.
+- 使用 Linux CI 和 deployment build；
+- 使用 Node active LTS 和 pnpm，并在第一个 coding PR 中固定准确版本；
+- 支持 WebGL 的现代常青桌面浏览器；
+- Playwright 浏览器安装在固定版本的 CI image/container 中；
+- Static mode 不需要 Python 或私有 service。
 
-Windows and macOS may be used for local development, but Linux CI is authoritative for builds and screenshot baselines.
+本地开发可以使用 Windows 和 macOS，但构建和 screenshot baseline 以 Linux CI 为准。
 
-## Planned build modes
+## 规划中的 build mode
 
 ### Static
 
@@ -19,9 +19,9 @@ VITE_STUDIO_MODE=static
 VITE_PUBLIC_FIXTURE_BASE=./fixtures
 ```
 
-Uses committed reviewed fixtures and has no API dependency.
+使用已提交且经过审查的 fixture，不依赖 API。
 
-### Live, future
+### Live（未来）
 
 ```text
 VITE_STUDIO_MODE=live
@@ -29,47 +29,46 @@ VITE_API_BASE_URL=https://public-api.example
 VITE_WS_BASE_URL=wss://public-api.example
 ```
 
-Only public endpoint locations may appear in browser configuration. Secrets never use `VITE_*` variables.
+浏览器配置中只能出现 public endpoint 地址。secret 永远不能使用 `VITE_*` 变量。
 
-## GitHub Pages requirements
+## GitHub Pages 要求
 
-- Vite base path: `/mission-studio-showcase/` unless a custom domain changes it to `/`;
-- build and deploy through GitHub Actions;
-- copy Cesium Workers, ThirdParty, Assets, and Widgets to the expected static base path;
-- use routes compatible with static hosting, initially a single application route or hash routing;
-- provide a useful offline/static fallback if remote basemap or asset services fail;
-- never commit `dist` to `main`.
+- Vite base path：`/mission-studio-showcase/`，除非 custom domain 将其改为 `/`；
+- 通过 GitHub Actions 构建和部署；
+- 将 Cesium Workers、ThirdParty、Assets 和 Widgets 复制到预期的 static base path；
+- 使用与 static hosting 兼容的 route；初期采用单一 application route 或 hash routing；
+- remote basemap 或 asset service 失败时，提供实用的 offline/static fallback；
+- 永远不要将 `dist` 提交到 `main`。
 
-## Data and asset budgets
+## 数据与 asset budget
 
-The first coding PR should propose measurable budgets for:
+第一个 coding PR 应为下列项目提出可度量的 budget：
 
-- initial JavaScript/CSS load;
-- Cesium static assets;
-- committed fixture size;
-- first meaningful paint and interactive readiness on a normal laptop;
-- frame stability during playback;
-- maximum chart update rate;
-- screenshot test duration.
+- 首次 JavaScript/CSS load；
+- Cesium static asset；
+- 已提交 fixture 的大小；
+- 普通笔记本上的 first meaningful paint 和 interactive readiness；
+- playback 期间的帧稳定性；
+- chart 最大更新频率；
+- screenshot test 时长。
 
-Do not commit a full HSI cube. Use a small reviewed crop/derived profile or external public assets with attribution and graceful fallback.
+不要提交完整 HSI cube。应使用经过审查的小型 crop/derived profile，或带 attribution 和 graceful fallback 的外部 public asset。
 
-## Visual regression discipline
+## Visual regression 纪律
 
-- generate baselines on the same Linux image used in CI;
-- pin browser, font, viewport, fixture, clock, and reduced-motion setting;
-- mask only genuinely nondeterministic external content;
-- review every changed baseline;
-- keep separate representative views for Story Mode, Operator Mode, event inspection, comparison, and error states.
+- 在 CI 使用的同一 Linux image 上生成 baseline；
+- 固定 browser、font、viewport、fixture、clock 和 reduced-motion setting；
+- 只遮罩真正非确定性的外部内容；
+- 审查每一项发生改变的 baseline；
+- 为 Story Mode、Operator Mode、event inspection、comparison 和 error state 分别保留代表性视图。
 
-## Planned checks
+## 规划中的检查项
 
-- format/lint/typecheck;
-- unit tests for event ordering, seek, projection, and comparison;
-- JSON Schema fixture validation;
-- accessibility checks;
-- Playwright interaction tests;
-- screenshot regression;
-- Pages subpath build smoke test;
-- secret/prohibited-reference scan.
-
+- format/lint/typecheck；
+- 针对 event ordering、seek、projection 和 comparison 的 unit test；
+- JSON Schema fixture validation；
+- accessibility check；
+- Playwright interaction test；
+- screenshot regression；
+- Pages subpath build smoke test；
+- secret/prohibited-reference scan。

@@ -1,0 +1,26 @@
+{
+  "comparison_group_id": "cmp-adaptive-hsi-demo-seed-7",
+  "completed": true,
+  "evidence_completeness": 1.0,
+  "evidence_threshold": 0.8,
+  "final_belief": 0.82,
+  "hard_constraint_violations": 1,
+  "outcome_id": "outcome-run-fixed-seed-7",
+  "policy": {
+    "id": "fixed-v0",
+    "kind": "fixed",
+    "version": "0.1.0"
+  },
+  "provenance": {
+    "producer": "mission-studio-core",
+    "producer_version": "0.1.0",
+    "value_status": "derived"
+  },
+  "retained_rare_evidence": false,
+  "run_id": "run-fixed-seed-7",
+  "schema_version": "0.1.0",
+  "summary": "Evidence threshold passed and selected evidence was downlinked.",
+  "time_to_knowledge_s": 45,
+  "transmitted_mb": 6.0,
+  "utility_per_transmitted_mb": 0.136667
+}

@@ -1,28 +1,28 @@
-# Experience Specification
+# 体验规范（Experience Specification）
 
-## Experience objective
+## 体验目标
 
-Within 90 seconds, a first-time visitor should understand that Mission Studio is an evidence-to-action workbench—not simply an orbit viewer. Within five minutes, an expert should be able to pause, inspect provenance, compare policies, and identify the constraint that changed an action.
+首次访问者应在 90 秒内理解 Mission Studio 是一个 evidence-to-action workbench，而不只是轨道查看器。专家应在五分钟内能够暂停、检查 provenance、比较 policy，并找出改变某项 action 的 constraint。
 
-## Two modes, one truth
+## 两种模式，同一份事实
 
 ### Story Mode
 
-- guided focus and camera choreography;
-- short explanatory captions tied to specific trace events;
-- progresses automatically but can be paused or exited immediately;
-- no pre-rendered video or separate story data.
+- 引导式焦点与镜头编排；
+- 与特定 trace event 绑定的简短说明文字；
+- 自动推进，但可立即暂停或退出；
+- 不使用预渲染视频，也不使用单独的 story data。
 
 ### Operator Mode
 
-- timeline seek and event list;
-- action graph and constraint inspection;
-- evidence/observation provenance;
-- resource margins;
-- fixed/adaptive and fork comparison;
-- casefile summary.
+- timeline seek 和 event list；
+- action graph 与 constraint 检查；
+- evidence/observation provenance；
+- resource margin；
+- fixed/adaptive 和 fork comparison；
+- casefile summary。
 
-## Desktop information architecture
+## 桌面端 information architecture
 
 ```text
 ┌ Mission intent / SLA ─────────────────────── Run / Compare / Export ┐
@@ -38,39 +38,38 @@ Within 90 seconds, a first-time visitor should understand that Mission Studio is
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-Panels may collapse or appear contextually; do not permanently fill every region with dense telemetry.
+面板可以折叠或按上下文出现；不要让每个区域始终充满密集 telemetry。
 
-## Required interactions
+## 必需交互
 
-- play, pause, speed, step, seek;
-- select an event on the globe or timeline and highlight its causal chain;
-- move between observation, evidence, belief update, decision, and outcome;
-- switch fixed/adaptive runs without changing time or visual scale;
-- inspect resource margins at a selected decision;
-- enter/exit Story Mode at the current time;
-- reset to a known deterministic state;
-- keyboard-accessible focus and event inspection.
+- 播放、暂停、变速、单步、seek；
+- 在地球或 timeline 上选择 event，并高亮其 causal chain；
+- 在 observation、evidence、belief update、decision 和 outcome 之间移动；
+- 切换 fixed/adaptive run 时，不改变时间或视觉比例；
+- 检查所选 decision 时刻的 resource margin；
+- 在当前时刻进入/退出 Story Mode；
+- 重置到已知的 deterministic state；
+- 支持键盘访问的 focus 和 event inspection。
 
-## Domain visual semantics
+## 领域视觉语义
 
-- blue/cyan: plan and available capability;
-- amber: uncertainty, waiting evidence, or pressure near a limit;
-- red: hard constraint violation or fault only;
-- green: evidence-supported state that passed its gate;
-- dashed/transparent: forecast, counterfactual, or lower confidence;
-- brightness and motion do not carry essential information alone.
+- 蓝色/青色：plan 和 available capability；
+- 琥珀色：uncertainty、等待 evidence，或接近限制时的压力；
+- 红色：仅用于 hard constraint violation 或 fault；
+- 绿色：由 evidence 支持且已通过 gate 的状态；
+- 虚线/透明：forecast、counterfactual 或较低 confidence；
+- 亮度和动态效果不能单独承载关键信息。
 
-## Quality bar
+## 质量标准
 
-- visually distinctive but not sci-fi clutter;
-- readable on a normal laptop display;
-- stable playback and seek across all views;
-- accessible reduced-motion mode;
-- meaningful loading, unsupported-version, and asset-unavailable states;
-- screenshot baselines generated and compared in the same pinned Linux environment;
-- no full hyperspectral cube downloaded to the browser.
+- 视觉上有辨识度，但不堆砌科幻装饰；
+- 在普通笔记本屏幕上可读；
+- 所有视图中的 playback 与 seek 稳定；
+- 提供无障碍的 reduced-motion mode；
+- loading、unsupported-version 和 asset-unavailable 状态必须有实际意义；
+- screenshot baseline 必须在同一套固定版本的 Linux 环境中生成和比较；
+- 不向浏览器下载完整 hyperspectral cube。
 
 ## Spectral interaction
 
-Selecting a map region or observation may show a small server-prepared or fixture-provided spectral profile and evidence marker. The goal is to connect a spatial pixel to the evidence decision—not to reproduce a full hyperspectral analysis desktop.
-
+选择地图区域或 observation 时，可以展示一个由服务器预先生成或 fixture 提供的小型 spectral profile 和 evidence marker。目标是把空间 pixel 与 evidence decision 连接起来，而不是复刻完整的 hyperspectral analysis desktop。

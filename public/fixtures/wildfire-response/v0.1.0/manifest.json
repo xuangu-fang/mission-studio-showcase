@@ -1,0 +1,66 @@
+{
+  "attribution": [
+    {
+      "note": "No operational fire incident, sensor feed, or calibrated resource profile is included.",
+      "title": "Mission Studio project-authored synthetic wildfire scenario",
+      "url": "https://github.com/xuangu-fang/mission-studio"
+    }
+  ],
+  "clock": {
+    "duration_s": 60,
+    "epoch": "2026-01-01T00:00:00Z",
+    "time_unit": "second"
+  },
+  "comparison_group_id": "cmp-wildfire-response-seed-7",
+  "contracts": {
+    "event": "0.1.0",
+    "manifest": "0.1.0",
+    "outcome": "0.1.0"
+  },
+  "fixture_id": "wildfire-response-policy-comparison-v0",
+  "producer": {
+    "id": "mission-studio-core",
+    "version": "0.1.0"
+  },
+  "runs": [
+    {
+      "initial_conditions_digest": "sha256:97319c57dd83570f998b9d91220a914c66a890f94cc56d0a89b086d05923538e",
+      "outcome_path": "outcomes/fixed.json",
+      "policy": {
+        "id": "wildfire-fixed-v0",
+        "kind": "fixed",
+        "label": "Fixed policy",
+        "version": "0.1.0"
+      },
+      "run_id": "run-wildfire-response-fixed-seed-7",
+      "trace_path": "traces/fixed.jsonl"
+    },
+    {
+      "initial_conditions_digest": "sha256:97319c57dd83570f998b9d91220a914c66a890f94cc56d0a89b086d05923538e",
+      "outcome_path": "outcomes/adaptive.json",
+      "policy": {
+        "id": "wildfire-adaptive-v0",
+        "kind": "adaptive",
+        "label": "Adaptive policy",
+        "version": "0.1.0"
+      },
+      "run_id": "run-wildfire-response-adaptive-seed-7",
+      "trace_path": "traces/adaptive.jsonl"
+    }
+  ],
+  "scenario": {
+    "id": "wildfire-response",
+    "title": "Wildfire Rapid Response",
+    "value_status": "synthetic",
+    "version": "0.1.0"
+  },
+  "schema_version": "0.1.0",
+  "title": "Wildfire cross-sensor confirmation policy comparison",
+  "value_status_legend": {
+    "counterfactual": "Alternative-policy result under identical initial conditions.",
+    "derived": "Deterministically computed from contract-valid inputs.",
+    "inferred": "Synthetic evidence update; not a performance claim.",
+    "replayed": "Deterministic replay shape; no operational sensor data is included.",
+    "synthetic": "Project-authored scenario or resource value; not calibrated."
+  }
+}

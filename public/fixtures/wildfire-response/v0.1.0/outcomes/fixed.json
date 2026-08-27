@@ -1,0 +1,26 @@
+{
+  "comparison_group_id": "cmp-wildfire-response-seed-7",
+  "completed": false,
+  "evidence_completeness": 1.0,
+  "evidence_threshold": 0.78,
+  "final_belief": 0.59,
+  "hard_constraint_violations": 1,
+  "outcome_id": "outcome-run-wildfire-response-fixed-seed-7",
+  "policy": {
+    "id": "wildfire-fixed-v0",
+    "kind": "fixed",
+    "version": "0.1.0"
+  },
+  "provenance": {
+    "producer": "mission-studio-core",
+    "producer_version": "0.1.0",
+    "value_status": "derived"
+  },
+  "retained_rare_evidence": false,
+  "run_id": "run-wildfire-response-fixed-seed-7",
+  "schema_version": "0.1.0",
+  "summary": "Mission did not both pass the evidence threshold and downlink selected evidence.",
+  "time_to_knowledge_s": null,
+  "transmitted_mb": 6.0,
+  "utility_per_transmitted_mb": 0.098333
+}

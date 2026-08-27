@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mission-studio.local/contracts/public/0.1.0/manifest.schema.json",
+  "title": "Mission Studio Public Trace Manifest 0.1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "fixture_id", "title", "comparison_group_id", "scenario", "clock", "producer", "contracts", "runs", "attribution", "value_status_legend"],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "fixture_id": {"type": "string", "minLength": 1},
+    "title": {"type": "string", "minLength": 1},
+    "comparison_group_id": {"type": "string", "minLength": 1},
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "version", "value_status"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "value_status": {"$ref": "#/$defs/value_status"}
+      }
+    },
+    "clock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["epoch", "time_unit", "duration_s"],
+      "properties": {
+        "epoch": {"type": "string", "format": "date-time"},
+        "time_unit": {"const": "second"},
+        "duration_s": {"type": "integer", "minimum": 1}
+      }
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1}
+      }
+    },
+    "contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifest", "event", "outcome"],
+      "properties": {
+        "manifest": {"const": "0.1.0"},
+        "event": {"const": "0.1.0"},
+        "outcome": {"const": "0.1.0"}
+      }
+    },
+    "runs": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["run_id", "policy", "initial_conditions_digest", "trace_path", "outcome_path"],
+        "properties": {
+          "run_id": {"type": "string", "minLength": 1},
+          "initial_conditions_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+          "policy": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "kind", "label", "version"],
+            "properties": {
+              "id": {"type": "string", "minLength": 1},
+              "kind": {"enum": ["fixed", "adaptive"]},
+              "label": {"type": "string", "minLength": 1},
+              "version": {"type": "string", "minLength": 1}
+            }
+          },
+          "trace_path": {"type": "string", "pattern": "^traces/[a-z0-9_-]+\\.jsonl$"},
+          "outcome_path": {"type": "string", "pattern": "^outcomes/[a-z0-9_-]+\\.json$"}
+        }
+      }
+    },
+    "attribution": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "url", "note"],
+        "properties": {
+          "title": {"type": "string", "minLength": 1},
+          "url": {"type": "string", "format": "uri"},
+          "note": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "value_status_legend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["synthetic", "replayed", "derived", "inferred", "counterfactual"],
+      "properties": {
+        "synthetic": {"type": "string", "minLength": 1},
+        "replayed": {"type": "string", "minLength": 1},
+        "derived": {"type": "string", "minLength": 1},
+        "inferred": {"type": "string", "minLength": 1},
+        "counterfactual": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "$defs": {
+    "value_status": {"enum": ["synthetic", "replayed", "derived", "inferred", "counterfactual"]}
+  }
+}

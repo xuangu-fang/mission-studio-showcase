@@ -1,7 +1,7 @@
 project:
   name: mission-studio-showcase
   display_name: Mission Studio Showcase
-  status: planning
+  status: implementing
   visibility: public
   repository: https://github.com/xuangu-fang/mission-studio-showcase
   primary_branch: main
@@ -23,7 +23,9 @@ experience:
     - live-future
 
 contracts:
-  status: proposed
+  status: implemented-v0.1.0
+  supported_versions:
+    - 0.1.0
   consumes:
     - PublicRuntimeEvent
     - PublicResourceState
@@ -46,4 +48,3 @@ boundaries:
   no_partner_data: true
   no_flight_claims: true
   license_status: pending-owner-decision
-

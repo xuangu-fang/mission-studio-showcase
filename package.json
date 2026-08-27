@@ -1,0 +1,16 @@
+{
+  "name": "mission-studio-showcase-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.24.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "corepack pnpm --filter @mission-studio/web dev",
+    "build": "corepack pnpm --filter @mission-studio/web build",
+    "typecheck": "corepack pnpm -r typecheck",
+    "test": "corepack pnpm -r test",
+    "check": "corepack pnpm typecheck && corepack pnpm test && corepack pnpm build"
+  }
+}

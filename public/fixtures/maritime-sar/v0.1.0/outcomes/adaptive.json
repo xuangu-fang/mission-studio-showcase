@@ -1,0 +1,26 @@
+{
+  "comparison_group_id": "cmp-maritime-sar-seed-7",
+  "completed": true,
+  "evidence_completeness": 1.0,
+  "evidence_threshold": 0.76,
+  "final_belief": 0.8,
+  "hard_constraint_violations": 0,
+  "outcome_id": "outcome-run-maritime-sar-adaptive-seed-7",
+  "policy": {
+    "id": "maritime-adaptive-v0",
+    "kind": "adaptive",
+    "version": "0.1.0"
+  },
+  "provenance": {
+    "producer": "mission-studio-core",
+    "producer_version": "0.1.0",
+    "value_status": "derived"
+  },
+  "retained_rare_evidence": true,
+  "run_id": "run-maritime-sar-adaptive-seed-7",
+  "schema_version": "0.1.0",
+  "summary": "Evidence threshold passed and selected evidence was downlinked.",
+  "time_to_knowledge_s": 33,
+  "transmitted_mb": 3.0,
+  "utility_per_transmitted_mb": 0.266667
+}

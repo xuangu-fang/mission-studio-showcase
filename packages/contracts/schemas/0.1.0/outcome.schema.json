@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mission-studio.local/contracts/public/0.1.0/outcome.schema.json",
+  "title": "Mission Studio Public Outcome 0.1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "outcome_id", "run_id", "comparison_group_id", "policy", "completed", "final_belief", "evidence_threshold", "time_to_knowledge_s", "transmitted_mb", "utility_per_transmitted_mb", "hard_constraint_violations", "evidence_completeness", "retained_rare_evidence", "summary", "provenance"],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "outcome_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "comparison_group_id": {"type": "string", "minLength": 1},
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "version"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["fixed", "adaptive"]},
+        "version": {"type": "string", "minLength": 1}
+      }
+    },
+    "completed": {"type": "boolean"},
+    "final_belief": {"type": "number", "minimum": 0, "maximum": 1},
+    "evidence_threshold": {"type": "number", "minimum": 0, "maximum": 1},
+    "time_to_knowledge_s": {"type": ["integer", "null"], "minimum": 0},
+    "transmitted_mb": {"type": "number", "minimum": 0},
+    "utility_per_transmitted_mb": {"type": "number", "minimum": 0},
+    "hard_constraint_violations": {"type": "integer", "minimum": 0},
+    "evidence_completeness": {"type": "number", "minimum": 0, "maximum": 1},
+    "retained_rare_evidence": {"type": "boolean"},
+    "summary": {"type": "string", "minLength": 1},
+    "provenance": {"$ref": "#/$defs/provenance"}
+  },
+  "$defs": {
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producer", "producer_version", "value_status"],
+      "properties": {
+        "producer": {"type": "string", "minLength": 1},
+        "producer_version": {"type": "string", "minLength": 1},
+        "value_status": {"enum": ["synthetic", "replayed", "derived", "inferred", "counterfactual"]}
+      }
+    }
+  }
+}
