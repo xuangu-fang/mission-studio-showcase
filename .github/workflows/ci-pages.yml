@@ -18,6 +18,8 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-24.04
+    env:
+      VITE_CORE_API_BASE_URL: ${{ vars.MISSION_STUDIO_GATEWAY_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

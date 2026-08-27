@@ -36,8 +36,9 @@ Mission Studio Showcase 是 Mission Intelligence 系统面向公众的浏览器�
 - 面向讲解的 Story Mode 和面向检查的 Operator Mode；
 - fixed/adaptive outcome 对比；
 - 三场景任务展厅与场景专属空间编码；
-- 可选的本地私有 Core 连接，用自然语言调用 DeepSeek 生成未授权的 MissionIR proposal；
-- 默认仍使用静态离线 fixture，公共页面不需要后端或 API key。
+- 口令保护的 Serverless Gateway，用自然语言调用 DeepSeek 生成未授权的 MissionIR proposal；
+- 本地开发未配置 Gateway URL 时仍连接 localhost 私有 Core；
+- 默认 Trace 回放继续使用静态 fixture，不依赖 Gateway。
 
 ## 本地运行
 
@@ -96,7 +97,7 @@ project.yaml              项目状态、Hub 关联和 contract 支持版本
 
 `Implementing / Showcase Gate A+B / multi-case runnable demo`
 
-静态 Story/Operator demo 不需要后端、模型 provider 或私有仓库即可运行。自然语言 Authoring 是仅在本地连接私有 Core 后启用的可选能力；DeepSeek key 永远不进入本仓库或浏览器 bundle。
+静态 Story/Operator demo 不需要后端、模型 provider 或私有仓库即可运行。GitHub Pages 的自然语言 Authoring 通过受口令保护、Origin allowlist 和限频的独立 Gateway 调用 DeepSeek；本地开发仍可直连 localhost Core。DeepSeek key 永远不进入本仓库或浏览器 bundle，所有结果仍为 `proposal_only`。
 
 ## License
 

@@ -58,4 +58,4 @@
 ## S-012 — Natural-language authoring is an optional private-Core connection
 
 - Status: Accepted for Gate B preview
-- Static Showcase 不包含模型 secret，也不向公共部署提供通用模型 proxy。开发者显式启动仅绑定 localhost 的 private Core 后，Showcase 可以提交自然语言 intent，并显示 DeepSeek 生成且通过 MissionIR validation 的 `proposal_only` 结果；浏览器不能将该结果标为已授权或直接执行。
+- Static Showcase 不包含模型 secret，也不提供通用模型 proxy。GitHub Pages 可以通过口令保护、Origin allowlist、长度限制与限频的专用 Serverless Gateway 提交自然语言 intent；本地开发未配置 Gateway 时连接仅绑定 localhost 的 private Core。两条路径都只显示通过 MissionIR validation 的 `proposal_only` 结果，浏览器不能将其标为已授权或直接执行。

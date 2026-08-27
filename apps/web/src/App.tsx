@@ -674,10 +674,12 @@ const AUTHORING_EXAMPLES: Record<ScenarioId, string> = {
 function MissionComposer({ scenarioId, onClose }: { scenarioId: ScenarioId; onClose: () => void }) {
   const [intent, setIntent] = useState(AUTHORING_EXAMPLES[scenarioId]);
   const [profile, setProfile] = useState<ScenarioId>(scenarioId);
+  const [demoPassword, setDemoPassword] = useState("");
   const [result, setResult] = useState<AuthoringResponse>();
   const [composerError, setComposerError] = useState<string>();
   const [compiling, setCompiling] = useState(false);
-  const coreBaseUrl = import.meta.env.VITE_CORE_API_BASE_URL || "http://127.0.0.1:8765";
+  const remoteGatewayUrl = import.meta.env.VITE_CORE_API_BASE_URL as string | undefined;
+  const coreBaseUrl = remoteGatewayUrl || "http://127.0.0.1:8765";
 
   const compile = async () => {
     setCompiling(true);
@@ -686,7 +688,10 @@ function MissionComposer({ scenarioId, onClose }: { scenarioId: ScenarioId; onCl
     try {
       const response = await fetch(`${coreBaseUrl}/v1/missions/parse`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(remoteGatewayUrl ? { "X-Mission-Demo-Password": demoPassword } : {})
+        },
         body: JSON.stringify({ intent, profile })
       });
       const body = await response.json() as AuthoringResponse & { error?: { message?: string } };
@@ -710,18 +715,31 @@ function MissionComposer({ scenarioId, onClose }: { scenarioId: ScenarioId; onCl
           <div className="composer-input">
             <label htmlFor="mission-intent">描述任务目标、约束和希望系统采取的策略</label>
             <textarea id="mission-intent" value={intent} onChange={(event) => setIntent(event.target.value)} rows={8} />
+            {remoteGatewayUrl && (
+              <label className="gateway-password" htmlFor="mission-demo-password">
+                <span>演示密码 / SERVERLESS GATEWAY</span>
+                <input
+                  id="mission-demo-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={demoPassword}
+                  onChange={(event) => setDemoPassword(event.target.value)}
+                  placeholder="输入演示密码后调用 DeepSeek"
+                />
+              </label>
+            )}
             <div className="composer-examples">
               <span>受审能力配置</span>
               <button className={profile === "adaptive-hsi" ? "active" : ""} onClick={() => { setProfile("adaptive-hsi"); setIntent(AUTHORING_EXAMPLES["adaptive-hsi"]); }}>高光谱</button>
               <button className={profile === "wildfire-response" ? "active" : ""} onClick={() => { setProfile("wildfire-response"); setIntent(AUTHORING_EXAMPLES["wildfire-response"]); }}>野火响应</button>
               <button className={profile === "maritime-sar" ? "active" : ""} onClick={() => { setProfile("maritime-sar"); setIntent(AUTHORING_EXAMPLES["maritime-sar"]); }}>海上搜救</button>
             </div>
-            <button className="compile-button" disabled={compiling || !intent.trim()} onClick={compile}>{compiling ? "DeepSeek 正在结构化任务…" : "编译 MissionIR Proposal"}</button>
-            <small>请求只发送到本地私有 Core。API key 不会进入浏览器；输出默认没有执行授权。</small>
+            <button className="compile-button" disabled={compiling || !intent.trim() || Boolean(remoteGatewayUrl && !demoPassword)} onClick={compile}>{compiling ? "DeepSeek 正在结构化任务…" : "编译 MissionIR Proposal"}</button>
+            <small>{remoteGatewayUrl ? "请求经口令保护的 Serverless Gateway 转发。API key 不会进入浏览器；输出默认没有执行授权。" : "请求只发送到本地私有 Core。API key 不会进入浏览器；输出默认没有执行授权。"}</small>
           </div>
           <div className="composer-result" aria-live="polite">
             {!result && !composerError && <div className="composer-placeholder"><i>NL</i><span>语言意图</span><em>→</em><i>IR</i><span>严格契约</span><em>→</em><i>GATE</i><span>确定性授权</span></div>}
-            {composerError && <div className="composer-error"><span>CORE OFFLINE / REJECTED</span><p>{composerError}</p><small>启动本地 Core authoring server 后可进行真实 DeepSeek 编译。</small></div>}
+            {composerError && <div className="composer-error"><span>CORE OFFLINE / REJECTED</span><p>{composerError}</p><small>{remoteGatewayUrl ? "请检查演示密码，或稍后再试。" : "启动本地 Core authoring server 后可进行真实 DeepSeek 编译。"}</small></div>}
             {result && (
               <div className="compiled-mission">
                 <div className="compiled-status"><span>VALIDATED PROPOSAL</span><b>{result.authorization.authorized ? "已授权" : "未授权 · 等待 Gate"}</b></div>

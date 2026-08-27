@@ -21,20 +21,21 @@ VITE_PUBLIC_FIXTURE_BASE=./fixtures
 
 使用已提交且经过审查的 fixture，不依赖 API。
 
-### Live（未来）
+### Password-protected Authoring
 
 ```text
-VITE_STUDIO_MODE=live
-VITE_API_BASE_URL=https://public-api.example
-VITE_WS_BASE_URL=wss://public-api.example
+VITE_CORE_API_BASE_URL=https://mission-studio-gateway.example
 ```
 
-浏览器配置中只能出现 public endpoint 地址。secret 永远不能使用 `VITE_*` 变量。
+浏览器配置中只能出现 Gateway 的 public URL。DeepSeek key 和演示密码摘要由 Serverless runtime 管理，secret 永远不能使用 `VITE_*` 变量。浏览器发送用户临时输入的演示密码；密码不进入 repository、build artifact 或 browser storage。
+
+Gateway 只允许 Showcase 与本地开发 Origin，限制 body、intent 长度和请求频率，只接受三个受审 capability profile。模型只能填写目标相关字段；AOI、资产、能力、约束、权限与 policy 由服务端可信模板覆盖。响应固定为 `proposal_only`，不能触发 Action execution。
 
 ## GitHub Pages 要求
 
 - Vite base path：`/mission-studio-showcase/`，除非 custom domain 将其改为 `/`；
 - 通过 GitHub Actions 构建和部署；
+- 使用 repository variable `MISSION_STUDIO_GATEWAY_URL` 注入非敏感 Gateway 地址；
 - 将 Cesium Workers、ThirdParty、Assets 和 Widgets 复制到预期的 static base path；
 - 使用与 static hosting 兼容的 route；初期采用单一 application route 或 hash routing；
 - remote basemap 或 asset service 失败时，提供实用的 offline/static fallback；
