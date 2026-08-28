@@ -171,7 +171,9 @@ function WorldView({
   maxTime,
   mode,
   focusEventType,
-  scenario
+  scenario,
+  storyBeat,
+  observationCount
 }: {
   projection: ReturnType<typeof projectEvents>;
   simTime: number;
@@ -179,6 +181,8 @@ function WorldView({
   mode: Mode;
   focusEventType?: string;
   scenario: ScenarioConfig;
+  storyBeat?: StoryBeat;
+  observationCount: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<Viewer | null>(null);
@@ -566,18 +570,39 @@ function WorldView({
           sceneKind={scenario.sceneKind}
           accent={scenario.accent}
           hasEvidence={Boolean(projection.evidence)}
-          beliefScore={num(projection.belief?.score)}
+          observationCount={observationCount}
+          beliefScore={num(projection.belief?.belief, num(projection.belief?.score))}
           beliefPassed={beliefPassed}
           linkOffline={!contactAvailable}
           reducedMotion={reducedMotion}
         />
       )}
+      {mode === "story" && storyBeat && <StoryCausalStrip scenario={scenario} beat={storyBeat} eventType={currentEventType} />}
       <div className="world-legend" aria-label="世界视图文字说明">
         <span><i className="dot cyan" style={{ background: scenario.accent }} />{scenario.aoiLabel}</span>
         <span><i className="dot amber" />轨道高 {Math.round(orbitProfile.altitudeM / 1000)} km · 周期 {Math.round(orbitProfile.periodS / 60)} min</span>
         <span>重访间隔折叠 {Math.round(orbitProfile.repeatCycleS / 3600)} h · 平均 {Math.round(orbitProfile.timeCompression)}×</span>
         <span className={contactAvailable ? "contact-online" : "contact-offline"}>{contactAvailable ? "链路可用" : "链路中断"}</span>
       </div>
+    </section>
+  );
+}
+
+function StoryCausalStrip({ scenario, beat, eventType }: { scenario: ScenarioConfig; beat: StoryBeat; eventType: string }) {
+  const steps = [
+    { index: "01", label: "任务目标", title: `确认${scenario.hypothesisLabel.replace("假设", "")}`, detail: "用足够证据回答任务问题" },
+    { index: "02", label: "此刻发生", title: domainLabel(eventType), detail: beat.title },
+    { index: "03", label: "系统选择", title: beat.response, detail: "选择必须通过资源与权限 Gate" },
+    { index: "04", label: "即时变化", title: beat.impact, detail: "变化写入同一条 Runtime Trace" }
+  ];
+  return (
+    <section className="story-causal-strip" aria-label="当前任务因果解释">
+      {steps.map((step) => (
+        <article key={step.index}>
+          <i>{step.index}</i>
+          <div><span>{step.label}</span><b>{step.title}</b><small>{step.detail}</small></div>
+        </article>
+      ))}
     </section>
   );
 }
@@ -629,13 +654,17 @@ function StoryNarrative({
   event,
   simTime,
   beliefScore,
-  gate
+  gate,
+  scenarioId,
+  showPolicyFork
 }: {
   beat: StoryBeat;
   event?: PublicRuntimeEvent;
   simTime: number;
   beliefScore: number;
   gate: number;
+  scenarioId: ScenarioId;
+  showPolicyFork: boolean;
 }) {
   const gap = Math.max(0, gate - beliefScore);
   return (
@@ -648,16 +677,46 @@ function StoryNarrative({
       <div className="story-event-chip" role="status" aria-live="polite"><i />{event ? domainLabel(event.type) : "任务已初始化"}</div>
       <dl className="story-explanation">
         <div><dt>为什么重要</dt><dd>{beat.why}</dd></div>
-        <div><dt>系统如何响应</dt><dd>{beat.response}</dd></div>
+        {!showPolicyFork && <div><dt>系统如何响应</dt><dd>{beat.response}</dd></div>}
         <div><dt>即时影响</dt><dd>{beat.impact}</dd></div>
       </dl>
+      {showPolicyFork && <StoryPolicyFork scenarioId={scenarioId} />}
       <div className="story-belief-summary">
-        <div><span>当前 Belief</span><b>{Math.round(beliefScore * 100)}%</b></div>
+        <div><span>当前把握 / BELIEF</span><b>{Math.round(beliefScore * 100)}%</b></div>
         <div className="story-belief-track"><i style={{ width: `${beliefScore * 100}%` }} /><em style={{ left: `${gate * 100}%` }} /></div>
-        <small>{gap > 0 ? `距离任务门还差 ${Math.round(gap * 100)}%` : "已越过任务门"}</small>
+        <small>{gap > 0 ? `距离任务完成门槛还差 ${Math.round(gap * 100)}%` : "已越过任务完成门槛"}</small>
       </div>
       <p className="trace-note">画面、文字与状态均来自同一条 Public Runtime Trace。</p>
     </aside>
+  );
+}
+
+const POLICY_FORK_COPY: Record<ScenarioId, { fixed: [string, string]; adaptive: [string, string] }> = {
+  "adaptive-hsi": {
+    fixed: ["继续尝试原定下传", "链路不可用，行动会被 Gate 拒绝"],
+    adaptive: ["保留稀缺证据并重访", "等待下一次判别性观测，不提前下结论"]
+  },
+  "wildfire-response": {
+    fixed: ["沿用单一传感器判断", "烟云遮挡使火线位置仍不可靠"],
+    adaptive: ["请求跨传感器证据", "用热异常补足被遮挡的火线信息"]
+  },
+  "maritime-sar": {
+    fixed: ["继续覆盖全部搜索网格", "燃料被低价值区域持续消耗"],
+    adaptive: ["收缩搜索区并针对性重访", "把资源集中到信标一致的候选区域"]
+  }
+};
+
+function StoryPolicyFork({ scenarioId }: { scenarioId: ScenarioId }) {
+  const copy = POLICY_FORK_COPY[scenarioId];
+  return (
+    <section className="story-policy-fork" aria-label="固定策略与自适应策略即时对比">
+      <span>策略分叉 / WHY ADAPT</span>
+      <div>
+        <article><small>固定策略 Fixed</small><b>{copy.fixed[0]}</b><p>{copy.fixed[1]}</p></article>
+        <i>→</i>
+        <article className="adaptive"><small>自适应 Adaptive</small><b>{copy.adaptive[0]}</b><p>{copy.adaptive[1]}</p></article>
+      </div>
+    </section>
   );
 }
 
@@ -1041,6 +1100,7 @@ export function App() {
   const gate = num(projection.belief?.threshold, projection.successGate);
   const outcomes = Object.fromEntries(bundle.manifest.runs.map((manifestRun) => [manifestRun.policy.kind, bundle.outcomesByRun[manifestRun.run_id]]));
   const currentStoryBeat = storyBeat(scenarioId, policyKind, simTime, beliefScore, gate, maxTime, events);
+  const observationCount = events.filter((event) => event.type === "observation.acquired" && event.sim_time_s <= simTime).length;
 
   const step = (direction: -1 | 1) => {
     const candidates = events.map((event) => event.sim_time_s);
@@ -1139,10 +1199,10 @@ export function App() {
           </aside>
         )}
 
-        <WorldView projection={projection} simTime={simTime} maxTime={maxTime} mode={mode} focusEventType={mode === "story" ? storyEvent?.type : undefined} scenario={scenario} />
+        <WorldView projection={projection} simTime={simTime} maxTime={maxTime} mode={mode} focusEventType={mode === "story" ? storyEvent?.type : undefined} scenario={scenario} storyBeat={mode === "story" ? currentStoryBeat : undefined} observationCount={observationCount} />
 
         {mode === "story" ? (
-          <StoryNarrative beat={currentStoryBeat} event={storyEvent} simTime={simTime} beliefScore={beliefScore} gate={gate} />
+          <StoryNarrative beat={currentStoryBeat} event={storyEvent} simTime={simTime} beliefScore={beliefScore} gate={gate} scenarioId={scenarioId} showPolicyFork={projection.activeConstraints.length > 0 || storyEvent?.type === "constraint.activated"} />
         ) : (
           <aside className="evidence-panel panel">
             <div className="panel-heading"><div><span className="eyebrow">信念 / 证据</span><h2>计划为何改变</h2></div><span className={`gate-dot ${beliefScore >= gate ? "passed" : "pending"}`} /> </div>

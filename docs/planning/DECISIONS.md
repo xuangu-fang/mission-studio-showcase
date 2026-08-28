@@ -70,3 +70,9 @@
 - Status: Accepted for Gate B preview
 - Story Mode 使用离线 two-body LEO ephemeris、地球自转和 15-revolution sidereal repeat cycle，不依赖实时 TLE 或远程服务。首次观测与 next-day revisit 在回放中对齐同一 AOI，24 小时间隔被明确标记为时间折叠。该轨道是物理可信的 synthetic scenario geometry，不代表真实在轨卫星或 flight product。
 - 主 Cesium Viewer 始终保留地球曲率、卫星、轨道、AOI 与地面站的全球关系；Event 改变视锥、链路和信息高亮，不再触发 AOI 俯冲镜头。左上 Payload View 使用 Canvas2D 生成轻量、确定性的 synthetic raster，并与 Cesium、Story text、Belief 共用同一 trace clock。避免第二 WebGL Viewer，以控制 GitHub Pages 和普通笔记本的 GPU 成本。
+
+## S-015 — Story Mode 首先解释因果，而不是展示遥测
+
+- Status: Accepted for Gate B preview
+- Payload View 只在 acquisition 阶段扫描；Observation 后冻结画面，Evidence 阶段框选会改变结论的区域，Revisit 后提供首次/重访的并排比较。每个状态明确区分 synthetic image、observed marker 与 derived interpretation。
+- 全球画面底部常驻四步新手解释：任务目标、此刻发生、系统选择、即时变化。Constraint 激活时，Story narrative 立即展示 Fixed 与 Adaptive 的策略分叉，不要求访问者等到结尾才理解自适应价值。Operator Mode 继续承载完整 contract、resource、provenance 与 causal inspection。

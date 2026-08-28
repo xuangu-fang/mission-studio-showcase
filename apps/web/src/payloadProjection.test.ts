@@ -17,4 +17,15 @@ describe("payload projection", () => {
     expect(state.linkOffline).toBe(true);
     expect(state.phase).toBe("analyzing");
   });
+
+  it("freezes an acquired frame and compares it after the revisit", () => {
+    const first = payloadState("observation.acquired", "observe", false, false, false, 1);
+    const revisit = payloadState("observation.acquired", "revisit", true, false, false, 2);
+    expect(first.scanning).toBe(false);
+    expect(first.compareFrames).toBe(false);
+    expect(first.detail).toMatch(/停止扫描/);
+    expect(revisit.scanning).toBe(false);
+    expect(revisit.compareFrames).toBe(true);
+    expect(revisit.label).toMatch(/重访/);
+  });
 });

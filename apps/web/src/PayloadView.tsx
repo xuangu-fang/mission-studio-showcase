@@ -9,10 +9,24 @@ interface PayloadViewProps {
   sceneKind: "spectral" | "wildfire" | "search";
   accent: string;
   hasEvidence: boolean;
+  observationCount: number;
   beliefScore: number;
   beliefPassed: boolean;
   linkOffline: boolean;
   reducedMotion: boolean;
+}
+
+function payloadInsight(sceneKind: PayloadViewProps["sceneKind"], beliefPassed: boolean) {
+  const insights = {
+    spectral: ["2.21 μm 判别特征", "候选区域与背景光谱出现可区分差异"],
+    wildfire: ["热边界连续扩张", "新观测确认火线正在越过控制区域"],
+    search: ["候选目标交叉一致", "雷达回波与遇险信标指向同一区域"]
+  } as const;
+  const [title, detail] = insights[sceneKind];
+  return {
+    title: beliefPassed ? title : `候选：${title}`,
+    detail: beliefPassed ? detail : `${detail}，但当前仍不足以完成任务`
+  };
 }
 
 function hash(x: number, y: number, seed: number) {
@@ -100,8 +114,10 @@ export function PayloadView(props: PayloadViewProps) {
     props.actionType,
     props.hasEvidence,
     props.beliefPassed,
-    props.linkOffline
-  ), [props.eventType, props.actionType, props.hasEvidence, props.beliefPassed, props.linkOffline]);
+    props.linkOffline,
+    props.observationCount
+  ), [props.eventType, props.actionType, props.hasEvidence, props.beliefPassed, props.linkOffline, props.observationCount]);
+  const insight = payloadInsight(props.sceneKind, props.beliefPassed);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -119,7 +135,28 @@ export function PayloadView(props: PayloadViewProps) {
       if (!context) return;
       context.clearRect(0, 0, width, height);
       const seed = Math.round((props.position.longitude + 180) * 4) + Math.round((props.position.latitude + 90) * 4);
-      drawTerrain(context, width, height, props.sceneKind, seed, state.showEvidence, props.accent);
+      if (state.compareFrames) {
+        context.save();
+        context.beginPath();
+        context.rect(0, 0, width / 2, height);
+        context.clip();
+        drawTerrain(context, width, height, props.sceneKind, seed - 31, false, props.accent);
+        context.restore();
+        context.save();
+        context.beginPath();
+        context.rect(width / 2, 0, width / 2, height);
+        context.clip();
+        drawTerrain(context, width, height, props.sceneKind, seed, true, props.accent);
+        context.restore();
+        context.strokeStyle = "rgba(255,255,255,.52)";
+        context.lineWidth = 1;
+        context.beginPath();
+        context.moveTo(width / 2, height * 0.15);
+        context.lineTo(width / 2, height * 0.82);
+        context.stroke();
+      } else {
+        drawTerrain(context, width, height, props.sceneKind, seed, state.showEvidence, props.accent);
+      }
       context.strokeStyle = `${props.accent}66`;
       context.lineWidth = 1;
       context.strokeRect(width * 0.18, height * 0.16, width * 0.64, height * 0.68);
@@ -165,6 +202,20 @@ export function PayloadView(props: PayloadViewProps) {
         <span>LON {props.position.longitude >= 0 ? "+" : ""}{props.position.longitude.toFixed(2)}°</span>
         <span>ALT {(props.position.altitudeM / 1000).toFixed(0)} KM</span>
       </div>
+      {state.compareFrames && (
+        <div className="payload-compare-labels" aria-hidden="true">
+          <span><b>首次观测</b><small>证据不足</small></span>
+          <span><b>重访观测</b><small>判别特征增强</small></span>
+        </div>
+      )}
+      {state.showEvidence && (
+        <div className="payload-evidence-insight">
+          <span>观察值 / OBSERVED</span>
+          <b>{insight.title}</b>
+          <p>{insight.detail}</p>
+          <small>推断 / DERIVED · 画面已冻结</small>
+        </div>
+      )}
       <div className="payload-readout">
         <div><i /> <b>{state.label}</b></div>
         <span>{state.detail}</span>

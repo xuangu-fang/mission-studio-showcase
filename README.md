@@ -29,7 +29,8 @@ Mission Studio Showcase 是 Mission Intelligence 系统面向公众的浏览器�
 ## 当前公开体验
 
 - Cesium 全球任务视图：离线地球贴图、可复现近极地 LEO、ground track、AOI、地面站、视锥与通信几何；
-- Story Mode 的同步合成 Payload View：扫描、footprint、evidence mask、Belief 与链路状态；
+- Story Mode 的同步 Evidence Microscope：采集时扫描、观测后冻结、Evidence 框选、首次/重访对比、Belief 与链路状态；
+- 面向新访问者的四步因果字幕，以及 Constraint 时刻的 Fixed / Adaptive 即时策略分叉；
 - 任务意图、目标、约束和 Action Graph；
 - Evidence、Belief、不确定性和“下一行动 / 原因”；
 - 资源状态与统一任务时间线；
