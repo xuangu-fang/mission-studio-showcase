@@ -14,6 +14,10 @@ export interface ScenarioConfig {
   accent: string;
   accentRgb: string;
   sceneKind: "spectral" | "wildfire" | "search";
+  payloadImage: string;
+  payloadImageLabel: string;
+  payloadImageCredit: string;
+  payloadImageSource: string;
 }
 
 export const SCENARIOS: ScenarioConfig[] = [
@@ -30,7 +34,11 @@ export const SCENARIOS: ScenarioConfig[] = [
     aoiLabel: "高光谱 AOI",
     accent: "#58e8d6",
     accentRgb: "88, 232, 214",
-    sceneKind: "spectral"
+    sceneKind: "spectral",
+    payloadImage: "assets/payload/emit-minerals.webp",
+    payloadImageLabel: "EMIT 矿物光谱制图",
+    payloadImageCredit: "NASA/JPL-Caltech",
+    payloadImageSource: "https://www.jpl.nasa.gov/news/nasa-dust-detective-delivers-first-maps-from-space-for-climate-science/"
   },
   {
     id: "wildfire-response",
@@ -45,7 +53,11 @@ export const SCENARIOS: ScenarioConfig[] = [
     aoiLabel: "火场响应区",
     accent: "#ff9d57",
     accentRgb: "255, 157, 87",
-    sceneKind: "wildfire"
+    sceneKind: "wildfire",
+    payloadImage: "assets/payload/camp-fire.webp",
+    payloadImageLabel: "Landsat Camp Fire 影像",
+    payloadImageCredit: "NASA Earth Observatory",
+    payloadImageSource: "https://appliedsciences.nasa.gov/what-we-do/disasters/fires"
   },
   {
     id: "maritime-sar",
@@ -60,7 +72,11 @@ export const SCENARIOS: ScenarioConfig[] = [
     aoiLabel: "海上搜索区",
     accent: "#6eb8f2",
     accentRgb: "110, 184, 242",
-    sceneKind: "search"
+    sceneKind: "search",
+    payloadImage: "assets/payload/sentinel1-ships.webp",
+    payloadImageLabel: "Sentinel-1 英吉利海峡船舶交通",
+    payloadImageCredit: "Copernicus Sentinel data (2016–18), ESA",
+    payloadImageSource: "https://www.esa.int/ESA_Multimedia/Images/2019/04/English_Channel"
   }
 ];
 

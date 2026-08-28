@@ -22,6 +22,7 @@ import type { PublicManifest, PublicRuntimeEvent, TraceBundle } from "@mission-s
 import { parseJsonLines, validateBundle } from "@mission-studio/contracts";
 import { causalChain, projectEvents } from "@mission-studio/domain";
 import { missionOrbitPosition, missionOrbitProfile, missionOrbitTrack, storyCameraRange } from "./worldMotion";
+import { assetStateModel } from "./assetState";
 import { PayloadView } from "./PayloadView";
 import { storyBeat, storyFocusEvent, storyStageIndex, storyStages, type StoryBeat } from "./storyModel";
 import { SCENARIOS, scenarioConfig, type ScenarioConfig, type ScenarioId } from "./scenarioCatalog";
@@ -563,19 +564,33 @@ function WorldView({
       </div>
       <div className="world-canvas" ref={containerRef} aria-hidden="true" />
       {mode === "story" && (
-        <PayloadView
-          position={orbitPosition}
-          eventType={currentEventType}
-          actionType={worldAction}
-          sceneKind={scenario.sceneKind}
-          accent={scenario.accent}
-          hasEvidence={Boolean(projection.evidence)}
-          observationCount={observationCount}
-          beliefScore={num(projection.belief?.belief, num(projection.belief?.score))}
-          beliefPassed={beliefPassed}
-          linkOffline={!contactAvailable}
-          reducedMotion={reducedMotion}
-        />
+        <>
+          <PayloadView
+            position={orbitPosition}
+            eventType={currentEventType}
+            actionType={worldAction}
+            sceneKind={scenario.sceneKind}
+            accent={scenario.accent}
+            imageSrc={`${import.meta.env.BASE_URL}${scenario.payloadImage}`}
+            imageLabel={scenario.payloadImageLabel}
+            imageCredit={scenario.payloadImageCredit}
+            imageSource={scenario.payloadImageSource}
+            hasEvidence={Boolean(projection.evidence)}
+            observationCount={observationCount}
+            beliefScore={num(projection.belief?.belief, num(projection.belief?.score))}
+            beliefPassed={beliefPassed}
+            linkOffline={!contactAvailable}
+            reducedMotion={reducedMotion}
+          />
+          <AssetStatePanel
+            assetLabel={scenario.assetLabel}
+            resources={projection.resources}
+            simTime={simTime}
+            maxTime={maxTime}
+            contactAvailable={contactAvailable}
+            actionType={worldAction}
+          />
+        </>
       )}
       {mode === "story" && storyBeat && <StoryCausalStrip scenario={scenario} beat={storyBeat} eventType={currentEventType} />}
       <div className="world-legend" aria-label="世界视图文字说明">
@@ -585,6 +600,43 @@ function WorldView({
         <span className={contactAvailable ? "contact-online" : "contact-offline"}>{contactAvailable ? "链路可用" : "链路中断"}</span>
       </div>
     </section>
+  );
+}
+
+function AssetStatePanel({
+  assetLabel,
+  resources,
+  simTime,
+  maxTime,
+  contactAvailable,
+  actionType
+}: {
+  assetLabel: string;
+  resources: Array<Record<string, unknown>>;
+  simTime: number;
+  maxTime: number;
+  contactAvailable: boolean;
+  actionType: string;
+}) {
+  const model = assetStateModel(resources, simTime, maxTime, contactAvailable, actionType);
+  return (
+    <aside className={`asset-state-panel ${model.health.toLowerCase()}`} aria-label={`${assetLabel} 平台自身状态感知`}>
+      <header>
+        <div><span>平台自感知</span><b>ASSET STATE / {assetLabel}</b></div>
+        <i>{model.health}</i>
+      </header>
+      <div className="asset-state-metrics">
+        {model.metrics.map((metric) => (
+          <article className={metric.tone} key={metric.id}>
+            <div><span>{metric.shortLabel} · {metric.label}</span><small>{metric.provenance}</small></div>
+            <b>{metric.display}</b>
+            <em><i style={{ width: `${Math.max(2, metric.value * 100)}%` }} /></em>
+          </article>
+        ))}
+      </div>
+      <footer><span>任务影响 / MISSION EFFECT</span><b>{model.impact}</b></footer>
+      <p><i>TRACE</i> 任务事件实测/合成值 <i>POC</i> 展示用平台遥测</p>
+    </aside>
   );
 }
 

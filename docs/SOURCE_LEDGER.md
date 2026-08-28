@@ -16,4 +16,7 @@ Accessed 2026-08-26. These official sources support initial technology and deplo
 | [STAC](https://stacspec.org/en/about/stac-spec/) | public geospatial asset metadata | does not define evidence/belief contracts |
 | [EMIT tutorials](https://earth.jpl.nasa.gov/emit/events/4/emit-data-tutorial-series/) | candidate HSI data and analysis workflow | redistribution/fixture choice requires review |
 | [EnMAP data access](https://www.enmap.org/data_access/) | candidate analysis-ready HSI products | access and license terms require review |
-
+| [NASA/JPL EMIT first mineral maps](https://www.jpl.nasa.gov/news/nasa-dust-detective-delivers-first-maps-from-space-for-climate-science/) | high-resolution hyperspectral context image used in the HSI Payload POC; credit NASA/JPL-Caltech | contextual illustration only; not matched to the synthetic trace geography or time |
+| [NASA Applied Sciences — Fires](https://appliedsciences.nasa.gov/what-we-do/disasters/fires) | Landsat Camp Fire imagery used as wildfire Payload context | contextual illustration only; not an operational fire product or exact trace scene |
+| [ESA Sentinel-1 — English Channel](https://www.esa.int/ESA_Multimedia/Images/2019/04/English_Channel) | maritime SAR context image showing ships as bright radar returns; contains modified Copernicus Sentinel data (2016–18), processed by ESA | used under CC BY-SA 3.0 IGO for POC context; not matched to the synthetic search trace |
+| [JPL image use policy](https://www.jpl.nasa.gov/jpl-image-use-policy/) | attribution and reuse boundary for the NASA/JPL image | no endorsement implied; visible credit retained in the Payload UI |
