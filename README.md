@@ -37,6 +37,7 @@ Mission Studio Showcase 是 Mission Intelligence 系统面向公众的浏览器�
 - fixed/adaptive outcome 对比；
 - 三场景任务展厅与场景专属空间编码；
 - 口令保护的 Serverless Gateway，用自然语言调用 DeepSeek 生成未授权的 MissionIR proposal；
+- 用户明确确认后，Execution Gate 会再次验证受审 profile，并启动无外部影响的 Synthetic Sandbox adaptive run；
 - 本地开发未配置 Gateway URL 时仍连接 localhost 私有 Core；
 - 默认 Trace 回放继续使用静态 fixture，不依赖 Gateway。
 
@@ -67,6 +68,7 @@ corepack pnpm check
 - mission graph、evidence/belief、constraint、resource、causal chain 和 outcome projections；
 - Story / Operator 两种模式；
 - 自然语言 Mission Authoring 对话框及清晰的 proposal-only authorization boundary；
+- supervised confirmation、服务端 Execution Gate 与一键 Sandbox trace execution；
 - unit/fixture tests 和 GitHub Pages subpath build。
 
 ## 仓库结构
@@ -97,7 +99,7 @@ project.yaml              项目状态、Hub 关联和 contract 支持版本
 
 `Implementing / Showcase Gate A+B / multi-case runnable demo`
 
-静态 Story/Operator demo 不需要后端、模型 provider 或私有仓库即可运行。GitHub Pages 的自然语言 Authoring 通过受口令保护、Origin allowlist 和限频的独立 Gateway 调用 DeepSeek；本地开发仍可直连 localhost Core。DeepSeek key 永远不进入本仓库或浏览器 bundle，所有结果仍为 `proposal_only`。
+静态 Story/Operator demo 不需要后端、模型 provider 或私有仓库即可运行。GitHub Pages 的自然语言 Authoring 通过受口令保护、Origin allowlist 和限频的独立 Gateway 调用 DeepSeek；本地开发仍可直连 localhost Core。DeepSeek key 永远不进入本仓库或浏览器 bundle。模型结果首先是 `proposal_only`；只有用户点击确认且服务端 Gate 复核通过后，才授权 `synthetic_sandbox_only`，不会连接真实设备或产生外部影响。
 
 ## License
 

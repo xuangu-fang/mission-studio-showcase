@@ -646,7 +646,7 @@ function IntelligenceStack() {
           </i>
         ))}
       </div>
-      <p>DeepSeek API key 只存在于私有 Core；任何模型输出都必须经过 Contract、Action Catalog、Resource 与 Authority Gate，浏览器只消费清理后的 Public Trace。</p>
+      <p>DeepSeek API key 只存在于私有 Core / Serverless Gateway；任何模型输出都必须经过 Contract、Action Catalog、Resource 与 Authority Gate。用户确认后也只会获得 Synthetic Sandbox 执行权限。</p>
     </details>
   );
 }
@@ -665,19 +665,32 @@ interface AuthoringResponse {
   authorization: { authorized: boolean; status: string; next_gate: string };
 }
 
+interface ExecutionResponse {
+  schema_version: "mission-execution-response/v0";
+  run_id: string;
+  status: "accepted";
+  execution_mode: "synthetic_sandbox";
+  mission: { mission_id: string; objective: string };
+  scenario: { id: ScenarioId; policy_kind: "adaptive"; fixture_version: string; trace_source: string };
+  authorization: { authorized: true; scope: "synthetic_sandbox_only"; reason_codes: string[] };
+  external_effects: false;
+}
+
 const AUTHORING_EXAMPLES: Record<ScenarioId, string> = {
   "adaptive-hsi": "确认目标区域的稀有矿物光谱特征；首次证据不足时安排重访，只下传改变结论所需的证据。",
   "wildfire-response": "在山火区域确认火线是否越过控制线；烟云遮挡时请求跨传感器证据，并优先下传火线变化。",
   "maritime-sar": "在燃料和通信窗口受限的海上搜索区确认遇险目标；放弃低价值网格并请求针对性重访。"
 };
 
-function MissionComposer({ scenarioId, onClose }: { scenarioId: ScenarioId; onClose: () => void }) {
+function MissionComposer({ scenarioId, onClose, onExecute }: { scenarioId: ScenarioId; onClose: () => void; onExecute: (mission: AuthoringResponse, execution: ExecutionResponse) => void }) {
   const [intent, setIntent] = useState(AUTHORING_EXAMPLES[scenarioId]);
   const [profile, setProfile] = useState<ScenarioId>(scenarioId);
   const [demoPassword, setDemoPassword] = useState("");
   const [result, setResult] = useState<AuthoringResponse>();
   const [composerError, setComposerError] = useState<string>();
+  const [executionError, setExecutionError] = useState<string>();
   const [compiling, setCompiling] = useState(false);
+  const [executing, setExecuting] = useState(false);
   const remoteGatewayUrl = import.meta.env.VITE_CORE_API_BASE_URL as string | undefined;
   const coreBaseUrl = remoteGatewayUrl || "http://127.0.0.1:8765";
 
@@ -701,6 +714,26 @@ function MissionComposer({ scenarioId, onClose }: { scenarioId: ScenarioId; onCl
       setComposerError(reason instanceof Error ? reason.message : "无法连接本地 Mission Studio Core");
     } finally {
       setCompiling(false);
+    }
+  };
+
+  const executeMission = async () => {
+    if (!result || !remoteGatewayUrl) return;
+    setExecuting(true);
+    setExecutionError(undefined);
+    try {
+      const response = await fetch(`${coreBaseUrl}/v1/missions/execute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Mission-Demo-Password": demoPassword },
+        body: JSON.stringify({ confirmed: true, profile: result.profile_id, mission_ir: result.mission_ir })
+      });
+      const body = await response.json() as ExecutionResponse & { error?: { message?: string } };
+      if (!response.ok) throw new Error(body.error?.message ?? `Execution Gate rejected request (${response.status})`);
+      onExecute(result, body);
+    } catch (reason) {
+      setExecutionError(reason instanceof Error ? reason.message : "Sandbox execution failed");
+    } finally {
+      setExecuting(false);
     }
   };
 
@@ -753,6 +786,14 @@ function MissionComposer({ scenarioId, onClose }: { scenarioId: ScenarioId; onCl
                 </dl>
                 <div className="compiled-assets"><span>已声明能力</span>{result.mission_ir.assets.flatMap((asset) => asset.capabilities).map((capability) => <i key={capability}>{capability}</i>)}</div>
                 <div className="authorization-path"><span>下一道边界</span><p>{result.authorization.next_gate.replaceAll("+", " → ")}</p></div>
+                {remoteGatewayUrl && (
+                  <div className="execution-confirmation">
+                    <div><span>SUPERVISED CONFIRMATION</span><b>只执行 Synthetic Sandbox</b></div>
+                    <p>确认后，服务端会重新校验 capability、resource 与 authority，并启动该场景的 checked adaptive run。不会连接真实设备或产生外部操作。</p>
+                    {executionError && <small>{executionError}</small>}
+                    <button disabled={executing} onClick={executeMission}>{executing ? "正在通过 Execution Gate…" : "确认并在 Sandbox 执行"}</button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -835,6 +876,8 @@ export function App() {
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [selectedEventId, setSelectedEventId] = useState<string>();
+  const [sandboxRun, setSandboxRun] = useState<ExecutionResponse>();
+  const [authoredObjective, setAuthoredObjective] = useState<string>();
 
   const scenario = scenarioConfig(scenarioId);
 
@@ -895,6 +938,19 @@ export function App() {
     if (target !== undefined) setSimTime(target);
   };
 
+  const startSandboxRun = (mission: AuthoringResponse, execution: ExecutionResponse) => {
+    setSandboxRun(execution);
+    setAuthoredObjective(mission.mission_ir.objectives[0]?.description);
+    setScenarioId(execution.scenario.id);
+    setPolicyKind("adaptive");
+    setMode("story");
+    setSpeed(1);
+    setSimTime(0);
+    setSelectedEventId(undefined);
+    setComposerOpen(false);
+    setPlaying(true);
+  };
+
   return (
     <main
       className={`studio-shell ${mode === "story" ? "story-layout" : "operator-layout"}`}
@@ -902,9 +958,9 @@ export function App() {
     >
       <header className="topbar">
         <div className="brand"><span className="brand-mark">MS</span><div><b>MISSION STUDIO</b><small>{scenario.shortTitle} / 公开回放</small></div></div>
-        <div className="mission-title"><span className="eyebrow">任务意图 / MISSION INTENT</span><strong>{objectiveLabel(projection.objective)}</strong></div>
+        <div className="mission-title"><span className="eyebrow">任务意图 / MISSION INTENT</span><strong>{authoredObjective ?? objectiveLabel(projection.objective)}</strong></div>
         <div className="header-controls">
-          <span className="status-chip replay">离线 Trace 回放</span><span className="status-chip synthetic">合成数据</span>
+          <span className="status-chip replay">{sandboxRun ? "Sandbox Run" : "离线 Trace 回放"}</span><span className="status-chip synthetic">合成数据</span>
           <button className="composer-trigger" onClick={() => setComposerOpen(true)}>＋ 语言创建任务</button>
           <div className="segmented" aria-label="体验模式">
             {(["operator", "story"] as Mode[]).map((item) => <button className={mode === item ? "selected" : ""} key={item} onClick={() => {
@@ -933,6 +989,8 @@ export function App() {
               setPlaying(mode === "story");
               setSelectedEventId(undefined);
               setPolicyKind("adaptive");
+              setSandboxRun(undefined);
+              setAuthoredObjective(undefined);
             }}
           >
             <i>{String(index + 1).padStart(2, "0")}</i>
@@ -940,6 +998,15 @@ export function App() {
           </button>
         ))}
       </nav>
+
+      {sandboxRun && (
+        <aside className="sandbox-run-banner" aria-live="polite">
+          <i />
+          <div><span>SYNTHETIC SANDBOX / 已确认执行</span><b>{sandboxRun.mission.objective}</b></div>
+          <small>{sandboxRun.run_id} · Adaptive Policy · 无外部影响</small>
+          <button aria-label="关闭 Sandbox run 状态" onClick={() => { setSandboxRun(undefined); setAuthoredObjective(undefined); }}>×</button>
+        </aside>
+      )}
 
       {mode === "story" && (
         <StoryStageRail
@@ -1028,7 +1095,7 @@ export function App() {
         <StoryConclusion outcomes={outcomes} onInspect={() => { setMode("operator"); setPlaying(false); }} />
       )}
 
-      {composerOpen && <MissionComposer scenarioId={scenarioId} onClose={() => setComposerOpen(false)} />}
+      {composerOpen && <MissionComposer scenarioId={scenarioId} onClose={() => setComposerOpen(false)} onExecute={startSandboxRun} />}
     </main>
   );
 }

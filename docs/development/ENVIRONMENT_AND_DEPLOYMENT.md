@@ -29,7 +29,7 @@ VITE_CORE_API_BASE_URL=https://mission-studio-gateway.example
 
 浏览器配置中只能出现 Gateway 的 public URL。DeepSeek key 和演示密码摘要由 Serverless runtime 管理，secret 永远不能使用 `VITE_*` 变量。浏览器发送用户临时输入的演示密码；密码不进入 repository、build artifact 或 browser storage。
 
-Gateway 只允许 Showcase 与本地开发 Origin，限制 body、intent 长度和请求频率，只接受三个受审 capability profile。模型只能填写目标相关字段；AOI、资产、能力、约束、权限与 policy 由服务端可信模板覆盖。响应固定为 `proposal_only`，不能触发 Action execution。
+Gateway 只允许 Showcase 与本地开发 Origin，限制 body、intent 长度和请求频率，只接受三个受审 capability profile。模型只能填写目标相关字段；AOI、资产、能力、约束、权限与 policy 由服务端可信模板覆盖。Authoring 响应固定为 `proposal_only`。用户明确点击确认后，独立 Execution endpoint 会重新验证完整 MissionIR 与 trusted profile；通过后只返回 `synthetic_sandbox_only` 授权并启动 checked adaptive trace，不允许真实设备或外部系统副作用。
 
 ## GitHub Pages 要求
 

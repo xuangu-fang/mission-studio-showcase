@@ -59,3 +59,8 @@
 
 - Status: Accepted for Gate B preview
 - Static Showcase 不包含模型 secret，也不提供通用模型 proxy。GitHub Pages 可以通过口令保护、Origin allowlist、长度限制与限频的专用 Serverless Gateway 提交自然语言 intent；本地开发未配置 Gateway 时连接仅绑定 localhost 的 private Core。两条路径都只显示通过 MissionIR validation 的 `proposal_only` 结果，浏览器不能将其标为已授权或直接执行。
+
+## S-013 — User confirmation authorizes Sandbox execution, not external action
+
+- Status: Accepted for Gate B preview
+- DeepSeek 返回的 MissionIR 永远先保持 `proposal_only`。用户点击“确认并在 Sandbox 执行”后，Gateway 必须重新绑定 trusted capability profile，并复核 schema、AOI、constraints、capability set 与 supervised authority。只有完整匹配时才返回 `synthetic_sandbox_only` 授权；Showcase 随后启动对应 checked adaptive trace。该流程明确标记 `external_effects=false`，不能被解释为真实设备、agent tool 或外部系统执行。
