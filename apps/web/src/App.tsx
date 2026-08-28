@@ -24,6 +24,8 @@ import { causalChain, projectEvents } from "@mission-studio/domain";
 import { missionOrbitPosition, missionOrbitProfile, missionOrbitTrack, storyCameraRange } from "./worldMotion";
 import { assetStateModel } from "./assetState";
 import { PayloadView } from "./PayloadView";
+import { ResearchInsightPanel } from "./ResearchInsightPanel";
+import { parsePortableRunText, type ImportedRun } from "./runSource";
 import { causalStepIndex, storyBeat, storyFocusEvent, storyStageIndex, storyStages, type StoryBeat } from "./storyModel";
 import { SCENARIOS, scenarioConfig, type ScenarioConfig, type ScenarioId } from "./scenarioCatalog";
 
@@ -1112,7 +1114,9 @@ function OutcomeCard({ label, outcome, active }: { label: string; outcome?: Trac
 export function App() {
   const [composerOpen, setComposerOpen] = useState(false);
   const [scenarioId, setScenarioId] = useState<ScenarioId>("adaptive-hsi");
-  const [bundle, setBundle] = useState<TraceBundle>();
+  const [fixtureBundle, setFixtureBundle] = useState<TraceBundle>();
+  const [importedRun, setImportedRun] = useState<ImportedRun>();
+  const [importError, setImportError] = useState<string>();
   const [error, setError] = useState<string>();
   const [policyKind, setPolicyKind] = useState<PolicyKind>("adaptive");
   const [mode, setMode] = useState<Mode>("operator");
@@ -1122,15 +1126,22 @@ export function App() {
   const [selectedEventId, setSelectedEventId] = useState<string>();
   const [sandboxRun, setSandboxRun] = useState<ExecutionResponse>();
   const [authoredObjective, setAuthoredObjective] = useState<string>();
+  const runFileInputRef = useRef<HTMLInputElement>(null);
   const prefersReducedMotion = useMemo(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
 
-  const scenario = scenarioConfig(scenarioId);
+  const selectedScenario = scenarioConfig(scenarioId);
+  const importedScenario = importedRun?.bundle.manifest.scenario.id;
+  const scenario = importedScenario && SCENARIOS.some((item) => item.id === importedScenario)
+    ? scenarioConfig(importedScenario as ScenarioId)
+    : selectedScenario;
 
   useEffect(() => {
-    setBundle(undefined);
+    setFixtureBundle(undefined);
     setError(undefined);
-    loadBundle(scenario).then(setBundle).catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "Unknown fixture error"));
-  }, [scenario]);
+    loadBundle(selectedScenario).then(setFixtureBundle).catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "Unknown fixture error"));
+  }, [selectedScenario]);
+
+  const bundle = importedRun?.bundle ?? fixtureBundle;
 
   const run = bundle?.manifest.runs.find((item) => item.policy.kind === policyKind);
   const events = run ? bundle?.eventsByRun[run.run_id] ?? [] : [];
@@ -1175,7 +1186,7 @@ export function App() {
   const beliefScore = num(projection.belief?.belief, num(projection.belief?.score));
   const gate = num(projection.belief?.threshold, projection.successGate);
   const outcomes = Object.fromEntries(bundle.manifest.runs.map((manifestRun) => [manifestRun.policy.kind, bundle.outcomesByRun[manifestRun.run_id]]));
-  const currentStoryBeat = storyBeat(scenarioId, policyKind, simTime, beliefScore, gate, maxTime, events);
+  const currentStoryBeat = storyBeat(scenario.id as ScenarioId, policyKind, simTime, beliefScore, gate, maxTime, events);
   const currentStoryStage = storyStageIndex(policyKind, simTime, events);
   const observationCount = events.filter((event) => event.type === "observation.acquired" && event.sim_time_s <= simTime).length;
 
@@ -1198,6 +1209,47 @@ export function App() {
     setPlaying(!prefersReducedMotion);
   };
 
+  const importResearchRun = async (file?: File) => {
+    if (!file) return;
+    setImportError(undefined);
+    if (file.size > 8 * 1024 * 1024) {
+      setImportError("Research Run 超过 8 MB；请导出不含原始影像和私有 artifact 的公开摘要包。");
+      return;
+    }
+    try {
+      const imported = parsePortableRunText(await file.text());
+      activateResearchRun(imported);
+    } catch (reason) {
+      setImportError(reason instanceof Error ? reason.message : "Research Run 无法验证");
+    } finally {
+      if (runFileInputRef.current) runFileInputRef.current.value = "";
+    }
+  };
+
+  const activateResearchRun = (imported: ImportedRun) => {
+    const importedScenarioId = imported.bundle.manifest.scenario.id as ScenarioId;
+    setImportedRun(imported);
+    setScenarioId(importedScenarioId);
+    setPolicyKind("adaptive");
+    setSimTime(0);
+    setPlaying(false);
+    setSelectedEventId(undefined);
+    setSandboxRun(undefined);
+    setAuthoredObjective(undefined);
+    setMode("story");
+  };
+
+  const loadResearchDemo = async () => {
+    setImportError(undefined);
+    try {
+      const response = await fetch(`${import.meta.env.BASE_URL}research/mission-b2e-benchmark.missionrun`);
+      if (!response.ok) throw new Error(`科研示例加载失败：HTTP ${response.status}`);
+      activateResearchRun(parsePortableRunText(await response.text()));
+    } catch (reason) {
+      setImportError(reason instanceof Error ? reason.message : "科研示例无法验证");
+    }
+  };
+
   return (
     <main
       className={`studio-shell ${mode === "story" ? "story-layout" : "operator-layout"}`}
@@ -1207,7 +1259,10 @@ export function App() {
         <div className="brand"><span className="brand-mark">MS</span><div><b>MISSION STUDIO</b><small>{scenario.shortTitle} / 公开回放</small></div></div>
         <div className="mission-title"><span className="eyebrow">任务意图 / MISSION INTENT</span><strong>{authoredObjective ?? objectiveLabel(projection.objective)}</strong></div>
         <div className="header-controls">
-          <span className="status-chip replay">{sandboxRun ? "Sandbox Run" : "离线 Trace 回放"}</span><span className="status-chip synthetic">合成数据</span>
+          <span className="status-chip replay">{importedRun ? "Research Run" : sandboxRun ? "Sandbox Run" : "离线 Trace 回放"}</span><span className="status-chip synthetic">{importedRun ? "已验证导入" : "合成数据"}</span>
+          <button className="research-import sample" onClick={() => void loadResearchDemo()}>▶ 科研示例</button>
+          <button className="research-import" onClick={() => runFileInputRef.current?.click()}>⇧ 导入 Run</button>
+          <input ref={runFileInputRef} hidden type="file" accept=".json,.missionrun,application/json" onChange={(event) => void importResearchRun(event.target.files?.[0])} />
           <button className="composer-trigger" onClick={() => setComposerOpen(true)}>＋ 语言创建任务</button>
           <div className="segmented" aria-label="体验模式">
             {(["operator", "story"] as Mode[]).map((item) => <button aria-pressed={mode === item} className={mode === item ? "selected" : ""} key={item} onClick={() => {
@@ -1228,10 +1283,12 @@ export function App() {
         <div><span className="eyebrow">MISSION CASES</span><b>选择任务</b></div>
         {SCENARIOS.map((item, index) => (
           <button
-            className={scenarioId === item.id ? "active" : ""}
-            aria-current={scenarioId === item.id ? "page" : undefined}
+            className={scenario.id === item.id ? "active" : ""}
+            aria-current={scenario.id === item.id ? "page" : undefined}
             key={item.id}
             onClick={() => {
+              setImportedRun(undefined);
+              setImportError(undefined);
               setScenarioId(item.id);
               setSimTime(0);
               setPlaying(mode === "story" && !prefersReducedMotion);
@@ -1246,6 +1303,16 @@ export function App() {
           </button>
         ))}
       </nav>
+
+      {importedRun && (
+        <aside className="research-run-banner" aria-live="polite">
+          <i />
+          <div><span>RESEARCH RUN / 契约验证通过</span><b>{importedRun.bundle.manifest.title}</b></div>
+          <dl><div><dt>EXPORT</dt><dd>{importedRun.metadata.export_id}</dd></div><div><dt>PRODUCER</dt><dd>{importedRun.metadata.producer.id} · {importedRun.metadata.producer.version}</dd></div><div><dt>EVENTS</dt><dd>{Object.values(importedRun.bundle.eventsByRun).reduce((sum, items) => sum + items.length, 0)}</dd></div></dl>
+          <button onClick={() => setImportedRun(undefined)}>返回内置场景</button>
+        </aside>
+      )}
+      {importError && <aside className="research-run-error" role="alert"><span>导入被拒绝</span><p>{importError}</p><button aria-label="关闭导入错误" onClick={() => setImportError(undefined)}>×</button></aside>}
 
       {sandboxRun && (
         <aside className="sandbox-run-banner" aria-live="polite">
@@ -1279,7 +1346,7 @@ export function App() {
         <WorldView projection={projection} simTime={simTime} maxTime={maxTime} mode={mode} focusEventType={mode === "story" ? storyEvent?.type : undefined} scenario={scenario} storyBeat={mode === "story" ? currentStoryBeat : undefined} storyStage={currentStoryStage} observationCount={observationCount} />
 
         {mode === "story" ? (
-          <StoryNarrative beat={currentStoryBeat} event={storyEvent} simTime={simTime} beliefScore={beliefScore} gate={gate} scenarioId={scenarioId} showPolicyFork={projection.activeConstraints.length > 0 || storyEvent?.type === "constraint.activated"} />
+          <StoryNarrative beat={currentStoryBeat} event={storyEvent} simTime={simTime} beliefScore={beliefScore} gate={gate} scenarioId={scenario.id as ScenarioId} showPolicyFork={projection.activeConstraints.length > 0 || storyEvent?.type === "constraint.activated"} />
         ) : (
           <aside className="evidence-panel panel">
             <div className="panel-heading"><div><span className="eyebrow">信念 / 证据</span><h2>计划为何改变</h2></div><span className={`gate-dot ${beliefScore >= gate ? "passed" : "pending"}`} /> </div>
@@ -1294,6 +1361,8 @@ export function App() {
           </aside>
         )}
       </div>
+
+      {importedRun?.researchResult && <ResearchInsightPanel result={importedRun.researchResult} />}
 
       {mode === "operator" && <ResourceRibbon resources={projection.resources} />}
 

@@ -76,3 +76,10 @@
 - Status: Accepted for Gate B preview
 - Payload View 只在 acquisition 阶段扫描；Observation 后冻结画面，Evidence 阶段框选会改变结论的区域，Revisit 后提供首次/重访的并排比较。每个状态明确区分 synthetic image、observed marker 与 derived interpretation。
 - 全球画面底部常驻四步新手解释：任务目标、此刻发生、系统选择、即时变化。Constraint 激活时，Story narrative 立即展示 Fixed 与 Adaptive 的策略分叉，不要求访问者等到结尾才理解自适应价值。Operator Mode 继续承载完整 contract、resource、provenance 与 causal inspection。
+
+## S-016 — 独立科研模型通过 artifact 接入，不进入前端运行时
+
+- Status: Accepted for Gate B research bridge
+- 独立研究仓库只产生版本化、带 provenance 的结果和清理后 public export；Showcase 不安装其 Python package，也不在浏览器执行研究模型。
+- `mission-run-bundle/0.1.0` envelope 复用当前 Public Manifest/Event/Outcome validator，并可携带独立 `research_result`。Research Result 只能解释多假设 uncertainty、calibration 与 policy benchmark，不能直接生成已授权行动或改写 Runtime Trace。
+- Story 回放仍以同一条 Public Runtime Trace 为事实源。Uncertainty Lens 是研究 artifact 的可视化投影，并明确标注 synthetic claim boundary。

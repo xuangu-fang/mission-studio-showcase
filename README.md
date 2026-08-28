@@ -2,6 +2,8 @@
 
 Mission Studio Showcase 是 Mission Intelligence 系统面向公众的浏览器窗口。它展示任务意图如何形成已验证计划、观测如何成为证据、信念如何在不确定性下更新，以及资源受限系统为何选择行动、重访、下传、升级或弃权。
 
+在线演示：[xuangu-fang.github.io/mission-studio-showcase](https://xuangu-fang.github.io/mission-studio-showcase/)
+
 仓库目前已进入 **Showcase Gate A 的多场景可运行纵切**：浏览器可以完全离线地验证并回放三组 fixed/adaptive public trace，所有任务视图都由各自同一条有序事件流驱动。
 
 配套的私有 `mission-studio` 仓库负责 Mission Compiler、Agent Gateway、validator、planner、deterministic engine、高保真 adapter、私有 casefile 与内部部署。本公开仓库不导入任何私有源代码，只消费经过清理、带版本的 public contract 与 fixture。
@@ -40,6 +42,9 @@ Mission Studio Showcase 是 Mission Intelligence 系统面向公众的浏览器�
 - 三场景任务展厅与场景专属空间编码；
 - 口令保护的 Serverless Gateway，用自然语言调用 DeepSeek 生成未授权的 MissionIR proposal；
 - 用户明确确认后，Execution Gate 会再次验证受审 profile，并启动无外部影响的 Synthetic Sandbox adaptive run；
+- 可导入 classification=public 的 `.missionrun` 科研产物，并用同一套 Public Trace validator 回放；
+- Research Run 的 Uncertainty Lens 展示竞争解释、Fixed / VoI / DP Oracle 代价、主动弃权与校准边界；
+- 顶栏“科研示例”可直接加载仓库内由 `mission-belief-to-evidence` 64 个 paired seeds 生成的确定性公开产物；
 - 本地开发未配置 Gateway URL 时仍连接 localhost 私有 Core；
 - 默认 Trace 回放继续使用静态 fixture，不依赖 Gateway。
 

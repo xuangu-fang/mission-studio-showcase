@@ -1,6 +1,23 @@
 # Public Trace Contract
 
-准确的 JSON Schema 将在 Showcase Gate A 与 Core Gate 1 协同期间创建。本文档定义 public contract 的最小语义集合。
+`packages/contracts/schemas/0.1.0/` 是当前 Public Manifest、Runtime Event 与 Outcome 的准确 JSON Schema。本文件说明这些 schema 之外的发布、导入和兼容语义。
+
+## Portable Research Run
+
+Showcase 可以导入独立研究仓库产生的清理后 `.missionrun` JSON envelope。顶层契约为 `mission-run-bundle/0.1.0`，至少包含：
+
+- `export_metadata.classification = public`；
+- 稳定的 `export_id`、创建时间和 producer 版本；
+- 一个现有 Public Manifest；
+- 以 `run_id` 分组的 Runtime Event arrays；
+- 以 `run_id` 分组的 Public Outcomes；
+- 可选、版本化的 `research_result`。
+
+导入器必须继续调用与内置 fixture 相同的 manifest/event/outcome validator，检查 event ordering、seq、causation 与 schema version。它不得把研究仓库的内部 Trace 当成 Mission Studio Runtime Event，也不得接受 `internal` 或未声明 classification 的产物。
+
+`export_metadata.integrity` 存在时，当前浏览器导入器验证其算法与 digest 格式；producer CI 和发布流程负责重算内容 digest。UI 的“契约验证通过”不表示数字签名、发布者身份或浏览器内 cryptographic verification。
+
+`research_result` 是一个附属研究 artifact。它可以提供 rival-hypothesis distribution、policy benchmark、calibration、OOD 边界和 provenance；它不拥有 Runtime Truth，不授权行动，也不替代 Core 的 Belief / Policy / Authorization Gate。
 
 ## Public manifest
 
