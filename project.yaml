@@ -34,8 +34,8 @@ contracts:
     - PublicCasefileSummary
 
 gates:
-  current: showcase-A
-  next: trace-driven-visual-skeleton
+  current: showcase-B-preview
+  next: live-runtime-generated-trace
 
 deployment:
   target: github-pages

@@ -64,3 +64,9 @@
 
 - Status: Accepted for Gate B preview
 - DeepSeek 返回的 MissionIR 永远先保持 `proposal_only`。用户点击“确认并在 Sandbox 执行”后，Gateway 必须重新绑定 trusted capability profile，并复核 schema、AOI、constraints、capability set 与 supervised authority。只有完整匹配时才返回 `synthetic_sandbox_only` 授权；Showcase 随后启动对应 checked adaptive trace。该流程明确标记 `external_effects=false`，不能被解释为真实设备、agent tool 或外部系统执行。
+
+## S-014 — 全球轨道与 Payload View 使用可复现的合成几何
+
+- Status: Accepted for Gate B preview
+- Story Mode 使用离线 two-body LEO ephemeris、地球自转和 15-revolution sidereal repeat cycle，不依赖实时 TLE 或远程服务。首次观测与 next-day revisit 在回放中对齐同一 AOI，24 小时间隔被明确标记为时间折叠。该轨道是物理可信的 synthetic scenario geometry，不代表真实在轨卫星或 flight product。
+- 主 Cesium Viewer 始终保留地球曲率、卫星、轨道、AOI 与地面站的全球关系；Event 改变视锥、链路和信息高亮，不再触发 AOI 俯冲镜头。左上 Payload View 使用 Canvas2D 生成轻量、确定性的 synthetic raster，并与 Cesium、Story text、Belief 共用同一 trace clock。避免第二 WebGL Viewer，以控制 GitHub Pages 和普通笔记本的 GPU 成本。

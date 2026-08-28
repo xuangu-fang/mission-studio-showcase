@@ -28,7 +28,8 @@ Mission Studio Showcase 是 Mission Intelligence 系统面向公众的浏览器�
 
 ## 当前公开体验
 
-- Cesium 世界视图：AOI、任务资产、任务事件与本地离线椭球；
+- Cesium 全球任务视图：离线地球贴图、可复现近极地 LEO、ground track、AOI、地面站、视锥与通信几何；
+- Story Mode 的同步合成 Payload View：扫描、footprint、evidence mask、Belief 与链路状态；
 - 任务意图、目标、约束和 Action Graph；
 - Evidence、Belief、不确定性和“下一行动 / 原因”；
 - 资源状态与统一任务时间线；
@@ -64,7 +65,7 @@ corepack pnpm check
 - deterministic fixed/adaptive trace replay；
 - adaptive HSI、wildfire response 与 maritime SAR 三组 checked fixture；
 - 共享时钟上的 play、pause、step、seek、reset 与 policy switch；
-- 不依赖远程地图服务的 Cesium AOI 视图；
+- 不依赖远程地图服务的 Cesium 全球视图与 synthetic two-body ephemeris；
 - mission graph、evidence/belief、constraint、resource、causal chain 和 outcome projections；
 - Story / Operator 两种模式；
 - 自然语言 Mission Authoring 对话框及清晰的 proposal-only authorization boundary；

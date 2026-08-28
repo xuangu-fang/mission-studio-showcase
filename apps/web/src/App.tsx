@@ -2,22 +2,27 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import {
   Cartesian2,
   Cartesian3,
+  buildModuleUrl,
   Color,
   ColorMaterialProperty,
   ConstantPositionProperty,
   ConstantProperty,
   HeightReference,
+  HeadingPitchRange,
   LabelStyle,
   Math as CesiumMath,
+  Matrix4,
   NearFarScalar,
   PolylineDashMaterialProperty,
   PolygonHierarchy,
+  TileMapServiceImageryProvider,
   Viewer
 } from "cesium";
 import type { PublicManifest, PublicRuntimeEvent, TraceBundle } from "@mission-studio/contracts";
 import { parseJsonLines, validateBundle } from "@mission-studio/contracts";
 import { causalChain, projectEvents } from "@mission-studio/domain";
-import { missionOrbitPosition, storyCameraHeight } from "./worldMotion";
+import { missionOrbitPosition, missionOrbitProfile, missionOrbitTrack, storyCameraRange } from "./worldMotion";
+import { PayloadView } from "./PayloadView";
 import { storyBeat, storyFocusEvent, storyStageIndex, storyStages, type StoryBeat } from "./storyModel";
 import { SCENARIOS, scenarioConfig, type ScenarioConfig, type ScenarioId } from "./scenarioCatalog";
 
@@ -115,6 +120,51 @@ function objectiveLabel(value: string) {
   return value;
 }
 
+function centralAngleDegrees(longitudeA: number, latitudeA: number, longitudeB: number, latitudeB: number) {
+  const toRadians = (value: number) => value * Math.PI / 180;
+  const latitudeARad = toRadians(latitudeA);
+  const latitudeBRad = toRadians(latitudeB);
+  const cosine = Math.sin(latitudeARad) * Math.sin(latitudeBRad)
+    + Math.cos(latitudeARad) * Math.cos(latitudeBRad) * Math.cos(toRadians(longitudeA - longitudeB));
+  return Math.acos(Math.max(-1, Math.min(1, cosine))) * 180 / Math.PI;
+}
+
+function satelliteMarker(accent: string) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 144;
+  canvas.height = 88;
+  const context = canvas.getContext("2d");
+  if (!context) return canvas;
+  context.shadowColor = accent;
+  context.shadowBlur = 15;
+  context.fillStyle = "#183d5c";
+  context.strokeStyle = "#74d8f0";
+  context.lineWidth = 2;
+  context.fillRect(5, 29, 48, 30);
+  context.strokeRect(5, 29, 48, 30);
+  context.fillRect(91, 29, 48, 30);
+  context.strokeRect(91, 29, 48, 30);
+  context.strokeStyle = "rgba(116,216,240,.45)";
+  for (let x = 13; x < 53; x += 10) {
+    context.beginPath(); context.moveTo(x, 29); context.lineTo(x, 59); context.stroke();
+  }
+  for (let x = 99; x < 139; x += 10) {
+    context.beginPath(); context.moveTo(x, 29); context.lineTo(x, 59); context.stroke();
+  }
+  context.fillStyle = "#d9e9e6";
+  context.strokeStyle = "#ffffff";
+  context.fillRect(55, 22, 34, 43);
+  context.strokeRect(55, 22, 34, 43);
+  context.fillStyle = accent;
+  context.beginPath();
+  context.arc(72, 43.5, 8, 0, Math.PI * 2);
+  context.fill();
+  context.strokeStyle = accent;
+  context.lineWidth = 3;
+  context.beginPath(); context.moveTo(72, 65); context.lineTo(72, 82); context.stroke();
+  return canvas;
+}
+
 function WorldView({
   projection,
   simTime,
@@ -141,6 +191,9 @@ function WorldView({
   const beliefPassed = Boolean(projection.belief?.gate_passed);
   const contactAvailable = projection.resources.find((resource) => resource.name === "contact")?.normalized_value !== 0;
   const worldAction = String(projection.decision?.action_type ?? projection.decision?.selected_action_type ?? "");
+  const orbitPosition = missionOrbitPosition(aoi, simTime, maxTime);
+  const orbitProfile = missionOrbitProfile(maxTime);
+  const reducedMotion = useMemo(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -160,14 +213,23 @@ function WorldView({
     });
     viewer.scene.globe.baseColor = Color.fromCssColorString("#0b2632");
     viewer.scene.backgroundColor = Color.fromCssColorString("#061117");
-    if (viewer.scene.skyBox) viewer.scene.skyBox.show = false;
-    if (viewer.scene.sun) viewer.scene.sun.show = false;
-    if (viewer.scene.moon) viewer.scene.moon.show = false;
+    viewer.scene.globe.showGroundAtmosphere = true;
     viewer.camera.setView({
-      destination: Cartesian3.fromDegrees(-117.2, 34.8, 3_900_000)
+      destination: Cartesian3.fromDegrees(-117.2, 24, 12_000_000),
+      orientation: { heading: 0, pitch: CesiumMath.toRadians(-72), roll: 0 }
+    });
+    let disposed = false;
+    void TileMapServiceImageryProvider.fromUrl(buildModuleUrl("Assets/Textures/NaturalEarthII")).then((provider) => {
+      if (disposed || viewer.isDestroyed()) return;
+      const layer = viewer.imageryLayers.addImageryProvider(provider);
+      layer.brightness = 0.66;
+      layer.contrast = 1.12;
+      layer.saturation = 0.72;
+      viewer.scene.requestRender();
     });
     viewerRef.current = viewer;
     return () => {
+      disposed = true;
       viewerRef.current = null;
       if (!viewer.isDestroyed()) viewer.destroy();
     };
@@ -191,18 +253,24 @@ function WorldView({
           outlineColor: Color.fromCssColorString(scenario.accent)
         }
       });
+      const track = missionOrbitTrack(aoi);
       viewer.entities.add({
         id: "mission-orbit",
         polyline: {
-          positions: Array.from({ length: 81 }, (_, index) => {
-            const position = missionOrbitPosition(aoi, index, 80);
-            return Cartesian3.fromDegrees(position.longitude, position.latitude, position.altitudeM);
-          }),
-          width: 1.3,
+          positions: track.map((position) => Cartesian3.fromDegrees(position.longitude, position.latitude, position.altitudeM)),
+          width: 1.6,
           material: new PolylineDashMaterialProperty({
-            color: Color.fromCssColorString(scenario.accent).withAlpha(0.42),
-            dashLength: 14
+            color: Color.fromCssColorString(scenario.accent).withAlpha(0.56),
+            dashLength: 18
           })
+        }
+      });
+      viewer.entities.add({
+        id: "mission-ground-track",
+        polyline: {
+          positions: track.map((position) => Cartesian3.fromDegrees(position.longitude, position.latitude, 12_000)),
+          width: 1,
+          material: new PolylineDashMaterialProperty({ color: Color.WHITE.withAlpha(0.18), dashLength: 8 })
         }
       });
       viewer.entities.add({
@@ -226,14 +294,20 @@ function WorldView({
       });
       viewer.entities.add({
         id: "mission-node",
-        position: Cartesian3.fromDegrees(centerLongitude - 70, centerLatitude, 520_000),
+        position: Cartesian3.fromDegrees(orbitPosition.longitude, orbitPosition.latitude, orbitPosition.altitudeM),
         point: {
-          pixelSize: 9,
+          pixelSize: 6,
           color: Color.fromCssColorString("#6ee7f2"),
           outlineColor: Color.fromCssColorString("#071219"),
           outlineWidth: 3,
           heightReference: HeightReference.NONE,
           scaleByDistance: new NearFarScalar(1e5, 1.3, 8e6, 0.5)
+        },
+        billboard: {
+          image: satelliteMarker(scenario.accent),
+          width: 72,
+          height: 44,
+          scaleByDistance: new NearFarScalar(4e5, 1.15, 1.6e7, 0.55)
         },
         label: {
           text: new ConstantProperty(`${scenario.assetLabel} · T+00:00`),
@@ -256,6 +330,20 @@ function WorldView({
           width: 1.5,
           material: new ColorMaterialProperty(Color.fromCssColorString("#f3bd5b").withAlpha(0.72))
         }
+      });
+      [0, 1, 2, 3].forEach((index) => {
+        viewer.entities.add({
+          id: `mission-sensor-edge-${index}`,
+          show: false,
+          polyline: {
+            positions: [
+              Cartesian3.fromDegrees(orbitPosition.longitude, orbitPosition.latitude, orbitPosition.altitudeM),
+              Cartesian3.fromDegrees(centerLongitude, centerLatitude)
+            ],
+            width: 1,
+            material: new ColorMaterialProperty(Color.fromCssColorString("#f3bd5b").withAlpha(0.34))
+          }
+        });
       });
       viewer.entities.add({
         id: "mission-contact-link",
@@ -368,7 +456,6 @@ function WorldView({
     const [west, south, east, north] = aoi;
     const centerLongitude = (west + east) / 2;
     const centerLatitude = (south + north) / 2;
-    const orbitPosition = missionOrbitPosition(aoi, simTime, maxTime);
     const satellitePosition = Cartesian3.fromDegrees(orbitPosition.longitude, orbitPosition.latitude, orbitPosition.altitudeM);
     const targetPosition = Cartesian3.fromDegrees(centerLongitude, centerLatitude);
     const groundPosition = Cartesian3.fromDegrees(centerLongitude + 7, centerLatitude - 4);
@@ -388,12 +475,24 @@ function WorldView({
       if (satellite.label) satellite.label.text = new ConstantProperty(`${scenario.assetLabel} · ${formatTime(simTime)}`);
     }
     if (sensorLine?.polyline) {
-      sensorLine.show = ["observe", "revisit", "process"].includes(worldAction)
+      const withinSensorHorizon = centralAngleDegrees(orbitPosition.longitude, orbitPosition.latitude, centerLongitude, centerLatitude) <= 24;
+      const sensorVisible = withinSensorHorizon && (["observe", "revisit", "process"].includes(worldAction)
         || currentEventType === "observation.acquired"
-        || currentEventType === "evidence.produced";
+        || currentEventType === "evidence.produced");
+      sensorLine.show = sensorVisible;
       sensorLine.polyline.positions = new ConstantProperty([satellitePosition, targetPosition]);
+      const corners = footprint.length === 4
+        ? [[footprint[0], footprint[1]], [footprint[2], footprint[1]], [footprint[2], footprint[3]], [footprint[0], footprint[3]]]
+        : [[west, south], [east, south], [east, north], [west, north]];
+      corners.forEach(([longitude, latitude], index) => {
+        const edge = viewer.entities.getById(`mission-sensor-edge-${index}`);
+        if (!edge?.polyline) return;
+        edge.show = sensorVisible;
+        edge.polyline.positions = new ConstantProperty([satellitePosition, Cartesian3.fromDegrees(longitude!, latitude!)]);
+      });
     }
     if (contactLink?.polyline) {
+      contactLink.show = centralAngleDegrees(orbitPosition.longitude, orbitPosition.latitude, centerLongitude + 7, centerLatitude - 4) <= 24;
       contactLink.polyline.positions = new ConstantProperty([satellitePosition, groundPosition]);
       contactLink.polyline.material = contactAvailable
         ? new ColorMaterialProperty(Color.fromCssColorString("#63d49b").withAlpha(0.74))
@@ -431,42 +530,52 @@ function WorldView({
       }
     }
     viewer.scene.requestRender();
-  }, [aoi, simTime, maxTime, currentEventType, contactAvailable, beliefPassed, projection.activeConstraints, projection.observation, projection.evidence, worldAction, scenario]);
+  }, [aoi, simTime, maxTime, currentEventType, contactAvailable, beliefPassed, projection.activeConstraints, projection.observation, projection.evidence, worldAction, scenario, footprint, orbitPosition]);
 
   useEffect(() => {
     const viewer = viewerRef.current;
-    if (!viewer || mode !== "story" || aoi.length !== 4) return;
-    const [west, south, east, north] = aoi;
-    const centerLongitude = (west + east) / 2;
-    const centerLatitude = (south + north) / 2;
-    const destination = Cartesian3.fromDegrees(
-      centerLongitude + (currentEventType === "constraint.activated" ? 5 : 0),
-      centerLatitude + (currentEventType === "constraint.activated" ? -2 : 0),
-      storyCameraHeight(currentEventType)
+    if (!viewer || aoi.length !== 4) return;
+    if (mode !== "story") {
+      viewer.camera.lookAtTransform(Matrix4.IDENTITY);
+      return;
+    }
+    const satellitePosition = Cartesian3.fromDegrees(orbitPosition.longitude, orbitPosition.latitude, orbitPosition.altitudeM);
+    const heading = reducedMotion ? CesiumMath.toRadians(18) : CesiumMath.toRadians(18 + (simTime / Math.max(1, maxTime)) * 16);
+    viewer.camera.lookAt(
+      satellitePosition,
+      new HeadingPitchRange(heading, CesiumMath.toRadians(-30), storyCameraRange(currentEventType))
     );
-    const orientation = {
-      heading: CesiumMath.toRadians(currentEventType === "constraint.activated" ? 18 : 0),
-      pitch: CesiumMath.toRadians(-88),
-      roll: 0
-    };
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedMotion) viewer.camera.setView({ destination, orientation });
-    else viewer.camera.flyTo({ destination, orientation, duration: 0.85 });
-  }, [mode, currentEventType, projection.currentEvent?.event_id, aoi]);
+    viewer.scene.requestRender();
+  }, [mode, currentEventType, aoi, orbitPosition, reducedMotion, simTime, maxTime]);
 
   return (
     <section className="world-panel panel" aria-label="Mission world view">
       <div className="panel-heading overlay-heading">
         <div>
-          <span className="eyebrow">{mode === "story" ? "任务正在发生 / LIVE TRACE" : "任务空间 / AOI"}</span>
-          <h2>{mode === "story" ? scenario.strapline : "证据获取几何关系"}</h2>
+          <span className="eyebrow">{mode === "story" ? "全球任务态势 / GLOBAL MISSION VIEW" : "任务空间 / AOI"}</span>
+          <h2>{mode === "story" ? `${scenario.assetLabel} · 近极地任务轨道` : "证据获取几何关系"}</h2>
         </div>
-        <span className={`status-chip ${mode === "story" ? "replay" : ""}`}>{mode === "story" ? "镜头跟随 EVENT" : "自由观察"}</span>
+        <span className={`status-chip ${mode === "story" ? "replay" : ""}`}>{mode === "story" ? "全球跟随 / WIDE TRACK" : "自由观察"}</span>
       </div>
       <div className="world-canvas" ref={containerRef} aria-hidden="true" />
+      {mode === "story" && (
+        <PayloadView
+          position={orbitPosition}
+          eventType={currentEventType}
+          actionType={worldAction}
+          sceneKind={scenario.sceneKind}
+          accent={scenario.accent}
+          hasEvidence={Boolean(projection.evidence)}
+          beliefScore={num(projection.belief?.score)}
+          beliefPassed={beliefPassed}
+          linkOffline={!contactAvailable}
+          reducedMotion={reducedMotion}
+        />
+      )}
       <div className="world-legend" aria-label="世界视图文字说明">
         <span><i className="dot cyan" style={{ background: scenario.accent }} />{scenario.aoiLabel}</span>
-        <span><i className="dot amber" />观测 footprint</span>
+        <span><i className="dot amber" />轨道高 {Math.round(orbitProfile.altitudeM / 1000)} km · 周期 {Math.round(orbitProfile.periodS / 60)} min</span>
+        <span>重访间隔折叠 {Math.round(orbitProfile.repeatCycleS / 3600)} h · 平均 {Math.round(orbitProfile.timeCompression)}×</span>
         <span className={contactAvailable ? "contact-online" : "contact-offline"}>{contactAvailable ? "链路可用" : "链路中断"}</span>
       </div>
     </section>
@@ -530,13 +639,13 @@ function StoryNarrative({
 }) {
   const gap = Math.max(0, gate - beliefScore);
   return (
-    <aside className={`story-narrative panel ${beat.tone}`} aria-live="polite">
+    <aside className={`story-narrative panel ${beat.tone}`}>
       <div className="story-narrative-heading">
         <span className="eyebrow">{beat.eyebrow}</span>
-        <span className="story-time">{formatTime(simTime)}</span>
+        <span className="story-time" aria-hidden="true">{formatTime(simTime)}</span>
       </div>
       <h1>{beat.title}</h1>
-      <div className="story-event-chip"><i />{event ? domainLabel(event.type) : "任务已初始化"}</div>
+      <div className="story-event-chip" role="status" aria-live="polite"><i />{event ? domainLabel(event.type) : "任务已初始化"}</div>
       <dl className="story-explanation">
         <div><dt>为什么重要</dt><dd>{beat.why}</dd></div>
         <div><dt>系统如何响应</dt><dd>{beat.response}</dd></div>
@@ -878,6 +987,7 @@ export function App() {
   const [selectedEventId, setSelectedEventId] = useState<string>();
   const [sandboxRun, setSandboxRun] = useState<ExecutionResponse>();
   const [authoredObjective, setAuthoredObjective] = useState<string>();
+  const prefersReducedMotion = useMemo(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
 
   const scenario = scenarioConfig(scenarioId);
 
@@ -903,7 +1013,7 @@ export function App() {
       const elapsed = (now - previous) / 1000;
       previous = now;
       setSimTime((current) => {
-        const next = Math.min(maxTime, current + elapsed * speed * 4);
+        const next = Math.min(maxTime, current + elapsed * speed);
         if (next >= maxTime) setPlaying(false);
         return next;
       });
@@ -948,7 +1058,7 @@ export function App() {
     setSimTime(0);
     setSelectedEventId(undefined);
     setComposerOpen(false);
-    setPlaying(true);
+    setPlaying(!prefersReducedMotion);
   };
 
   return (
@@ -963,12 +1073,12 @@ export function App() {
           <span className="status-chip replay">{sandboxRun ? "Sandbox Run" : "离线 Trace 回放"}</span><span className="status-chip synthetic">合成数据</span>
           <button className="composer-trigger" onClick={() => setComposerOpen(true)}>＋ 语言创建任务</button>
           <div className="segmented" aria-label="体验模式">
-            {(["operator", "story"] as Mode[]).map((item) => <button className={mode === item ? "selected" : ""} key={item} onClick={() => {
+            {(["operator", "story"] as Mode[]).map((item) => <button aria-pressed={mode === item} className={mode === item ? "selected" : ""} key={item} onClick={() => {
               setMode(item);
               if (item === "story") {
                 if (simTime >= maxTime) setSimTime(0);
                 setSelectedEventId(undefined);
-                setPlaying(true);
+                setPlaying(!prefersReducedMotion);
               } else {
                 setPlaying(false);
               }
@@ -982,11 +1092,12 @@ export function App() {
         {SCENARIOS.map((item, index) => (
           <button
             className={scenarioId === item.id ? "active" : ""}
+            aria-current={scenarioId === item.id ? "page" : undefined}
             key={item.id}
             onClick={() => {
               setScenarioId(item.id);
               setSimTime(0);
-              setPlaying(mode === "story");
+              setPlaying(mode === "story" && !prefersReducedMotion);
               setSelectedEventId(undefined);
               setPolicyKind("adaptive");
               setSandboxRun(undefined);
@@ -1082,7 +1193,7 @@ export function App() {
 
       {mode === "operator" && (
         <section className="compare-panel panel">
-          <div className="compare-heading"><div><span className="eyebrow">反事实对比</span><h2>同一任务，不同 policy</h2></div><div className="segmented policy-switch" aria-label="当前策略">{(["fixed", "adaptive"] as PolicyKind[]).map((kind) => <button className={policyKind === kind ? "selected" : ""} key={kind} onClick={() => setPolicyKind(kind)}>{kind === "fixed" ? "固定策略" : "自适应策略"}</button>)}</div></div>
+          <div className="compare-heading"><div><span className="eyebrow">反事实对比</span><h2>同一任务，不同 policy</h2></div><div className="segmented policy-switch" aria-label="当前策略">{(["fixed", "adaptive"] as PolicyKind[]).map((kind) => <button aria-pressed={policyKind === kind} className={policyKind === kind ? "selected" : ""} key={kind} onClick={() => setPolicyKind(kind)}>{kind === "fixed" ? "固定策略" : "自适应策略"}</button>)}</div></div>
           <OutcomeCard label="FIXED POLICY / 固定策略" outcome={outcomes.fixed} active={policyKind === "fixed"} />
           <div className="comparison-mark"><span>↔</span><small>共享任务时钟<br />共享初始状态</small></div>
           <OutcomeCard label="ADAPTIVE POLICY / 自适应策略" outcome={outcomes.adaptive} active={policyKind === "adaptive"} />
