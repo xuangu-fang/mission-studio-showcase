@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { storyBeat, storyFocusEvent, storyStageIndex, storyStages } from "./storyModel";
+import { causalStepIndex, storyBeat, storyFocusEvent, storyStageIndex, storyStages } from "./storyModel";
 
 describe("story model", () => {
+  it("maps the five narrative stages into four monotonic causal highlights", () => {
+    expect([0, 1, 2, 3, 4].map(causalStepIndex)).toEqual([0, 1, 2, 2, 3]);
+  });
   it("maps both policies onto the same five semantic stages", () => {
     expect(storyStages("adaptive").map((stage) => stage.label)).toEqual([
       "任务意图", "首次观测", "证据判断", "约束决策", "形成结论"

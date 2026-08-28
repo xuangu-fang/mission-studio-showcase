@@ -45,6 +45,13 @@ export function storyStageIndex(policy: StoryPolicyKind, simTime: number, events
   );
 }
 
+export function causalStepIndex(storyStage: number): number {
+  if (storyStage <= 0) return 0;
+  if (storyStage === 1) return 1;
+  if (storyStage <= 3) return 2;
+  return 3;
+}
+
 const EVENT_PRIORITY: Record<string, number> = {
   "outcome.updated": 100,
   "constraint.activated": 90,

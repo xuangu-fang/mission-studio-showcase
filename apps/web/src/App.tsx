@@ -24,7 +24,7 @@ import { causalChain, projectEvents } from "@mission-studio/domain";
 import { missionOrbitPosition, missionOrbitProfile, missionOrbitTrack, storyCameraRange } from "./worldMotion";
 import { assetStateModel } from "./assetState";
 import { PayloadView } from "./PayloadView";
-import { storyBeat, storyFocusEvent, storyStageIndex, storyStages, type StoryBeat } from "./storyModel";
+import { causalStepIndex, storyBeat, storyFocusEvent, storyStageIndex, storyStages, type StoryBeat } from "./storyModel";
 import { SCENARIOS, scenarioConfig, type ScenarioConfig, type ScenarioId } from "./scenarioCatalog";
 
 type Mode = "operator" | "story";
@@ -174,6 +174,7 @@ function WorldView({
   focusEventType,
   scenario,
   storyBeat,
+  storyStage,
   observationCount
 }: {
   projection: ReturnType<typeof projectEvents>;
@@ -183,6 +184,7 @@ function WorldView({
   focusEventType?: string;
   scenario: ScenarioConfig;
   storyBeat?: StoryBeat;
+  storyStage: number;
   observationCount: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -592,7 +594,7 @@ function WorldView({
           />
         </>
       )}
-      {mode === "story" && storyBeat && <StoryCausalStrip scenario={scenario} beat={storyBeat} eventType={currentEventType} />}
+      {mode === "story" && storyBeat && <StoryCausalStrip scenario={scenario} beat={storyBeat} eventType={currentEventType} storyStage={storyStage} />}
       <div className="world-legend" aria-label="世界视图文字说明">
         <span><i className="dot cyan" style={{ background: scenario.accent }} />{scenario.aoiLabel}</span>
         <span><i className="dot amber" />轨道高 {Math.round(orbitProfile.altitudeM / 1000)} km · 周期 {Math.round(orbitProfile.periodS / 60)} min</span>
@@ -640,7 +642,8 @@ function AssetStatePanel({
   );
 }
 
-function StoryCausalStrip({ scenario, beat, eventType }: { scenario: ScenarioConfig; beat: StoryBeat; eventType: string }) {
+function StoryCausalStrip({ scenario, beat, eventType, storyStage }: { scenario: ScenarioConfig; beat: StoryBeat; eventType: string; storyStage: number }) {
+  const activeStep = causalStepIndex(storyStage);
   const steps = [
     { index: "01", label: "任务目标", title: `确认${scenario.hypothesisLabel.replace("假设", "")}`, detail: "用足够证据回答任务问题" },
     { index: "02", label: "此刻发生", title: domainLabel(eventType), detail: beat.title },
@@ -649,8 +652,8 @@ function StoryCausalStrip({ scenario, beat, eventType }: { scenario: ScenarioCon
   ];
   return (
     <section className="story-causal-strip" aria-label="当前任务因果解释">
-      {steps.map((step) => (
-        <article key={step.index}>
+      {steps.map((step, index) => (
+        <article className={index === activeStep ? "active" : index < activeStep ? "complete" : ""} aria-current={index === activeStep ? "step" : undefined} key={step.index}>
           <i>{step.index}</i>
           <div><span>{step.label}</span><b>{step.title}</b><small>{step.detail}</small></div>
         </article>
@@ -777,6 +780,8 @@ function StoryPlayback({
   simTime,
   maxTime,
   speed,
+  policy,
+  events,
   onPlay,
   onReset,
   onStep,
@@ -788,6 +793,8 @@ function StoryPlayback({
   simTime: number;
   maxTime: number;
   speed: number;
+  policy: PolicyKind;
+  events: PublicRuntimeEvent[];
   onPlay: () => void;
   onReset: () => void;
   onStep: (direction: -1 | 1) => void;
@@ -795,6 +802,8 @@ function StoryPlayback({
   onSpeed: (speed: number) => void;
   onExit: () => void;
 }) {
+  const keyframes = storyStages(policy, events);
+  const activeStage = storyStageIndex(policy, simTime, events);
   return (
     <section className="story-playback panel" aria-label="叙事回放控制">
       <div className="story-playback-controls">
@@ -804,7 +813,22 @@ function StoryPlayback({
         <button aria-label="下一个事件" onClick={() => onStep(1)}>›</button>
         <b>{formatTime(simTime)}</b>
       </div>
-      <input aria-label="叙事任务时间线" type="range" min="0" max={maxTime} step="0.1" value={simTime} onChange={(event) => onSeek(Number(event.target.value))} />
+      <div className="story-timeline">
+        <input aria-label="叙事任务时间线" type="range" min="0" max={maxTime} step="0.1" value={simTime} onChange={(event) => onSeek(Number(event.target.value))} />
+        <div className="story-keyframes" aria-label="关键任务时间点">
+          {keyframes.map((stage, index) => (
+            <button
+              className={`${index === activeStage ? "active" : index < activeStage ? "complete" : ""} ${index === 0 ? "first" : index === keyframes.length - 1 ? "last" : ""}`}
+              aria-label={`跳转到${stage.label}，${formatTime(stage.anchorTime)}`}
+              key={stage.id}
+              style={{ left: `${(stage.anchorTime / maxTime) * 100}%` }}
+              onClick={() => onSeek(stage.anchorTime)}
+            >
+              <i /><span>{stage.label}</span><small>{formatTime(stage.anchorTime).replace("T+", "")}</small>
+            </button>
+          ))}
+        </div>
+      </div>
       <select aria-label="回放速度" value={speed} onChange={(event) => onSpeed(Number(event.target.value))}><option value={0.5}>0.5×</option><option value={1}>1×</option><option value={2}>2×</option></select>
       <button className="story-exit" onClick={onExit}>进入操作模式检查细节</button>
     </section>
@@ -1152,6 +1176,7 @@ export function App() {
   const gate = num(projection.belief?.threshold, projection.successGate);
   const outcomes = Object.fromEntries(bundle.manifest.runs.map((manifestRun) => [manifestRun.policy.kind, bundle.outcomesByRun[manifestRun.run_id]]));
   const currentStoryBeat = storyBeat(scenarioId, policyKind, simTime, beliefScore, gate, maxTime, events);
+  const currentStoryStage = storyStageIndex(policyKind, simTime, events);
   const observationCount = events.filter((event) => event.type === "observation.acquired" && event.sim_time_s <= simTime).length;
 
   const step = (direction: -1 | 1) => {
@@ -1251,7 +1276,7 @@ export function App() {
           </aside>
         )}
 
-        <WorldView projection={projection} simTime={simTime} maxTime={maxTime} mode={mode} focusEventType={mode === "story" ? storyEvent?.type : undefined} scenario={scenario} storyBeat={mode === "story" ? currentStoryBeat : undefined} observationCount={observationCount} />
+        <WorldView projection={projection} simTime={simTime} maxTime={maxTime} mode={mode} focusEventType={mode === "story" ? storyEvent?.type : undefined} scenario={scenario} storyBeat={mode === "story" ? currentStoryBeat : undefined} storyStage={currentStoryStage} observationCount={observationCount} />
 
         {mode === "story" ? (
           <StoryNarrative beat={currentStoryBeat} event={storyEvent} simTime={simTime} beliefScore={beliefScore} gate={gate} scenarioId={scenarioId} showPolicyFork={projection.activeConstraints.length > 0 || storyEvent?.type === "constraint.activated"} />
@@ -1294,6 +1319,8 @@ export function App() {
           simTime={simTime}
           maxTime={maxTime}
           speed={speed}
+          policy={policyKind}
+          events={events}
           onPlay={() => setPlaying(!playing)}
           onReset={() => { setPlaying(false); setSimTime(0); }}
           onStep={step}
