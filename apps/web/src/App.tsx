@@ -26,10 +26,11 @@ import { assetStateModel } from "./assetState";
 import { PayloadView } from "./PayloadView";
 import { ResearchInsightPanel } from "./ResearchInsightPanel";
 import { parsePortableRunText, type ImportedRun } from "./runSource";
+import { DEFAULT_EXPERIENCE_MODE, type ExperienceMode } from "./experienceMode";
 import { causalStepIndex, storyBeat, storyFocusEvent, storyStageIndex, storyStages, type StoryBeat } from "./storyModel";
 import { SCENARIOS, scenarioConfig, type ScenarioConfig, type ScenarioId } from "./scenarioCatalog";
 
-type Mode = "operator" | "story";
+type Mode = ExperienceMode;
 type PolicyKind = "fixed" | "adaptive";
 
 async function loadBundle(scenario: ScenarioConfig): Promise<TraceBundle> {
@@ -1119,7 +1120,7 @@ export function App() {
   const [importError, setImportError] = useState<string>();
   const [error, setError] = useState<string>();
   const [policyKind, setPolicyKind] = useState<PolicyKind>("adaptive");
-  const [mode, setMode] = useState<Mode>("operator");
+  const [mode, setMode] = useState<Mode>(DEFAULT_EXPERIENCE_MODE);
   const [simTime, setSimTime] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
