@@ -1,5 +1,5 @@
 export type StoryPolicyKind = "fixed" | "adaptive";
-export type StoryScenarioId = "adaptive-hsi" | "wildfire-response" | "maritime-sar";
+export type StoryScenarioId = "adaptive-hsi" | "wildfire-response" | "maritime-sar" | "la-fires-2025" | "la-fires-ablation";
 
 type StoryEventLike = { sim_time_s: number; type: string };
 

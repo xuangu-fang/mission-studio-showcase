@@ -1,0 +1,71 @@
+{
+  "schema_version": "0.1.0",
+  "fixture_id": "la-fires-2025-worldmodel-ablation-v0",
+  "title": "世界模型的净贡献 · 短视 vs 会算机会成本",
+  "comparison_group_id": "cmp-la-fires-2025-worldmodel-ablation",
+  "scenario": {
+    "id": "la-fires-ablation",
+    "title": "LA Palisades & Eaton Fires 2025-01（真实 Copernicus 数据）",
+    "version": "0.1.0-la-fires-2025",
+    "value_status": "replayed"
+  },
+  "clock": {
+    "epoch": "2024-12-18T18:44:00Z",
+    "time_unit": "second",
+    "duration_s": 780
+  },
+  "producer": {
+    "id": "orbital-triage",
+    "version": "0.1.0"
+  },
+  "contracts": {
+    "manifest": "0.1.0",
+    "event": "0.1.0",
+    "outcome": "0.1.0"
+  },
+  "runs": [
+    {
+      "run_id": "run-la-fires-2025-worldmodel-ablation-myopic_bayes",
+      "policy": {
+        "id": "la-fires-myopic_bayes-v0",
+        "kind": "fixed",
+        "label": "C · 贝叶斯信念（无世界模型）",
+        "version": "0.1.0"
+      },
+      "initial_conditions_digest": "sha256:a11b9092b79371b9b57533cfc1de1dd3d7d0393fe1f1524f8167aeef9d4eab87",
+      "trace_path": "traces/fixed.jsonl",
+      "outcome_path": "outcomes/fixed.json"
+    },
+    {
+      "run_id": "run-la-fires-2025-worldmodel-ablation-full",
+      "policy": {
+        "id": "la-fires-full-v0",
+        "kind": "adaptive",
+        "label": "D · 信念 + 世界模型",
+        "version": "0.1.0"
+      },
+      "initial_conditions_digest": "sha256:a11b9092b79371b9b57533cfc1de1dd3d7d0393fe1f1524f8167aeef9d4eab87",
+      "trace_path": "traces/adaptive.jsonl",
+      "outcome_path": "outcomes/adaptive.json"
+    }
+  ],
+  "attribution": [
+    {
+      "title": "Copernicus Sentinel-2 L2A（真实观测，2024-09 至 2025-02）",
+      "url": "https://registry.opendata.aws/sentinel-2-l2a-cogs/",
+      "note": "真实影像。烧痕真值由 dNBR（USGS 阈值体系）从火后影像独立算出，不是人工标注，也不含任何合作方数据。 两条策略逐行相同，只差一个「下一轨还看不看得到、那时还值多少」的判断。"
+    },
+    {
+      "title": "轨道几何：Sentinel-2 真实 TLE（Celestrak）",
+      "url": "https://celestrak.org/",
+      "note": "过顶窗口由 SGP4 传播真实两行根数得到，非虚构轨道。"
+    }
+  ],
+  "value_status_legend": {
+    "synthetic": "本回放不含合成影像；此标签仅用于契约兼容。",
+    "replayed": "真实 Copernicus Sentinel-2 L2A 观测的确定性回放。",
+    "derived": "由契约内输入确定性计算得到（预算、指标、烧痕真值）。",
+    "inferred": "贝叶斯后验；不是探测器性能声明。",
+    "counterfactual": "同一份初始条件下另一条策略的结果。"
+  }
+}

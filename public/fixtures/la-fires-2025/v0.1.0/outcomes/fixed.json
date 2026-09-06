@@ -1,0 +1,26 @@
+{
+  "schema_version": "0.1.0",
+  "outcome_id": "outcome-run-la-fires-2025-threshold-vs-belief-fixed_threshold",
+  "run_id": "run-la-fires-2025-threshold-vs-belief-fixed_threshold",
+  "comparison_group_id": "cmp-la-fires-2025-threshold-vs-belief",
+  "policy": {
+    "id": "la-fires-fixed_threshold-v0",
+    "kind": "fixed",
+    "version": "0.1.0"
+  },
+  "completed": true,
+  "final_belief": 0.2353,
+  "evidence_threshold": 0.55,
+  "time_to_knowledge_s": 1836000,
+  "transmitted_mb": 1.05,
+  "utility_per_transmitted_mb": 0.350762,
+  "hard_constraint_violations": 0,
+  "evidence_completeness": 0.2353,
+  "retained_rare_evidence": false,
+  "summary": "检出 4/17 块真实烧毁区域，误删率 76%，误报率 38%，平均延迟 21.25 天。",
+  "provenance": {
+    "producer": "orbital-triage",
+    "producer_version": "0.1.0",
+    "value_status": "derived"
+  }
+}

@@ -761,6 +761,14 @@ const POLICY_FORK_COPY: Record<ScenarioId, { fixed: [string, string]; adaptive: 
   "maritime-sar": {
     fixed: ["继续覆盖全部搜索网格", "燃料被低价值区域持续消耗"],
     adaptive: ["收缩搜索区并针对性重访", "把资源集中到信标一致的候选区域"]
+  },
+  "la-fires-2025": {
+    fixed: ["按固定阈值过滤后下传", "亮裸土与云边缘被反复误判，带宽被误报吃掉"],
+    adaptive: ["按后验分配算力与带宽", "只上报证据足够的瓦片，其余留存或放弃"]
+  },
+  "la-fires-ablation": {
+    fixed: ["只看当下的后验就决定", "带宽不足时把已确认的结论直接丢弃"],
+    adaptive: ["把「下一轨机会」计入决策", "已确认但发不出去的留存补传，不制造误删"]
   }
 };
 
@@ -926,7 +934,9 @@ interface ExecutionResponse {
 const AUTHORING_EXAMPLES: Record<ScenarioId, string> = {
   "adaptive-hsi": "确认目标区域的稀有矿物光谱特征；首次证据不足时安排重访，只下传改变结论所需的证据。",
   "wildfire-response": "在山火区域确认火线是否越过控制线；烟云遮挡时请求跨传感器证据，并优先下传火线变化。",
-  "maritime-sar": "在燃料和通信窗口受限的海上搜索区确认遇险目标；放弃低价值网格并请求针对性重访。"
+  "maritime-sar": "在燃料和通信窗口受限的海上搜索区确认遇险目标；放弃低价值网格并请求针对性重访。",
+  "la-fires-2025": "在洛杉矶盆地 AOI 上，用受限的星上算力与下行带宽尽早发现烧毁区域，同时不把有信号的瓦片当作无效数据丢弃。",
+  "la-fires-ablation": "同上，但显式比较「是否把下一轨的观测机会与价值衰减计入当下决策」。"
 };
 
 function MissionComposer({ scenarioId, onClose, onExecute }: { scenarioId: ScenarioId; onClose: () => void; onExecute: (mission: AuthoringResponse, execution: ExecutionResponse) => void }) {

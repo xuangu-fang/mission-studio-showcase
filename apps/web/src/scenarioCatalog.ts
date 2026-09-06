@@ -1,4 +1,4 @@
-export type ScenarioId = "adaptive-hsi" | "wildfire-response" | "maritime-sar";
+export type ScenarioId = "adaptive-hsi" | "wildfire-response" | "maritime-sar" | "la-fires-2025" | "la-fires-ablation";
 
 export interface ScenarioConfig {
   id: ScenarioId;
@@ -77,6 +77,44 @@ export const SCENARIOS: ScenarioConfig[] = [
     payloadImageLabel: "Sentinel-1 英吉利海峡船舶交通",
     payloadImageCredit: "Copernicus Sentinel data (2016–18), ESA",
     payloadImageSource: "https://www.esa.int/ESA_Multimedia/Images/2019/04/English_Channel"
+  },
+  {
+    id: "la-fires-2025",
+    fixturePath: "fixtures/la-fires-2025/v0.1.0/",
+    shortTitle: "真实数据 · LA 山火",
+    title: "洛杉矶 2025 山火 · 星上取舍",
+    strapline: "真实 Sentinel-2 回放：算力与带宽都不够时，星上该算哪块、传哪块、扔哪块。",
+    evidenceLabel: "SWIR 高温异常与 dNBR 烧痕证据",
+    hypothesisLabel: "该瓦片存在活跃火点或新鲜烧痕",
+    assetLabel: "Sentinel-2（真实 TLE）",
+    stationLabel: "地面段 / 应急响应",
+    aoiLabel: "洛杉矶盆地 AOI（40 × 68 km）",
+    accent: "#ff7a45",
+    accentRgb: "255, 122, 69",
+    sceneKind: "wildfire",
+    payloadImage: "assets/payload/la-fires-burn.webp",
+    payloadImageLabel: "Palisades 与 Eaton 火场烧痕（本项目由 Sentinel-2 档案自行渲染）",
+    payloadImageCredit: "Copernicus Sentinel-2 L2A · dNBR 由本项目计算",
+    payloadImageSource: "https://registry.opendata.aws/sentinel-2-l2a-cogs/"
+  },
+  {
+    id: "la-fires-ablation",
+    fixturePath: "fixtures/la-fires-ablation/v0.1.0/",
+    shortTitle: "消融 · 世界模型",
+    title: "世界模型的净贡献",
+    strapline: "两条策略逐行相同，只差一个「下一轨还看得到吗、那时还值多少」的判断。",
+    evidenceLabel: "SWIR 高温异常与 dNBR 烧痕证据",
+    hypothesisLabel: "该瓦片存在活跃火点或新鲜烧痕",
+    assetLabel: "Sentinel-2（真实 TLE）",
+    stationLabel: "地面段 / 应急响应",
+    aoiLabel: "洛杉矶盆地 AOI（40 × 68 km）",
+    accent: "#f2b705",
+    accentRgb: "242, 183, 5",
+    sceneKind: "wildfire",
+    payloadImage: "assets/payload/la-fires-post.webp",
+    payloadImageLabel: "火后真彩（2025-01-12，无云）",
+    payloadImageCredit: "Copernicus Sentinel-2 L2A",
+    payloadImageSource: "https://registry.opendata.aws/sentinel-2-l2a-cogs/"
   }
 ];
 

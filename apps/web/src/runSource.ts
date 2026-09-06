@@ -21,7 +21,7 @@ function object(value: unknown, label: string): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
-const SUPPORTED_SCENARIOS = new Set(["adaptive-hsi", "wildfire-response", "maritime-sar"]);
+const SUPPORTED_SCENARIOS = new Set(["adaptive-hsi", "wildfire-response", "maritime-sar", "la-fires-2025", "la-fires-ablation"]);
 
 function validateRunConsistency(
   manifest: Record<string, unknown>,
