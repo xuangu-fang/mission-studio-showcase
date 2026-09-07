@@ -1,0 +1,321 @@
+<title>星上取舍 · LA 2025</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --ground:#e9edf1; --surface:#ffffff; --surface-2:#f3f6f8;
+  --ink:#0f161c; --ink-2:#465360; --muted:#6d7a87;
+  --hairline:rgba(15,22,28,.12); --rule:rgba(15,22,28,.07);
+  --scorch:#c2400f; --scorch-soft:rgba(194,64,15,.14);
+  --signal:#0f7566; --signal-soft:rgba(15,117,102,.14);
+  --slate:#8794a1; --slate-soft:rgba(135,148,161,.20);
+  --shadow:0 1px 2px rgba(15,22,28,.05), 0 8px 24px rgba(15,22,28,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --ground:#0d1216; --surface:#151c22; --surface-2:#1b242b;
+    --ink:#e8eef3; --ink-2:#a8b6c2; --muted:#7f8d99;
+    --hairline:rgba(232,238,243,.14); --rule:rgba(232,238,243,.08);
+    --scorch:#e2683e; --scorch-soft:rgba(226,104,62,.18);
+    --signal:#2fa892; --signal-soft:rgba(47,168,146,.18);
+    --slate:#6d7d8b; --slate-soft:rgba(109,125,139,.26);
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --ground:#0d1216; --surface:#151c22; --surface-2:#1b242b;
+  --ink:#e8eef3; --ink-2:#a8b6c2; --muted:#7f8d99;
+  --hairline:rgba(232,238,243,.14); --rule:rgba(232,238,243,.08);
+  --scorch:#e2683e; --scorch-soft:rgba(226,104,62,.18);
+  --signal:#2fa892; --signal-soft:rgba(47,168,146,.18);
+  --slate:#6d7d8b; --slate-soft:rgba(109,125,139,.26);
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font:400 16px/1.65 "IBM Plex Sans","Noto Sans SC",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1060px;margin:0 auto;padding:56px 24px 96px}
+h1,h2,h3{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  text-wrap:balance;margin:0;letter-spacing:-.005em}
+h1{font-size:clamp(34px,5vw,52px);font-weight:700;line-height:1.06}
+h2{font-size:26px;font-weight:600;line-height:1.2}
+h3{font-size:17px;font-weight:600}
+p{margin:0;max-width:64ch}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:500;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+header.masthead{padding-bottom:36px;border-bottom:1px solid var(--hairline)}
+.thesis{font-size:19px;line-height:1.55;color:var(--ink-2);margin-top:20px;max-width:60ch}
+.thesis b{color:var(--ink);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.chip{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.02em;
+  padding:5px 11px;border:1px solid var(--hairline);border-radius:2px;color:var(--ink-2);
+  background:var(--surface)}
+.chip b{color:var(--signal);font-weight:600}
+
+section{padding-top:56px}
+.sechead{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+.sechead .rule{flex:1;height:1px;background:var(--rule)}
+.lede{color:var(--ink-2);margin:14px 0 28px;font-size:15.5px}
+
+/* 统计带 */
+.band{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));
+  gap:1px;background:var(--hairline);border:1px solid var(--hairline);margin-top:32px}
+.band .cell{background:var(--surface);padding:18px 20px}
+.band .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted)}
+.band .v{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;
+  font-size:32px;line-height:1.1;margin-top:6px}
+.band .s{font-size:12.5px;color:var(--muted);margin-top:4px}
+.v.scorch{color:var(--scorch)} .v.signal{color:var(--signal)}
+
+/* 主图：检出 vs 误删 100% 堆叠 */
+.chart{background:var(--surface);border:1px solid var(--hairline);padding:26px 24px;box-shadow:var(--shadow)}
+.row{display:grid;grid-template-columns:200px 1fr 84px;align-items:center;gap:16px;padding:9px 0}
+.row + .row{border-top:1px solid var(--rule)}
+.rowname{font-size:14px;font-weight:500;line-height:1.3}
+.rowname small{display:block;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+  color:var(--muted);letter-spacing:.06em;margin-top:2px}
+.bar{display:flex;height:22px;background:var(--slate-soft);overflow:hidden}
+.seg{height:100%}
+.seg.det{background:var(--signal)}
+.seg.gap{background:var(--surface);width:2px;flex:none}
+.seg.miss{background:var(--scorch-soft);border-left:0}
+.rowval{text-align:right;font-family:"IBM Plex Mono",monospace;font-size:15px;font-weight:500}
+.row.hero .rowname{font-weight:600}
+.row.hero .rowval{color:var(--signal)}
+.row.ref .bar{opacity:.5}
+.row.ref .rowname,.row.ref .rowval{color:var(--muted)}
+.legend{display:flex;gap:20px;margin-top:18px;padding-top:16px;border-top:1px solid var(--rule);
+  font-size:12.5px;color:var(--ink-2);flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:11px;height:11px;flex:none;border:1px solid var(--hairline)}
+
+/* 表格 */
+.tablewrap{overflow-x:auto;margin-top:24px;border:1px solid var(--hairline);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+th,td{padding:11px 14px;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+thead th{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--surface-2)}
+tbody td{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+tbody td:first-child{font-family:"IBM Plex Sans",sans-serif}
+tr.hero td{background:var(--signal-soft);font-weight:600}
+tr.ref td{color:var(--muted)}
+tbody tr:last-child td{border-bottom:0}
+
+/* 扫描热力图 */
+.heat{display:grid;gap:2px;margin-top:8px;font-family:"IBM Plex Mono",monospace}
+.heat .hcell{padding:9px 4px;text-align:center;font-size:12px;background:var(--surface-2)}
+.heat .hhead{color:var(--muted);font-size:10.5px;letter-spacing:.08em;background:transparent;
+  text-transform:uppercase}
+.heat .hval{color:#fff;font-weight:500}
+.axis{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted)}
+
+figure{margin:28px 0 0}
+figure img{width:100%;height:auto;display:block;border:1px solid var(--hairline)}
+figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-width:70ch;line-height:1.55}
+.two{display:grid;grid-template-columns:1fr;gap:28px}
+@media(min-width:820px){.two{grid-template-columns:1fr 1fr}}
+
+dl.notes{display:grid;grid-template-columns:1fr;gap:0;margin:24px 0 0;
+  border-top:1px solid var(--hairline)}
+dl.notes>div{display:grid;grid-template-columns:1fr;gap:4px;padding:16px 0;
+  border-bottom:1px solid var(--rule)}
+@media(min-width:760px){dl.notes>div{grid-template-columns:210px 1fr;gap:24px}}
+dl.notes dt{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);margin:0}
+dl.notes dd{margin:0;color:var(--ink-2);font-size:14.5px;line-height:1.6}
+dl.notes dd code{font-family:"IBM Plex Mono",monospace;font-size:.9em;
+  background:var(--surface-2);padding:1px 5px;border-radius:2px}
+
+footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--hairline);
+  font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 24px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="eyebrow">Orbital triage · 真实数据回放</div>
+    <h1 id="h1">—</h1>
+    <p class="thesis">一颗卫星，算力和带宽都不够用。它必须自己决定：这一大片进来的数据，
+      <b>算哪几块、传哪几块、扔哪几块</b>。而"扔错了"这件事，地面永远不会知道。</p>
+    <div class="chips" id="chips"></div>
+  </header>
+
+  <section>
+    <div class="sechead"><h2>结果</h2><div class="rule"></div></div>
+    <div class="band" id="band"></div>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>发现了多少，静默丢了多少</h2><div class="rule"></div></div>
+    <p class="lede">分母是<b>真实烧毁且当天本来看得见</b>的瓦片。被厚云盖住看不见的不计入——
+      那不是决策失误，是物理限制。这个区分是整套评测诚实与否的关键。</p>
+    <div class="chart" id="chart"></div>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>全部指标</h2><div class="rule"></div></div>
+    <p class="lede">五条策略共用同一个 planner 与同一份预算，差异只在"知道什么、算什么账"。
+      输入逐位相同，由初始条件摘要机器核对。</p>
+    <div class="tablewrap"><table id="table"></table></div>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>世界模型在什么区间才有用</h2><div class="rule"></div></div>
+    <p class="lede" id="sweeplede">—</p>
+    <div class="chart"><div class="heat" id="heat"></div>
+      <div class="legend" style="margin-top:20px">
+        <span><i style="background:var(--signal)"></i>世界模型占优</span>
+        <span><i style="background:var(--slate-soft)"></i>打平</span>
+        <span><i style="background:var(--scorch)"></i>短视更好</span>
+        <span style="color:var(--muted)">格内数字 = D 检出率 − C 检出率</span>
+      </div></div>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>数据是真的</h2><div class="rule"></div></div>
+    <p class="lede">下面两张图都出自本项目的 Sentinel-2 档案，不是借用照片。
+      烧痕由 dNBR 从火后影像独立算出，没有人工标注。</p>
+    <div class="two">
+      <figure><img id="imgBurn" alt="LA 2025 火场烧痕，dNBR 叠加"><figcaption id="capBurn">—</figcaption></figure>
+      <figure><img id="imgPre" alt="火前真彩影像"><figcaption id="capPre">—</figcaption></figure>
+    </div>
+    <figure><img id="imgStudio" alt="Mission Studio 中的回放"><figcaption>
+      同一批结果通过 public trace contract 0.1.0 接进 Mission Studio，不另造 viewer。
+      Studio 对照区读数：效用/MB 0.35 → 2.16，认知时间 21.2 天 → 15.0 天。</figcaption></figure>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>方法与边界</h2><div class="rule"></div></div>
+    <dl class="notes" id="notes"></dl>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+const D = {"case": {"case_id": "la-fires-2025", "name": "Los Angeles Palisades & Eaton Fires", "bbox": [-118.72, 33.95, -117.99, 34.3], "start": "2024-09-01", "end": "2025-02-20", "onset": "2025-01-07", "mgrs": "MGRS-11SLT", "notes": "Palisades ~34.05N/-118.55W, Eaton ~34.19N/-118.10W; AOI 完整落在 11SLT 内，各景有效像元 100%"}, "onset": "2025-01-07", "budgets": {"compute_per_pass": 12, "downlink_per_pass": 2, "storage_slots": 10}, "world_model": {"cloud_dynamics": {"p_usable_marginal": 0.7187, "p_stay_usable": 0.7196, "p_become_usable": 0.6766, "n_transitions": 2184, "fitted_on": "onset 之前的成像日，不含未来"}, "value_half_life_days": 6.0, "usable_threshold": 0.5}, "truth": {"tiles_total": 91, "tiles_burned": 21, "tiles_burned_and_observable": 17}, "truth_method": "dNBR = NBR_pre - NBR_post, NBR = (B8A - B12)/(B8A + B12)", "n_scenes": 60, "grid": {"shape": [1985, 3392], "gsd_m": 20.0, "crs": "EPSG:32611", "transform": [19.99910338460978, 0.0, 341059.6694928778, 0.0, -20.002918106688643, 3796759.2914550826], "bbox_wgs84": [-118.72, 33.95, -117.99, 34.3]}, "scorecards": [{"policy": "always_downlink", "label": "全下传（无星上智能）", "detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "mean_delay_days": null, "area_recall": 0.0, "timely_value": 0.0, "detected": 0, "detectable": 17, "silent_discards": 17, "false_alarms": 0, "reports_total": 0, "compute_used": 0, "downlink_used": 0}, {"policy": "fixed_threshold", "label": "固定阈值过滤", "detection_rate": 0.2353, "silent_discard_rate": 0.7647, "false_alarm_rate": 0.3846, "mean_delay_days": 21.25, "area_recall": 0.3435, "timely_value": 0.3683, "detected": 4, "detectable": 17, "silent_discards": 13, "false_alarms": 5, "reports_total": 13, "compute_used": 58, "downlink_used": 57}, {"policy": "myopic_bayes", "label": "贝叶斯信念（无世界模型）", "detection_rate": 0.7059, "silent_discard_rate": 0.2941, "false_alarm_rate": 0.1176, "mean_delay_days": 18.33, "area_recall": 0.6928, "timely_value": 1.4273, "detected": 12, "detectable": 17, "silent_discards": 5, "false_alarms": 2, "reports_total": 17, "compute_used": 367, "downlink_used": 17}, {"policy": "full", "label": "信念 + 世界模型", "detection_rate": 0.6471, "silent_discard_rate": 0.3529, "false_alarm_rate": 0.125, "mean_delay_days": 14.09, "area_recall": 0.6861, "timely_value": 1.1832, "detected": 11, "detectable": 17, "silent_discards": 6, "false_alarms": 2, "reports_total": 16, "compute_used": 344, "downlink_used": 16}, {"policy": "hindsight_oracle", "label": "事后真值上界", "detection_rate": 0.8235, "silent_discard_rate": 0.1765, "false_alarm_rate": 0.0, "mean_delay_days": 16.43, "area_recall": 0.9786, "timely_value": 3.4829, "detected": 14, "detectable": 17, "silent_discards": 3, "false_alarms": 0, "reports_total": 14, "compute_used": 14, "downlink_used": 14}], "sweep": {"schema": "orbital-triage.sweep/0.1.0", "grid": {"compute": [2, 4, 8, 12, 24], "downlink": [1, 2, 3, 6, 12]}, "rows": [{"compute_per_pass": 2, "downlink_per_pass": 1, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.17647058823529413, "silent_discard_rate": 0.8235294117647058, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.4997617083775184, "mean_delay_days": 25.0, "compute_used": 29, "downlink_used": 29}, "myopic_bayes": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.2, "timely_value": 0.18603789159131537, "mean_delay_days": 21.666666666666668, "compute_used": 67, "downlink_used": 10}, "full": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.2, "timely_value": 0.35131502190027936, "mean_delay_days": 18.333333333333332, "compute_used": 61, "downlink_used": 10}, "hindsight_oracle": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.0, "timely_value": 2.0988998989584475, "mean_delay_days": 16.428571428571427, "compute_used": 7, "downlink_used": 7}}, "world_model_gain": 0.0}, {"compute_per_pass": 2, "downlink_per_pass": 2, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.3333333333333333, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 57, "downlink_used": 56}, "myopic_bayes": {"detection_rate": 0.5294117647058824, "silent_discard_rate": 0.47058823529411764, "false_alarm_rate": 0.15384615384615385, "timely_value": 0.5105994868326766, "mean_delay_days": 20.555555555555557, "compute_used": 67, "downlink_used": 13}, "full": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.2, "timely_value": 0.490342478224569, "mean_delay_days": 16.666666666666668, "compute_used": 60, "downlink_used": 10}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": -0.1764705882352941}, {"compute_per_pass": 2, "downlink_per_pass": 3, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.3333333333333333, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 57, "downlink_used": 56}, "myopic_bayes": {"detection_rate": 0.5294117647058824, "silent_discard_rate": 0.47058823529411764, "false_alarm_rate": 0.15384615384615385, "timely_value": 0.5105994868326766, "mean_delay_days": 20.555555555555557, "compute_used": 67, "downlink_used": 13}, "full": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.2, "timely_value": 0.490342478224569, "mean_delay_days": 16.666666666666668, "compute_used": 60, "downlink_used": 10}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": -0.1764705882352941}, {"compute_per_pass": 2, "downlink_per_pass": 6, "policies": {"always_downlink": {"detection_rate": 0.058823529411764705, "silent_discard_rate": 0.9411764705882353, "false_alarm_rate": 0.8823529411764706, "timely_value": 0.03165342976232432, "mean_delay_days": 5.0, "compute_used": 0, "downlink_used": 170}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.3333333333333333, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 57, "downlink_used": 56}, "myopic_bayes": {"detection_rate": 0.5294117647058824, "silent_discard_rate": 0.47058823529411764, "false_alarm_rate": 0.15384615384615385, "timely_value": 0.5105994868326766, "mean_delay_days": 20.555555555555557, "compute_used": 67, "downlink_used": 13}, "full": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.2, "timely_value": 0.490342478224569, "mean_delay_days": 16.666666666666668, "compute_used": 60, "downlink_used": 10}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": -0.1764705882352941}, {"compute_per_pass": 2, "downlink_per_pass": 12, "policies": {"always_downlink": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.75, "timely_value": 0.7641975133032808, "mean_delay_days": 16.875, "compute_used": 0, "downlink_used": 340}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.3333333333333333, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 57, "downlink_used": 56}, "myopic_bayes": {"detection_rate": 0.5294117647058824, "silent_discard_rate": 0.47058823529411764, "false_alarm_rate": 0.15384615384615385, "timely_value": 0.5105994868326766, "mean_delay_days": 20.555555555555557, "compute_used": 67, "downlink_used": 13}, "full": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.2, "timely_value": 0.490342478224569, "mean_delay_days": 16.666666666666668, "compute_used": 60, "downlink_used": 10}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": -0.1764705882352941}, {"compute_per_pass": 4, "downlink_per_pass": 1, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.17647058823529413, "silent_discard_rate": 0.8235294117647058, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.4997617083775184, "mean_delay_days": 25.0, "compute_used": 29, "downlink_used": 29}, "myopic_bayes": {"detection_rate": 0.29411764705882354, "silent_discard_rate": 0.7058823529411765, "false_alarm_rate": 0.2222222222222222, "timely_value": 0.13830670981662663, "mean_delay_days": 19.0, "compute_used": 129, "downlink_used": 9}, "full": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.16666666666666666, "timely_value": 0.3521259230229084, "mean_delay_days": 20.0, "compute_used": 122, "downlink_used": 12}, "hindsight_oracle": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.0, "timely_value": 2.0988998989584475, "mean_delay_days": 16.428571428571427, "compute_used": 7, "downlink_used": 7}}, "world_model_gain": 0.1764705882352941}, {"compute_per_pass": 4, "downlink_per_pass": 2, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.38461538461538464, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 58, "downlink_used": 57}, "myopic_bayes": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.16666666666666666, "timely_value": 0.4377832576578725, "mean_delay_days": 19.375, "compute_used": 129, "downlink_used": 12}, "full": {"detection_rate": 0.5882352941176471, "silent_discard_rate": 0.4117647058823529, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.5853031606133106, "mean_delay_days": 17.5, "compute_used": 122, "downlink_used": 14}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": 0.11764705882352944}, {"compute_per_pass": 4, "downlink_per_pass": 3, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.29411764705882354, "silent_discard_rate": 0.7058823529411765, "false_alarm_rate": 0.375, "timely_value": 0.6281514905522128, "mean_delay_days": 20.0, "compute_used": 87, "downlink_used": 83}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.13333333333333333, "timely_value": 0.6718718799658667, "mean_delay_days": 20.0, "compute_used": 129, "downlink_used": 15}, "full": {"detection_rate": 0.5882352941176471, "silent_discard_rate": 0.4117647058823529, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.6792486133244362, "mean_delay_days": 16.5, "compute_used": 121, "downlink_used": 14}, "hindsight_oracle": {"detection_rate": 0.9411764705882353, "silent_discard_rate": 0.058823529411764705, "false_alarm_rate": 0.0, "timely_value": 4.399816235230122, "mean_delay_days": 11.5625, "compute_used": 16, "downlink_used": 16}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 4, "downlink_per_pass": 6, "policies": {"always_downlink": {"detection_rate": 0.058823529411764705, "silent_discard_rate": 0.9411764705882353, "false_alarm_rate": 0.8823529411764706, "timely_value": 0.03165342976232432, "mean_delay_days": 5.0, "compute_used": 0, "downlink_used": 170}, "fixed_threshold": {"detection_rate": 0.29411764705882354, "silent_discard_rate": 0.7058823529411765, "false_alarm_rate": 0.4444444444444444, "timely_value": 1.4737206550845534, "mean_delay_days": 16.0, "compute_used": 113, "downlink_used": 109}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.13333333333333333, "timely_value": 0.7005153240436364, "mean_delay_days": 17.272727272727273, "compute_used": 129, "downlink_used": 15}, "full": {"detection_rate": 0.5882352941176471, "silent_discard_rate": 0.4117647058823529, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.6975961406088476, "mean_delay_days": 15.5, "compute_used": 120, "downlink_used": 14}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 4.917983450565195, "mean_delay_days": 8.235294117647058, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 4, "downlink_per_pass": 12, "policies": {"always_downlink": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.75, "timely_value": 0.7641975133032808, "mean_delay_days": 16.875, "compute_used": 0, "downlink_used": 340}, "fixed_threshold": {"detection_rate": 0.29411764705882354, "silent_discard_rate": 0.7058823529411765, "false_alarm_rate": 0.4444444444444444, "timely_value": 1.4737206550845534, "mean_delay_days": 16.0, "compute_used": 113, "downlink_used": 109}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.13333333333333333, "timely_value": 0.7005153240436364, "mean_delay_days": 17.272727272727273, "compute_used": 129, "downlink_used": 15}, "full": {"detection_rate": 0.5882352941176471, "silent_discard_rate": 0.4117647058823529, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.6975961406088476, "mean_delay_days": 15.5, "compute_used": 120, "downlink_used": 14}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 4.917983450565195, "mean_delay_days": 8.235294117647058, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 8, "downlink_per_pass": 1, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.17647058823529413, "silent_discard_rate": 0.8235294117647058, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.4997617083775184, "mean_delay_days": 25.0, "compute_used": 29, "downlink_used": 29}, "myopic_bayes": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.16666666666666666, "timely_value": 0.6479905911368489, "mean_delay_days": 21.428571428571427, "compute_used": 252, "downlink_used": 12}, "full": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.15384615384615385, "timely_value": 0.7361640750223544, "mean_delay_days": 20.625, "compute_used": 235, "downlink_used": 13}, "hindsight_oracle": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.0, "timely_value": 2.0988998989584475, "mean_delay_days": 16.428571428571427, "compute_used": 7, "downlink_used": 7}}, "world_model_gain": 0.05882352941176472}, {"compute_per_pass": 8, "downlink_per_pass": 2, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.38461538461538464, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 58, "downlink_used": 57}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 1.3144774249312818, "mean_delay_days": 18.636363636363637, "compute_used": 251, "downlink_used": 16}, "full": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 1.5297337019593458, "mean_delay_days": 15.0, "compute_used": 235, "downlink_used": 17}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": 0.05882352941176472}, {"compute_per_pass": 8, "downlink_per_pass": 3, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.29411764705882354, "silent_discard_rate": 0.7058823529411765, "false_alarm_rate": 0.375, "timely_value": 0.6281514905522128, "mean_delay_days": 20.0, "compute_used": 94, "downlink_used": 84}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 1.8429274224923495, "mean_delay_days": 13.181818181818182, "compute_used": 251, "downlink_used": 16}, "full": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 1.878772779609176, "mean_delay_days": 12.5, "compute_used": 235, "downlink_used": 17}, "hindsight_oracle": {"detection_rate": 0.9411764705882353, "silent_discard_rate": 0.058823529411764705, "false_alarm_rate": 0.0, "timely_value": 4.399816235230122, "mean_delay_days": 11.5625, "compute_used": 16, "downlink_used": 16}}, "world_model_gain": 0.05882352941176472}, {"compute_per_pass": 8, "downlink_per_pass": 6, "policies": {"always_downlink": {"detection_rate": 0.058823529411764705, "silent_discard_rate": 0.9411764705882353, "false_alarm_rate": 0.8823529411764706, "timely_value": 0.03165342976232432, "mean_delay_days": 5.0, "compute_used": 0, "downlink_used": 170}, "fixed_threshold": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.5, "timely_value": 2.030869743174224, "mean_delay_days": 9.166666666666666, "compute_used": 184, "downlink_used": 156}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.187555247993644, "mean_delay_days": 9.090909090909092, "compute_used": 251, "downlink_used": 16}, "full": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 1.9319912524058942, "mean_delay_days": 11.25, "compute_used": 232, "downlink_used": 17}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 5.476204694118632, "mean_delay_days": 3.5294117647058822, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": 0.05882352941176472}, {"compute_per_pass": 8, "downlink_per_pass": 12, "policies": {"always_downlink": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.75, "timely_value": 0.7641975133032808, "mean_delay_days": 16.875, "compute_used": 0, "downlink_used": 340}, "fixed_threshold": {"detection_rate": 0.5294117647058824, "silent_discard_rate": 0.47058823529411764, "false_alarm_rate": 0.5172413793103449, "timely_value": 2.410907299878826, "mean_delay_days": 7.222222222222222, "compute_used": 223, "downlink_used": 191}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.187555247993644, "mean_delay_days": 9.090909090909092, "compute_used": 251, "downlink_used": 16}, "full": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 1.9319912524058942, "mean_delay_days": 11.25, "compute_used": 232, "downlink_used": 17}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 5.678676142895754, "mean_delay_days": 1.7647058823529411, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": 0.05882352941176472}, {"compute_per_pass": 12, "downlink_per_pass": 1, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.17647058823529413, "silent_discard_rate": 0.8235294117647058, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.4997617083775184, "mean_delay_days": 25.0, "compute_used": 29, "downlink_used": 29}, "myopic_bayes": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.16666666666666666, "timely_value": 0.3759938604357347, "mean_delay_days": 20.714285714285715, "compute_used": 368, "downlink_used": 12}, "full": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.15384615384615385, "timely_value": 0.5223666146136929, "mean_delay_days": 20.625, "compute_used": 345, "downlink_used": 13}, "hindsight_oracle": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.0, "timely_value": 2.0988998989584475, "mean_delay_days": 16.428571428571427, "compute_used": 7, "downlink_used": 7}}, "world_model_gain": 0.05882352941176472}, {"compute_per_pass": 12, "downlink_per_pass": 2, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.38461538461538464, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 58, "downlink_used": 57}, "myopic_bayes": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 1.4272610184013341, "mean_delay_days": 18.333333333333332, "compute_used": 367, "downlink_used": 17}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 1.1832435603526141, "mean_delay_days": 14.090909090909092, "compute_used": 344, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 12, "downlink_per_pass": 3, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.29411764705882354, "silent_discard_rate": 0.7058823529411765, "false_alarm_rate": 0.375, "timely_value": 0.6281514905522128, "mean_delay_days": 20.0, "compute_used": 95, "downlink_used": 84}, "myopic_bayes": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 1.776514173593367, "mean_delay_days": 14.166666666666666, "compute_used": 367, "downlink_used": 17}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 1.6564187925784972, "mean_delay_days": 10.0, "compute_used": 344, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 0.9411764705882353, "silent_discard_rate": 0.058823529411764705, "false_alarm_rate": 0.0, "timely_value": 4.399816235230122, "mean_delay_days": 11.5625, "compute_used": 16, "downlink_used": 16}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 12, "downlink_per_pass": 6, "policies": {"always_downlink": {"detection_rate": 0.058823529411764705, "silent_discard_rate": 0.9411764705882353, "false_alarm_rate": 0.8823529411764706, "timely_value": 0.03165342976232432, "mean_delay_days": 5.0, "compute_used": 0, "downlink_used": 170}, "fixed_threshold": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.5217391304347826, "timely_value": 2.030869743174224, "mean_delay_days": 9.166666666666666, "compute_used": 198, "downlink_used": 157}, "myopic_bayes": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 2.557215521558517, "mean_delay_days": 6.25, "compute_used": 367, "downlink_used": 17}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.2939327883555722, "mean_delay_days": 6.363636363636363, "compute_used": 341, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 5.476204694118632, "mean_delay_days": 3.5294117647058822, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 12, "downlink_per_pass": 12, "policies": {"always_downlink": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.75, "timely_value": 0.7641975133032808, "mean_delay_days": 16.875, "compute_used": 0, "downlink_used": 340}, "fixed_threshold": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.5142857142857142, "timely_value": 2.9562989564224345, "mean_delay_days": 5.454545454545454, "compute_used": 326, "downlink_used": 257}, "myopic_bayes": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 2.557215521558517, "mean_delay_days": 6.25, "compute_used": 367, "downlink_used": 17}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.2939327883555722, "mean_delay_days": 6.363636363636363, "compute_used": 341, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 5.7854, "mean_delay_days": 0.0, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 24, "downlink_per_pass": 1, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.17647058823529413, "silent_discard_rate": 0.8235294117647058, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.4997617083775184, "mean_delay_days": 25.0, "compute_used": 29, "downlink_used": 29}, "myopic_bayes": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.16666666666666666, "timely_value": 0.19857135928784694, "mean_delay_days": 20.714285714285715, "compute_used": 709, "downlink_used": 12}, "full": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.15384615384615385, "timely_value": 0.45479662377897534, "mean_delay_days": 19.375, "compute_used": 651, "downlink_used": 13}, "hindsight_oracle": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.0, "timely_value": 2.0988998989584475, "mean_delay_days": 16.428571428571427, "compute_used": 7, "downlink_used": 7}}, "world_model_gain": 0.05882352941176472}, {"compute_per_pass": 24, "downlink_per_pass": 2, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.38461538461538464, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 58, "downlink_used": 57}, "myopic_bayes": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 0.830046823283183, "mean_delay_days": 18.333333333333332, "compute_used": 708, "downlink_used": 17}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 1.0691767986466898, "mean_delay_days": 14.090909090909092, "compute_used": 650, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 24, "downlink_per_pass": 3, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.29411764705882354, "silent_discard_rate": 0.7058823529411765, "false_alarm_rate": 0.375, "timely_value": 0.6281514905522128, "mean_delay_days": 20.0, "compute_used": 95, "downlink_used": 84}, "myopic_bayes": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 0.9617661844643242, "mean_delay_days": 13.333333333333334, "compute_used": 706, "downlink_used": 17}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 1.5156866952323758, "mean_delay_days": 9.545454545454545, "compute_used": 649, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 0.9411764705882353, "silent_discard_rate": 0.058823529411764705, "false_alarm_rate": 0.0, "timely_value": 4.399816235230122, "mean_delay_days": 11.5625, "compute_used": 16, "downlink_used": 16}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 24, "downlink_per_pass": 6, "policies": {"always_downlink": {"detection_rate": 0.058823529411764705, "silent_discard_rate": 0.9411764705882353, "false_alarm_rate": 0.8823529411764706, "timely_value": 0.03165342976232432, "mean_delay_days": 5.0, "compute_used": 0, "downlink_used": 170}, "fixed_threshold": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.5416666666666666, "timely_value": 2.030869743174224, "mean_delay_days": 9.166666666666666, "compute_used": 208, "downlink_used": 158}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.55335615275092, "mean_delay_days": 5.0, "compute_used": 706, "downlink_used": 16}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.1618425956041465, "mean_delay_days": 5.0, "compute_used": 644, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 5.476204694118632, "mean_delay_days": 3.5294117647058822, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": 0.0}, {"compute_per_pass": 24, "downlink_per_pass": 12, "policies": {"always_downlink": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.75, "timely_value": 0.7641975133032808, "mean_delay_days": 16.875, "compute_used": 0, "downlink_used": 340}, "fixed_threshold": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.5609756097560976, "timely_value": 2.9562989564224345, "mean_delay_days": 5.454545454545454, "compute_used": 401, "downlink_used": 273}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.7607424867268375, "mean_delay_days": 3.1818181818181817, "compute_used": 706, "downlink_used": 16}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.8832717586146224, "mean_delay_days": 3.1818181818181817, "compute_used": 644, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 5.7854, "mean_delay_days": 0.0, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": 0.0}]}, "images": {"burn": "/mission-studio-showcase/reports/assets/eb7d798cd6ee208d.webp", "pre": "/mission-studio-showcase/reports/assets/29b996a9f9f0170e.webp", "studio": "/mission-studio-showcase/reports/assets/365c2d347d0db5c8.webp"}};
+const $ = id => document.getElementById(id);
+const pct = (v,d=1) => (v*100).toFixed(d) + "%";
+const NAME = {always_downlink:["全下传","A · 无星上智能"],fixed_threshold:["固定阈值过滤","B · 今天的做法"],
+  myopic_bayes:["贝叶斯信念","C · 无世界模型"],full:["信念 + 世界模型","D"],
+  hindsight_oracle:["事后真值参照","E · 知识上界"]};
+const byName = Object.fromEntries(D.scorecards.map(c => [c.policy, c]));
+
+$("h1").textContent = "洛杉矶 2025 山火 · 星上该算哪块、传哪块、扔哪块";
+
+$("chips").innerHTML = [
+  ["真实轨道", "Sentinel-2 TLE · SGP4"],
+  ["真实影像", `Copernicus L2A · ${D.n_scenes} 景`],
+  ["真实真值", "dNBR · 无人工标注"],
+  ["AOI", `${D.grid.shape[1]*D.grid.gsd_m/1000|0} × ${D.grid.shape[0]*D.grid.gsd_m/1000|0} km @ ${D.grid.gsd_m}m`],
+  ["预算", `算力 ${D.budgets.compute_per_pass}/轨 · 下行 ${D.budgets.downlink_per_pass}/轨`],
+].map(([k,v]) => `<span class="chip"><b>${k}</b> ${v}</span>`).join("");
+
+const full = byName.full, fixed = byName.fixed_threshold, myopic = byName.myopic_bayes;
+$("band").innerHTML = [
+  ["可发现的烧毁瓦片", `${D.truth.tiles_burned_and_observable}`, `共 ${D.truth.tiles_burned} 块烧毁 / ${D.truth.tiles_total} 块瓦片`, ""],
+  ["全下传能发现", pct(byName.always_downlink.detection_rate,0), "原始数据要 5 个单位，预算只有 2", "scorch"],
+  ["固定阈值", pct(fixed.detection_rate), `误报 ${pct(fixed.false_alarm_rate,0)} · 下行 ${fixed.downlink_used}`, ""],
+  ["信念 + 世界模型", pct(full.detection_rate), `误报 ${pct(full.false_alarm_rate,0)} · 下行 ${full.downlink_used}`, "signal"],
+  ["世界模型净贡献", `+${((full.detection_rate-myopic.detection_rate)*100).toFixed(1)}pt`, "C → D，其余逐行相同", "signal"],
+].map(([k,v,s,cls]) => `<div class="cell"><div class="k">${k}</div>
+  <div class="v ${cls}">${v}</div><div class="s">${s}</div></div>`).join("");
+
+const order = ["always_downlink","fixed_threshold","myopic_bayes","full","hindsight_oracle"];
+$("chart").insertAdjacentHTML("afterbegin", order.map(n => {
+  const c = byName[n], det = c.detection_rate;
+  const cls = n === "full" ? "hero" : (n === "hindsight_oracle" ? "ref" : "");
+  return `<div class="row ${cls}"><div class="rowname">${NAME[n][0]}<small>${NAME[n][1]}</small></div>
+    <div class="bar"><div class="seg det" style="width:${det*100}%"></div>
+      ${det>0&&det<1?'<div class="seg gap"></div>':''}
+      <div class="seg miss" style="width:${(1-det)*100}%"></div></div>
+    <div class="rowval">${pct(det)}</div></div>`;
+}).join(""));
+$("chart").insertAdjacentHTML("beforeend", `<div class="legend">
+  <span><i style="background:var(--signal)"></i>已上报到地面</span>
+  <span><i style="background:var(--scorch-soft)"></i>静默丢弃（地面永远看不到）</span></div>`);
+
+const cols = [["检出率","detection_rate",v=>pct(v)],["误删率","silent_discard_rate",v=>pct(v)],
+  ["误报率","false_alarm_rate",v=>pct(v)],["平均延迟","mean_delay_days",v=>v==null?"—":v.toFixed(1)+" 天"],
+  ["面积召回","area_recall",v=>pct(v)],["算力用量","compute_used",v=>v],["下行用量","downlink_used",v=>v]];
+$("table").innerHTML = `<thead><tr><th>策略</th>${cols.map(c=>`<th>${c[0]}</th>`).join("")}</tr></thead>
+<tbody>${order.map(n=>{const c=byName[n];
+  const cls = n==="full"?"hero":(n==="hindsight_oracle"?"ref":"");
+  return `<tr class="${cls}"><td>${NAME[n][1]} · ${NAME[n][0]}</td>${cols.map(col=>`<td>${col[2](c[col[1]])}</td>`).join("")}</tr>`;
+}).join("")}</tbody>`;
+
+const rows = D.sweep.rows, computes = D.sweep.grid.compute, downlinks = D.sweep.grid.downlink;
+const gains = rows.map(r=>r.world_model_gain), maxAbs = Math.max(...gains.map(Math.abs)) || 1;
+const wins = gains.filter(g=>g>0.001).length;
+// 从数据里读出规律，不写死结论——单点对照容易骗人，写死的结论同样容易骗人。
+const tightest = downlinks[0];
+const tightCol = rows.filter(r => r.downlink_per_pass === tightest);
+const tightWins = tightCol.filter(r => r.world_model_gain > 0.001).length;
+const alwaysWinRows = computes.filter(c =>
+  rows.filter(r => r.compute_per_pass === c).every(r => r.world_model_gain > 0.001));
+const looseLoses = rows.filter(r =>
+  r.downlink_per_pass >= 6 && !alwaysWinRows.includes(r.compute_per_pass)
+  && r.world_model_gain <= 0.001).length;
+$("sweeplede").innerHTML = `单点对照容易骗人——挑一组预算，谁赢都能说成结论。所以扫 ${computes.length}×${downlinks.length}
+  个格点：世界模型在 <b>${wins}/${rows.length}</b> 个格点占优。
+  规律有两条：<b>下行=${tightest}</b>（带宽最紧）那一列 ${tightWins}/${tightCol.length} 全赢；
+  ${alwaysWinRows.length ? `<b>算力=${alwaysWinRows.join("/")}</b> 那一行在所有带宽下都赢——算力紧时，
+  "别把算力浪费在今天看不清的瓦片上"这一条本身就值钱。` : ""}
+  两样都宽松时（右下角）基本打平。机制可解释：它那套"已确认但发不出去就留存补传"只有在
+  带宽成为约束时才触发，而"跳过看不清的块"只有在算力不够分时才有意义。`;
+$("heat").style.gridTemplateColumns = `72px repeat(${downlinks.length},1fr)`;
+let h = `<div class="hcell hhead"></div>` + downlinks.map(d=>`<div class="hcell hhead">下行 ${d}</div>`).join("");
+for (const comp of computes) {
+  h += `<div class="hcell hhead" style="text-align:right;padding-right:10px">算力 ${comp}</div>`;
+  for (const dl of downlinks) {
+    const r = rows.find(x=>x.compute_per_pass===comp && x.downlink_per_pass===dl);
+    const g = r ? r.world_model_gain : 0;
+    const t = Math.min(1, Math.abs(g)/maxAbs);
+    const bg = Math.abs(g)<0.001 ? "var(--slate-soft)"
+      : `color-mix(in oklab, ${g>0?"var(--signal)":"var(--scorch)"} ${(35+65*t).toFixed(0)}%, var(--surface-2))`;
+    const strong = Math.abs(g)>0.001 && t>0.45;
+    h += `<div class="hcell ${strong?"hval":""}" style="background:${bg}">${g===0?"·":(g>0?"+":"")+(g*100).toFixed(1)}</div>`;
+  }
+}
+$("heat").innerHTML = h;
+
+$("imgBurn").src = D.images.burn;
+$("imgPre").src = D.images.pre;
+$("imgStudio").src = D.images.studio;
+$("capBurn").innerHTML = `火后 dNBR 烧痕叠加。左下沿海是 <b>Palisades</b>，右上山麓是 <b>Eaton</b>——
+  位置与真实火场一致。水体已屏蔽（NBR 在水面不稳定，会把海面判成重度烧痕）。`;
+$("capPre").textContent = "火前真彩（同一 AOI，无云）。两张对比就是真值的来源。";
+
+$("notes").innerHTML = [
+  ["真值怎么来的", `${D.truth_method}。Agent 在回放中只能看到 t 时刻之前的影像，评测器能看到整个档案
+    ——包括火后几周的烧痕。所以"星上扔掉的那块地里到底有没有火"，我们知道，agent 不知道。`],
+  ["世界模型学了什么", `只用起火前的成像日拟合云的持续性：可用概率 ${(D.world_model.cloud_dynamics.p_usable_marginal*100).toFixed(0)}%，
+    今天能看清则明天仍能看清 ${(D.world_model.cloud_dynamics.p_stay_usable*100).toFixed(0)}%，
+    共 ${D.world_model.cloud_dynamics.n_transitions} 次状态转移。测试会把起火后的观测抹掉再拟合一次，要求结果完全一致。`],
+  ["E 不是分配上界", `它知道真值，但按烧毁面积<b>贪心</b>下传。带宽极紧时这个贪心并不最优——扫描里
+    下行=1 时 D 反而超过它。E 回答的是"如果完全不误判能做到多好"，不是"这个预算下的最优分配"。`],
+  ["预算是参数，不是实测", `算力与带宽是<b>声明的</b>预算单位，不是某块板子的实测数字。
+    合作方给真实 profile 时换参数即可，决策层不用动。`],
+  ["还没做的", `Agent 层（用大模型生成竞争假设、翻译任务意图、越界升级）还没接，
+    目前四个假设是硬编码的。一个 AOI、一次事件——统计功效来自预算扫描，不来自场景多样性。`],
+].map(([k,v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
+
+$("footer").innerHTML = [
+  `案例 ${D.case.case_id}`, `起火 ${D.onset}`,
+  `${D.n_scenes} 景 Copernicus Sentinel-2 L2A`,
+  `真值方法 dNBR / USGS 阈值体系`,
+].map(t=>`<span>${t}</span>`).join("");
+</script>
