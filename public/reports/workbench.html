@@ -1,0 +1,573 @@
+<title>Orbital Triage 测量台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --ground:#e8ebee; --panel:#fff; --panel-2:#f3f5f7; --sunk:#dfe4e8;
+  --ink:#0e1418; --ink-2:#44515e; --muted:#6a7783;
+  --hairline:rgba(14,20,24,.14); --rule:rgba(14,20,24,.07);
+  --obs:#1a6b57;       /* 真实观测 */
+  --geo:#1d5c96;       /* 真实几何 */
+  --mod:#a8620f;       /* 模型 */
+  --alert:#b8431c; --alert-soft:rgba(184,67,28,.13);
+  --ok:#0d7a68; --ok-soft:rgba(13,122,104,.13);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme: dark;
+  --ground:#0a0f13; --panel:#131a20; --panel-2:#19222a; --sunk:#0e151a;
+  --ink:#e6edf2; --ink-2:#a3b1be; --muted:#7b8996;
+  --hairline:rgba(230,237,242,.15); --rule:rgba(230,237,242,.08);
+  --obs:#3aa88c; --geo:#549fe0; --mod:#d1913f;
+  --alert:#e0714a; --alert-soft:rgba(224,113,74,.16);
+  --ok:#2ba892; --ok-soft:rgba(43,168,146,.16);
+}}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --ground:#0a0f13; --panel:#131a20; --panel-2:#19222a; --sunk:#0e151a;
+  --ink:#e6edf2; --ink-2:#a3b1be; --muted:#7b8996;
+  --hairline:rgba(230,237,242,.15); --rule:rgba(230,237,242,.08);
+  --obs:#3aa88c; --geo:#549fe0; --mod:#d1913f;
+  --alert:#e0714a; --alert-soft:rgba(224,113,74,.16);
+  --ok:#2ba892; --ok-soft:rgba(43,168,146,.16);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font:400 15.5px/1.6 "IBM Plex Sans","Noto Sans SC",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",sans-serif;margin:0;
+  text-wrap:balance;letter-spacing:-.008em}
+p{margin:0;max-width:66ch}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+
+/* ── 顶栏：证据等级常驻 ───────────────────────── */
+.top{position:sticky;top:0;z-index:20;background:var(--panel);
+  border-bottom:1px solid var(--hairline)}
+.top-in{max-width:1240px;margin:0 auto;padding:14px 22px;
+  display:flex;flex-wrap:wrap;gap:14px 26px;align-items:center}
+.brand{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;font-size:17px;
+  letter-spacing:-.01em;white-space:nowrap}
+.brand small{display:block;font-family:"IBM Plex Mono",monospace;font-size:10px;
+  font-weight:400;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);
+  margin-top:2px}
+.prov{display:flex;flex-wrap:wrap;gap:6px 14px;flex:1;min-width:280px}
+.prov button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+  font-size:12px;color:var(--ink-2);padding:3px 9px;border:1px solid var(--hairline);
+  border-radius:2px;white-space:nowrap}
+.prov button:hover,.prov button:focus-visible{background:var(--panel-2)}
+.prov button:focus-visible{outline:2px solid var(--geo);outline-offset:2px}
+.prov i{width:9px;height:9px;flex:none;border-radius:1px}
+.prov .n{font-family:"IBM Plex Mono",monospace;color:var(--muted);font-size:11px}
+
+/* ── 布局 ─────────────────────────────────── */
+.shell{max-width:1240px;margin:0 auto;padding:0 22px 80px;
+  display:grid;grid-template-columns:1fr;gap:0}
+@media(min-width:900px){.shell{grid-template-columns:214px 1fr;gap:34px}}
+
+nav.rail{padding:26px 0 0}
+@media(min-width:900px){nav.rail{position:sticky;top:74px;align-self:start;
+  max-height:calc(100vh - 92px);overflow-y:auto}}
+.rail-label{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 10px 2px}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:row;
+  gap:6px;overflow-x:auto;padding-bottom:8px}
+@media(min-width:900px){.rail ol{flex-direction:column;overflow:visible}}
+.rail button{all:unset;cursor:pointer;display:block;width:100%;padding:10px 12px;
+  border:1px solid var(--hairline);background:var(--panel);white-space:nowrap}
+@media(max-width:899px){.rail button{white-space:nowrap}}
+.rail button:hover{background:var(--panel-2)}
+.rail button:focus-visible{outline:2px solid var(--geo);outline-offset:2px}
+.rail button[aria-current="true"]{background:var(--ink);color:var(--ground);
+  border-color:var(--ink)}
+.rail .nm{font-weight:600;font-size:14px}
+.rail .sb{font-size:11.5px;color:var(--muted);margin-top:2px}
+.rail button[aria-current="true"] .sb{color:var(--ground);opacity:.72}
+
+main{padding:26px 0 0;min-width:0}
+
+/* ── 层内结构 ─────────────────────────────── */
+.q{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted)}
+h2.layer{font-size:30px;font-weight:700;line-height:1.1;margin:6px 0 0}
+.ask{font-size:18px;color:var(--ink-2);margin-top:12px;line-height:1.55;max-width:60ch}
+
+.hero{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 24px;
+  background:var(--panel);border:1px solid var(--hairline);padding:22px 24px;margin-top:22px}
+.hero .v{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;
+  font-size:clamp(34px,5.4vw,52px);line-height:1;letter-spacing:-.02em}
+.hero .u{font-size:14px;color:var(--ink-2);padding-bottom:6px}
+.hero .nt{flex-basis:100%;font-size:13.5px;color:var(--muted);margin-top:4px}
+
+.card{background:var(--panel);border:1px solid var(--hairline);padding:22px;margin-top:20px}
+.card > h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.card > .cap{font-size:12.5px;color:var(--muted);margin-bottom:16px;max-width:70ch}
+.g2{display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:880px){.g2{grid-template-columns:1fr 1fr}}
+
+.falsi{border-left:3px solid var(--mod);background:var(--panel);padding:16px 20px;
+  margin-top:20px;font-size:14px;line-height:1.6;color:var(--ink-2)}
+.falsi b{color:var(--mod);font-family:"IBM Plex Mono",monospace;font-size:11px;
+  letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:5px}
+
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:480px}
+.tw{overflow-x:auto}
+th,td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+thead th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--panel-2)}
+tbody td{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+tbody td:first-child{font-family:"IBM Plex Sans",sans-serif}
+tbody tr:last-child td{border-bottom:0}
+tr.hi td{background:var(--ok-soft);font-weight:600}
+tr.dim td{color:var(--muted)}
+
+svg{display:block;width:100%;height:auto}
+svg text{fill:var(--muted);font-size:11px;font-family:"IBM Plex Mono",monospace}
+.grid{stroke:var(--rule);stroke-width:1}
+.axis{stroke:var(--hairline);stroke-width:1}
+.lg{display:flex;flex-wrap:wrap;gap:7px 18px;margin-top:14px;font-size:12px;color:var(--ink-2)}
+.lg span{display:inline-flex;align-items:center;gap:6px}
+.lg i{width:10px;height:10px;flex:none;border:1px solid var(--hairline)}
+
+.ledger{list-style:none;margin:0;padding:0}
+.ledger li{border-bottom:1px solid var(--rule);padding:16px 0;
+  display:grid;grid-template-columns:1fr;gap:6px}
+@media(min-width:760px){.ledger li{grid-template-columns:1fr 128px;gap:20px}}
+.ledger .hy{font-size:14.5px;color:var(--ink-2)}
+.ledger .dt{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.55}
+.ledger .vd{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--alert);
+  border:1px solid var(--alert);padding:3px 9px;justify-self:start;height:fit-content;
+  white-space:nowrap}
+@media(min-width:760px){.ledger .vd{justify-self:end}}
+
+.pit{border-top:1px solid var(--rule);padding:15px 0}
+.pit .sy{font-weight:600;font-size:14px;color:var(--alert)}
+.pit .ca{font-size:13.5px;color:var(--ink-2);margin-top:4px;line-height:1.55}
+.pit .fx{font-size:12.5px;color:var(--ok);margin-top:5px}
+
+figure{margin:18px 0 0}
+figure img{width:100%;height:auto;display:block;border:1px solid var(--hairline)}
+figcaption{font-size:12.5px;color:var(--muted);margin-top:9px;line-height:1.55}
+
+dialog{border:1px solid var(--hairline);background:var(--panel);color:var(--ink);
+  max-width:560px;width:calc(100% - 40px);padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h3{font-size:17px;margin-bottom:12px}
+dialog ul{margin:0;padding-left:20px;font-size:14px;line-height:1.75;color:var(--ink-2)}
+dialog button{all:unset;cursor:pointer;margin-top:18px;font-size:13px;color:var(--geo);
+  border-bottom:1px solid var(--geo)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">Orbital Triage<small>测量台 · 真实数据</small></div>
+    <div class="prov" id="prov"></div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="实验层">
+    <div class="rail-label">四层实验</div>
+    <ol id="rail"></ol>
+  </nav>
+  <main id="stage" aria-live="polite"></main>
+</div>
+
+<dialog id="dlg"><h3 id="dlgT"></h3><ul id="dlgL"></ul>
+  <button id="dlgX" autofocus>关闭</button></dialog>
+
+<script>
+const D = {"schema": "orbital-triage.workbench/0.1.0", "case": {"case_id": "la-fires-2025", "name": "Los Angeles Palisades & Eaton Fires", "bbox": [-118.72, 33.95, -117.99, 34.3], "start": "2024-09-01", "end": "2025-02-20", "onset": "2025-01-07", "mgrs": "MGRS-11SLT", "notes": "Palisades ~34.05N/-118.55W, Eaton ~34.19N/-118.10W; AOI 完整落在 11SLT 内，各景有效像元 100%"}, "onset": "2025-01-07", "truth": {"tiles_total": 91, "tiles_burned": 21, "tiles_burned_and_observable": 17}, "grid": {"shape": [1985, 3392], "gsd_m": 20.0, "crs": "EPSG:32611", "transform": [19.99910338460978, 0.0, 341059.6694928778, 0.0, -20.002918106688643, 3796759.2914550826], "bbox_wgs84": [-118.72, 33.95, -117.99, 34.3]}, "provenance": [{"kind": "observed", "label": "真实观测", "items": ["Copernicus Sentinel-2 L2A · 60 景", "Sentinel-1 RTC · 51 景", "官方 SCL 云掩膜", "dNBR 烧痕真值（USGS 阈值，无人工标注）"]}, {"kind": "geometry", "label": "真实几何", "items": ["Celestrak 真实 TLE · SGP4 传播", "Sentinel-2 X 波段地面站网 · 仰角接触窗口", "Planet 在轨 119 颗真实轨道要素"]}, {"kind": "modelled", "label": "模型（非观测）", "items": ["算力与带宽预算：声明的参数，非实测硬件", "档案日之间的云况：起火前拟合的可用概率抽样", "固定天底成像，未建模侧摆", "事件时空模式平移到当前 TLE 历元窗口"]}], "layers": [{"id": "rig", "name": "测量台", "sub": "让结论可信的地基", "question": "怎么在没有合作方数据的情况下，得到能证伪的真值？", "headline": {"value": "17 / 91", "unit": "块可发现的烧毁瓦片", "note": "共 21 块烧毁，其中 17 块当天按真实云况本来看得见"}, "falsifier": "如果换一个 dNBR 不可靠的场景（城市火、水面），真值本身要重做。目前水体已屏蔽，城区烧痕靠 USGS 阈值，尚无独立交叉验证。"}, {"id": "triage", "name": "决策层", "sub": "算哪块、传哪块、扔哪块", "question": "算力和带宽都不够时，星上该怎么分配？", "headline": {"value": "0.0%", "unit": "全下传能发现的比例", "note": "下行每轨 2 个单位，一块原始数据要 5 个——一块都传不动"}, "falsifier": "如果板卡算力足够把整幅每轨算一遍，这一层的差异会消失（见 Agent 层）。", "scorecards": [{"policy": "always_downlink", "label": "全下传（无星上智能）", "detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "mean_delay_days": null, "area_recall": 0.0, "timely_value": 0.0, "detected": 0, "detectable": 17, "silent_discards": 17, "false_alarms": 0, "reports_total": 0, "compute_used": 0, "downlink_used": 0}, {"policy": "fixed_threshold", "label": "固定阈值过滤", "detection_rate": 0.2353, "silent_discard_rate": 0.7647, "false_alarm_rate": 0.3846, "mean_delay_days": 21.25, "area_recall": 0.3435, "timely_value": 0.3683, "detected": 4, "detectable": 17, "silent_discards": 13, "false_alarms": 5, "reports_total": 13, "compute_used": 58, "downlink_used": 57}, {"policy": "myopic_bayes", "label": "贝叶斯信念（无世界模型）", "detection_rate": 0.7059, "silent_discard_rate": 0.2941, "false_alarm_rate": 0.1176, "mean_delay_days": 18.33, "area_recall": 0.6928, "timely_value": 1.4273, "detected": 12, "detectable": 17, "silent_discards": 5, "false_alarms": 2, "reports_total": 17, "compute_used": 367, "downlink_used": 17}, {"policy": "full", "label": "信念 + 世界模型", "detection_rate": 0.6471, "silent_discard_rate": 0.3529, "false_alarm_rate": 0.125, "mean_delay_days": 14.09, "area_recall": 0.6861, "timely_value": 1.1832, "detected": 11, "detectable": 17, "silent_discards": 6, "false_alarms": 2, "reports_total": 16, "compute_used": 344, "downlink_used": 16}, {"policy": "hindsight_oracle", "label": "事后真值上界", "detection_rate": 0.8235, "silent_discard_rate": 0.1765, "false_alarm_rate": 0.0, "mean_delay_days": 16.43, "area_recall": 0.9786, "timely_value": 3.4829, "detected": 14, "detectable": 17, "silent_discards": 3, "false_alarms": 0, "reports_total": 14, "compute_used": 14, "downlink_used": 14}], "sweep": {"schema": "orbital-triage.sweep/0.1.0", "grid": {"compute": [2, 4, 8, 12, 24], "downlink": [1, 2, 3, 6, 12]}, "rows": [{"compute_per_pass": 2, "downlink_per_pass": 1, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.17647058823529413, "silent_discard_rate": 0.8235294117647058, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.4997617083775184, "mean_delay_days": 25.0, "compute_used": 29, "downlink_used": 29}, "myopic_bayes": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.2, "timely_value": 0.18603789159131537, "mean_delay_days": 21.666666666666668, "compute_used": 67, "downlink_used": 10}, "full": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.2, "timely_value": 0.35131502190027936, "mean_delay_days": 18.333333333333332, "compute_used": 61, "downlink_used": 10}, "hindsight_oracle": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.0, "timely_value": 2.0988998989584475, "mean_delay_days": 16.428571428571427, "compute_used": 7, "downlink_used": 7}}, "world_model_gain": 0.0}, {"compute_per_pass": 2, "downlink_per_pass": 2, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.3333333333333333, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 57, "downlink_used": 56}, "myopic_bayes": {"detection_rate": 0.5294117647058824, "silent_discard_rate": 0.47058823529411764, "false_alarm_rate": 0.15384615384615385, "timely_value": 0.5105994868326766, "mean_delay_days": 20.555555555555557, "compute_used": 67, "downlink_used": 13}, "full": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.2, "timely_value": 0.490342478224569, "mean_delay_days": 16.666666666666668, "compute_used": 60, "downlink_used": 10}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": -0.1764705882352941}, {"compute_per_pass": 2, "downlink_per_pass": 3, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.3333333333333333, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 57, "downlink_used": 56}, "myopic_bayes": {"detection_rate": 0.5294117647058824, "silent_discard_rate": 0.47058823529411764, "false_alarm_rate": 0.15384615384615385, "timely_value": 0.5105994868326766, "mean_delay_days": 20.555555555555557, "compute_used": 67, "downlink_used": 13}, "full": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.2, "timely_value": 0.490342478224569, "mean_delay_days": 16.666666666666668, "compute_used": 60, "downlink_used": 10}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": -0.1764705882352941}, {"compute_per_pass": 2, "downlink_per_pass": 6, "policies": {"always_downlink": {"detection_rate": 0.058823529411764705, "silent_discard_rate": 0.9411764705882353, "false_alarm_rate": 0.8823529411764706, "timely_value": 0.03165342976232432, "mean_delay_days": 5.0, "compute_used": 0, "downlink_used": 170}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.3333333333333333, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 57, "downlink_used": 56}, "myopic_bayes": {"detection_rate": 0.5294117647058824, "silent_discard_rate": 0.47058823529411764, "false_alarm_rate": 0.15384615384615385, "timely_value": 0.5105994868326766, "mean_delay_days": 20.555555555555557, "compute_used": 67, "downlink_used": 13}, "full": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.2, "timely_value": 0.490342478224569, "mean_delay_days": 16.666666666666668, "compute_used": 60, "downlink_used": 10}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": -0.1764705882352941}, {"compute_per_pass": 2, "downlink_per_pass": 12, "policies": {"always_downlink": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.75, "timely_value": 0.7641975133032808, "mean_delay_days": 16.875, "compute_used": 0, "downlink_used": 340}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.3333333333333333, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 57, "downlink_used": 56}, "myopic_bayes": {"detection_rate": 0.5294117647058824, "silent_discard_rate": 0.47058823529411764, "false_alarm_rate": 0.15384615384615385, "timely_value": 0.5105994868326766, "mean_delay_days": 20.555555555555557, "compute_used": 67, "downlink_used": 13}, "full": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.2, "timely_value": 0.490342478224569, "mean_delay_days": 16.666666666666668, "compute_used": 60, "downlink_used": 10}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": -0.1764705882352941}, {"compute_per_pass": 4, "downlink_per_pass": 1, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.17647058823529413, "silent_discard_rate": 0.8235294117647058, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.4997617083775184, "mean_delay_days": 25.0, "compute_used": 29, "downlink_used": 29}, "myopic_bayes": {"detection_rate": 0.29411764705882354, "silent_discard_rate": 0.7058823529411765, "false_alarm_rate": 0.2222222222222222, "timely_value": 0.13830670981662663, "mean_delay_days": 19.0, "compute_used": 129, "downlink_used": 9}, "full": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.16666666666666666, "timely_value": 0.3521259230229084, "mean_delay_days": 20.0, "compute_used": 122, "downlink_used": 12}, "hindsight_oracle": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.0, "timely_value": 2.0988998989584475, "mean_delay_days": 16.428571428571427, "compute_used": 7, "downlink_used": 7}}, "world_model_gain": 0.1764705882352941}, {"compute_per_pass": 4, "downlink_per_pass": 2, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.38461538461538464, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 58, "downlink_used": 57}, "myopic_bayes": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.16666666666666666, "timely_value": 0.4377832576578725, "mean_delay_days": 19.375, "compute_used": 129, "downlink_used": 12}, "full": {"detection_rate": 0.5882352941176471, "silent_discard_rate": 0.4117647058823529, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.5853031606133106, "mean_delay_days": 17.5, "compute_used": 122, "downlink_used": 14}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": 0.11764705882352944}, {"compute_per_pass": 4, "downlink_per_pass": 3, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.29411764705882354, "silent_discard_rate": 0.7058823529411765, "false_alarm_rate": 0.375, "timely_value": 0.6281514905522128, "mean_delay_days": 20.0, "compute_used": 87, "downlink_used": 83}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.13333333333333333, "timely_value": 0.6718718799658667, "mean_delay_days": 20.0, "compute_used": 129, "downlink_used": 15}, "full": {"detection_rate": 0.5882352941176471, "silent_discard_rate": 0.4117647058823529, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.6792486133244362, "mean_delay_days": 16.5, "compute_used": 121, "downlink_used": 14}, "hindsight_oracle": {"detection_rate": 0.9411764705882353, "silent_discard_rate": 0.058823529411764705, "false_alarm_rate": 0.0, "timely_value": 4.399816235230122, "mean_delay_days": 11.5625, "compute_used": 16, "downlink_used": 16}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 4, "downlink_per_pass": 6, "policies": {"always_downlink": {"detection_rate": 0.058823529411764705, "silent_discard_rate": 0.9411764705882353, "false_alarm_rate": 0.8823529411764706, "timely_value": 0.03165342976232432, "mean_delay_days": 5.0, "compute_used": 0, "downlink_used": 170}, "fixed_threshold": {"detection_rate": 0.29411764705882354, "silent_discard_rate": 0.7058823529411765, "false_alarm_rate": 0.4444444444444444, "timely_value": 1.4737206550845534, "mean_delay_days": 16.0, "compute_used": 113, "downlink_used": 109}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.13333333333333333, "timely_value": 0.7005153240436364, "mean_delay_days": 17.272727272727273, "compute_used": 129, "downlink_used": 15}, "full": {"detection_rate": 0.5882352941176471, "silent_discard_rate": 0.4117647058823529, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.6975961406088476, "mean_delay_days": 15.5, "compute_used": 120, "downlink_used": 14}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 4.917983450565195, "mean_delay_days": 8.235294117647058, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 4, "downlink_per_pass": 12, "policies": {"always_downlink": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.75, "timely_value": 0.7641975133032808, "mean_delay_days": 16.875, "compute_used": 0, "downlink_used": 340}, "fixed_threshold": {"detection_rate": 0.29411764705882354, "silent_discard_rate": 0.7058823529411765, "false_alarm_rate": 0.4444444444444444, "timely_value": 1.4737206550845534, "mean_delay_days": 16.0, "compute_used": 113, "downlink_used": 109}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.13333333333333333, "timely_value": 0.7005153240436364, "mean_delay_days": 17.272727272727273, "compute_used": 129, "downlink_used": 15}, "full": {"detection_rate": 0.5882352941176471, "silent_discard_rate": 0.4117647058823529, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.6975961406088476, "mean_delay_days": 15.5, "compute_used": 120, "downlink_used": 14}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 4.917983450565195, "mean_delay_days": 8.235294117647058, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 8, "downlink_per_pass": 1, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.17647058823529413, "silent_discard_rate": 0.8235294117647058, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.4997617083775184, "mean_delay_days": 25.0, "compute_used": 29, "downlink_used": 29}, "myopic_bayes": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.16666666666666666, "timely_value": 0.6479905911368489, "mean_delay_days": 21.428571428571427, "compute_used": 252, "downlink_used": 12}, "full": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.15384615384615385, "timely_value": 0.7361640750223544, "mean_delay_days": 20.625, "compute_used": 235, "downlink_used": 13}, "hindsight_oracle": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.0, "timely_value": 2.0988998989584475, "mean_delay_days": 16.428571428571427, "compute_used": 7, "downlink_used": 7}}, "world_model_gain": 0.05882352941176472}, {"compute_per_pass": 8, "downlink_per_pass": 2, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.38461538461538464, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 58, "downlink_used": 57}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 1.3144774249312818, "mean_delay_days": 18.636363636363637, "compute_used": 251, "downlink_used": 16}, "full": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 1.5297337019593458, "mean_delay_days": 15.0, "compute_used": 235, "downlink_used": 17}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": 0.05882352941176472}, {"compute_per_pass": 8, "downlink_per_pass": 3, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.29411764705882354, "silent_discard_rate": 0.7058823529411765, "false_alarm_rate": 0.375, "timely_value": 0.6281514905522128, "mean_delay_days": 20.0, "compute_used": 94, "downlink_used": 84}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 1.8429274224923495, "mean_delay_days": 13.181818181818182, "compute_used": 251, "downlink_used": 16}, "full": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 1.878772779609176, "mean_delay_days": 12.5, "compute_used": 235, "downlink_used": 17}, "hindsight_oracle": {"detection_rate": 0.9411764705882353, "silent_discard_rate": 0.058823529411764705, "false_alarm_rate": 0.0, "timely_value": 4.399816235230122, "mean_delay_days": 11.5625, "compute_used": 16, "downlink_used": 16}}, "world_model_gain": 0.05882352941176472}, {"compute_per_pass": 8, "downlink_per_pass": 6, "policies": {"always_downlink": {"detection_rate": 0.058823529411764705, "silent_discard_rate": 0.9411764705882353, "false_alarm_rate": 0.8823529411764706, "timely_value": 0.03165342976232432, "mean_delay_days": 5.0, "compute_used": 0, "downlink_used": 170}, "fixed_threshold": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.5, "timely_value": 2.030869743174224, "mean_delay_days": 9.166666666666666, "compute_used": 184, "downlink_used": 156}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.187555247993644, "mean_delay_days": 9.090909090909092, "compute_used": 251, "downlink_used": 16}, "full": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 1.9319912524058942, "mean_delay_days": 11.25, "compute_used": 232, "downlink_used": 17}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 5.476204694118632, "mean_delay_days": 3.5294117647058822, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": 0.05882352941176472}, {"compute_per_pass": 8, "downlink_per_pass": 12, "policies": {"always_downlink": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.75, "timely_value": 0.7641975133032808, "mean_delay_days": 16.875, "compute_used": 0, "downlink_used": 340}, "fixed_threshold": {"detection_rate": 0.5294117647058824, "silent_discard_rate": 0.47058823529411764, "false_alarm_rate": 0.5172413793103449, "timely_value": 2.410907299878826, "mean_delay_days": 7.222222222222222, "compute_used": 223, "downlink_used": 191}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.187555247993644, "mean_delay_days": 9.090909090909092, "compute_used": 251, "downlink_used": 16}, "full": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 1.9319912524058942, "mean_delay_days": 11.25, "compute_used": 232, "downlink_used": 17}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 5.678676142895754, "mean_delay_days": 1.7647058823529411, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": 0.05882352941176472}, {"compute_per_pass": 12, "downlink_per_pass": 1, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.17647058823529413, "silent_discard_rate": 0.8235294117647058, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.4997617083775184, "mean_delay_days": 25.0, "compute_used": 29, "downlink_used": 29}, "myopic_bayes": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.16666666666666666, "timely_value": 0.3759938604357347, "mean_delay_days": 20.714285714285715, "compute_used": 368, "downlink_used": 12}, "full": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.15384615384615385, "timely_value": 0.5223666146136929, "mean_delay_days": 20.625, "compute_used": 345, "downlink_used": 13}, "hindsight_oracle": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.0, "timely_value": 2.0988998989584475, "mean_delay_days": 16.428571428571427, "compute_used": 7, "downlink_used": 7}}, "world_model_gain": 0.05882352941176472}, {"compute_per_pass": 12, "downlink_per_pass": 2, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.38461538461538464, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 58, "downlink_used": 57}, "myopic_bayes": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 1.4272610184013341, "mean_delay_days": 18.333333333333332, "compute_used": 367, "downlink_used": 17}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 1.1832435603526141, "mean_delay_days": 14.090909090909092, "compute_used": 344, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 12, "downlink_per_pass": 3, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.29411764705882354, "silent_discard_rate": 0.7058823529411765, "false_alarm_rate": 0.375, "timely_value": 0.6281514905522128, "mean_delay_days": 20.0, "compute_used": 95, "downlink_used": 84}, "myopic_bayes": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 1.776514173593367, "mean_delay_days": 14.166666666666666, "compute_used": 367, "downlink_used": 17}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 1.6564187925784972, "mean_delay_days": 10.0, "compute_used": 344, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 0.9411764705882353, "silent_discard_rate": 0.058823529411764705, "false_alarm_rate": 0.0, "timely_value": 4.399816235230122, "mean_delay_days": 11.5625, "compute_used": 16, "downlink_used": 16}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 12, "downlink_per_pass": 6, "policies": {"always_downlink": {"detection_rate": 0.058823529411764705, "silent_discard_rate": 0.9411764705882353, "false_alarm_rate": 0.8823529411764706, "timely_value": 0.03165342976232432, "mean_delay_days": 5.0, "compute_used": 0, "downlink_used": 170}, "fixed_threshold": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.5217391304347826, "timely_value": 2.030869743174224, "mean_delay_days": 9.166666666666666, "compute_used": 198, "downlink_used": 157}, "myopic_bayes": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 2.557215521558517, "mean_delay_days": 6.25, "compute_used": 367, "downlink_used": 17}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.2939327883555722, "mean_delay_days": 6.363636363636363, "compute_used": 341, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 5.476204694118632, "mean_delay_days": 3.5294117647058822, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 12, "downlink_per_pass": 12, "policies": {"always_downlink": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.75, "timely_value": 0.7641975133032808, "mean_delay_days": 16.875, "compute_used": 0, "downlink_used": 340}, "fixed_threshold": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.5142857142857142, "timely_value": 2.9562989564224345, "mean_delay_days": 5.454545454545454, "compute_used": 326, "downlink_used": 257}, "myopic_bayes": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 2.557215521558517, "mean_delay_days": 6.25, "compute_used": 367, "downlink_used": 17}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.2939327883555722, "mean_delay_days": 6.363636363636363, "compute_used": 341, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 5.7854, "mean_delay_days": 0.0, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 24, "downlink_per_pass": 1, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.17647058823529413, "silent_discard_rate": 0.8235294117647058, "false_alarm_rate": 0.14285714285714285, "timely_value": 0.4997617083775184, "mean_delay_days": 25.0, "compute_used": 29, "downlink_used": 29}, "myopic_bayes": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.16666666666666666, "timely_value": 0.19857135928784694, "mean_delay_days": 20.714285714285715, "compute_used": 709, "downlink_used": 12}, "full": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.15384615384615385, "timely_value": 0.45479662377897534, "mean_delay_days": 19.375, "compute_used": 651, "downlink_used": 13}, "hindsight_oracle": {"detection_rate": 0.4117647058823529, "silent_discard_rate": 0.5882352941176471, "false_alarm_rate": 0.0, "timely_value": 2.0988998989584475, "mean_delay_days": 16.428571428571427, "compute_used": 7, "downlink_used": 7}}, "world_model_gain": 0.05882352941176472}, {"compute_per_pass": 24, "downlink_per_pass": 2, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.23529411764705882, "silent_discard_rate": 0.7647058823529411, "false_alarm_rate": 0.38461538461538464, "timely_value": 0.36827712837501303, "mean_delay_days": 21.25, "compute_used": 58, "downlink_used": 57}, "myopic_bayes": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 0.830046823283183, "mean_delay_days": 18.333333333333332, "compute_used": 708, "downlink_used": 17}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 1.0691767986466898, "mean_delay_days": 14.090909090909092, "compute_used": 650, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 0.8235294117647058, "silent_discard_rate": 0.17647058823529413, "false_alarm_rate": 0.0, "timely_value": 3.482894674169935, "mean_delay_days": 16.428571428571427, "compute_used": 14, "downlink_used": 14}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 24, "downlink_per_pass": 3, "policies": {"always_downlink": {"detection_rate": 0.0, "silent_discard_rate": 1.0, "false_alarm_rate": 0.0, "timely_value": 0.0, "mean_delay_days": null, "compute_used": 0, "downlink_used": 0}, "fixed_threshold": {"detection_rate": 0.29411764705882354, "silent_discard_rate": 0.7058823529411765, "false_alarm_rate": 0.375, "timely_value": 0.6281514905522128, "mean_delay_days": 20.0, "compute_used": 95, "downlink_used": 84}, "myopic_bayes": {"detection_rate": 0.7058823529411765, "silent_discard_rate": 0.29411764705882354, "false_alarm_rate": 0.11764705882352941, "timely_value": 0.9617661844643242, "mean_delay_days": 13.333333333333334, "compute_used": 706, "downlink_used": 17}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 1.5156866952323758, "mean_delay_days": 9.545454545454545, "compute_used": 649, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 0.9411764705882353, "silent_discard_rate": 0.058823529411764705, "false_alarm_rate": 0.0, "timely_value": 4.399816235230122, "mean_delay_days": 11.5625, "compute_used": 16, "downlink_used": 16}}, "world_model_gain": -0.05882352941176472}, {"compute_per_pass": 24, "downlink_per_pass": 6, "policies": {"always_downlink": {"detection_rate": 0.058823529411764705, "silent_discard_rate": 0.9411764705882353, "false_alarm_rate": 0.8823529411764706, "timely_value": 0.03165342976232432, "mean_delay_days": 5.0, "compute_used": 0, "downlink_used": 170}, "fixed_threshold": {"detection_rate": 0.35294117647058826, "silent_discard_rate": 0.6470588235294118, "false_alarm_rate": 0.5416666666666666, "timely_value": 2.030869743174224, "mean_delay_days": 9.166666666666666, "compute_used": 208, "downlink_used": 158}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.55335615275092, "mean_delay_days": 5.0, "compute_used": 706, "downlink_used": 16}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.1618425956041465, "mean_delay_days": 5.0, "compute_used": 644, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 5.476204694118632, "mean_delay_days": 3.5294117647058822, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": 0.0}, {"compute_per_pass": 24, "downlink_per_pass": 12, "policies": {"always_downlink": {"detection_rate": 0.47058823529411764, "silent_discard_rate": 0.5294117647058824, "false_alarm_rate": 0.75, "timely_value": 0.7641975133032808, "mean_delay_days": 16.875, "compute_used": 0, "downlink_used": 340}, "fixed_threshold": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.5609756097560976, "timely_value": 2.9562989564224345, "mean_delay_days": 5.454545454545454, "compute_used": 401, "downlink_used": 273}, "myopic_bayes": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.7607424867268375, "mean_delay_days": 3.1818181818181817, "compute_used": 706, "downlink_used": 16}, "full": {"detection_rate": 0.6470588235294118, "silent_discard_rate": 0.35294117647058826, "false_alarm_rate": 0.125, "timely_value": 2.8832717586146224, "mean_delay_days": 3.1818181818181817, "compute_used": 644, "downlink_used": 16}, "hindsight_oracle": {"detection_rate": 1.0, "silent_discard_rate": 0.0, "false_alarm_rate": 0.0, "timely_value": 5.7854, "mean_delay_days": 0.0, "compute_used": 17, "downlink_used": 17}}, "world_model_gain": 0.0}]}}, {"id": "agent", "name": "Agent 层", "sub": "把人话编译成任务配置", "question": "大模型能把不同的人类优先级，翻译成不同的系统行为吗？", "headline": {"value": "不能", "unit": "在这个系统里", "note": "不是模型不行——是可调的旋钮本身没有区分度"}, "falsifier": "换一个信噪比更低的任务（薄烟、早期火线、小目标），后验不会这么双峰，门槛会重新变得有意义。", "iterations": [{"n": 1, "symptom": "检出归零", "cause": "契约只要求存在 id 为 fire 的假设，没说目标事件的概率质量必须全在那里。agent 合法地拆成 flaming/smoldering", "fix": "加 is_target，按集合求和", "mine": true}, {"n": 2, "symptom": "检出归零", "cause": "agent 交了 H1..H6 这种不透明 id，系统无从判断套哪条似然", "fix": "拆开 id 与物理语义，加固定词表 family", "mine": true}, {"n": 3, "symptom": "gate 连拒三次", "cause": "我让模型写正则匹配位置编码的瓦片 id，它三次把 5 位写成 4 位", "fix": "改成行列范围，第一次就过", "mine": true}, {"n": 4, "symptom": "检出归零", "cause": "agent 加了方差更大的 unknown 假设，暴露我的 fire 似然是对称高斯——z=10 离中心 6σ，被判「太热不像火」", "fix": "改单调饱和似然：越热越像火", "mine": true}, {"n": 5, "symptom": "参数方向全反", "cause": "false_alarm_cost 语义没写明，agent 理解成「能承受多少误报」而非「施加多少惩罚」", "fix": "提示词写明每个参数调高调低的方向", "mine": true}], "sensitivity": {"threshold": [{"x": 0.15, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.25, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.35, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.45, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.55, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.65, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.75, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.85, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.95, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}], "false_alarm_cost": [{"x": 0.1, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.2, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.35, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.5, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.8, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 1.2, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 1.8, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}], "compute": [{"x": 2, "detection": 0.5294117647058824, "false_alarm": 0.15384615384615385}, {"x": 4, "detection": 0.47058823529411764, "false_alarm": 0.16666666666666666}, {"x": 8, "detection": 0.6470588235294118, "false_alarm": 0.125}, {"x": 12, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 24, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 48, "detection": 0.6470588235294118, "false_alarm": 0.125}, {"x": 91, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}]}, "posterior": {"edges": [0, 0.05, 0.2, 0.4, 0.6, 0.8, 0.95, 1.01], "counts": [2611, 7, 6, 2, 4, 10, 131], "n": 2771}, "intents": [{"label": "手写默认（参照）", "report_threshold": 0.55, "false_alarm_cost": 0.35, "detection_rate": 0.7058823529411765, "false_alarm_rate": 0.11764705882352941, "downlink_used": 17}, {"label": "保守 · 怕误报", "report_threshold": 0.85, "false_alarm_cost": 1.8, "detection_rate": 0.6470588235294118, "false_alarm_rate": 0.0, "downlink_used": 12}, {"label": "激进 · 怕漏报", "report_threshold": 0.35, "false_alarm_cost": 0.2, "detection_rate": 0.5882352941176471, "false_alarm_rate": 0.0, "downlink_used": 12}, {"label": "平衡", "report_threshold": 0.6, "false_alarm_cost": 0.8, "detection_rate": 0.6470588235294118, "false_alarm_rate": 0.13333333333333333, "downlink_used": 15}]}, {"id": "constellation", "name": "星座层", "sub": "多打星有用吗", "question": "端到端延迟花在哪？多打星能压到哪？", "headline": {"value": "98%", "unit": "的延迟花在重访等待上", "note": "下传等待只有约 1 小时——钱该花在打星上，不是建地面站上"}, "falsifier": "引入侧摆会把有效幅宽放大数倍，重访等待会显著下降。本模型按固定天底建模（Sentinel-2 就不侧摆）。", "stations": [{"id": "svalbard", "name": "Svalbard (SvalSat), 挪威", "lat": 78.229, "lon": 15.408, "per_day": 14, "minutes_per_day": 144.3, "max_elev": 85.9}, {"id": "inuvik", "name": "Inuvik, 加拿大", "lat": 68.318, "lon": -133.549, "per_day": 10, "minutes_per_day": 107.0, "max_elev": 85.4}, {"id": "matera", "name": "Matera (ESA), 意大利", "lat": 40.649, "lon": 16.704, "per_day": 5, "minutes_per_day": 48.0, "max_elev": 63.3}, {"id": "maspalomas", "name": "Maspalomas (ESA), 西班牙", "lat": 27.763, "lon": -15.634, "per_day": 5, "minutes_per_day": 51.7, "max_elev": 33.2}], "scaling": [{"fleet_key": "sentinel2", "median_total_h": 37.87, "p90_total_h": 157.87, "median_revisit_wait_h": 36.75, "median_downlink_wait_h": 1.08, "tiles_alerted": 17, "tiles_total": 17, "duplicate_downlinks": 0, "downlinks_total": 17, "sla_breach_rate_6h": 1.0, "sla_breach_rate_24h": 1.0, "sla_breach_rate_48h": 0.1176, "n": 3, "label": "Sentinel-2 A/B/C（真实，且档案里有它们的真实影像）"}, {"fleet_key": "sentinel1_sar", "median_total_h": 67.5, "p90_total_h": 235.7, "median_revisit_wait_h": 67.42, "median_downlink_wait_h": 0.04, "tiles_alerted": 9, "tiles_total": 17, "duplicate_downlinks": 0, "downlinks_total": 9, "sla_breach_rate_6h": 1.0, "sla_breach_rate_24h": 1.0, "sla_breach_rate_48h": 0.7647, "n": 3, "label": "Sentinel-1 A/C/D（SAR，不看光照、穿云）"}, {"fleet_key": "optical_plus_sar", "median_total_h": 37.87, "p90_total_h": 67.5, "median_revisit_wait_h": 36.75, "median_downlink_wait_h": 1.08, "tiles_alerted": 17, "tiles_total": 17, "duplicate_downlinks": 0, "downlinks_total": 17, "sla_breach_rate_6h": 1.0, "sla_breach_rate_24h": 1.0, "sla_breach_rate_48h": 0.1176, "n": 6, "label": "光学三星 + SAR 三星（真实在役）"}, {"fleet_key": "planet119", "median_total_h": 13.73, "p90_total_h": 13.77, "median_revisit_wait_h": 12.65, "median_downlink_wait_h": 1.05, "tiles_alerted": 17, "tiles_total": 17, "duplicate_downlinks": 25, "downlinks_total": 42, "sla_breach_rate_6h": 1.0, "sla_breach_rate_24h": 0.0, "sla_breach_rate_48h": 0.0, "n": 119, "label": "Planet 真实在轨 119 颗"}], "planes": {"bins": [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345], "counts": [0, 5, 1, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 1, 0, 0, 3, 2, 2, 0, 45, 55, 1], "total": 119}, "coordination": [{"fleet_key": "sentinel2", "none": 62, "ground_relay": 0, "oracle": 0}, {"fleet_key": "sentinel1_sar", "none": 42, "ground_relay": 0, "oracle": 0}, {"fleet_key": "optical_plus_sar", "none": 113, "ground_relay": 0, "oracle": 0}, {"fleet_key": "planet119", "none": 1226, "ground_relay": 25, "oracle": 0}]}, {"id": "sensor", "name": "传感器层", "sub": "SAR 能破掉地板吗", "question": "光学的 23 小时地板是什么造成的？换 SAR 能破吗？", "headline": {"value": "22.7h → 10.3h", "unit": "机会间隔 p90", "note": "同一批轨道只切换日照约束——地板就是昼夜周期，SAR 破了它"}, "falsifier": "这是城乡交界火，烧的有相当一部分是建筑。烧毁的建筑仍是强角反射体，SAR 上变化不大——换纯山林火场，SAR 灵敏度应该更好。", "daylight": [{"n": 16, "optical": {"passes_per_day": 0.67, "gap_median_h": 24.18, "gap_p90_h": 66.6}, "no_sun": {"passes_per_day": 1.62, "gap_median_h": 11.35, "gap_p90_h": 36.0}}, {"n": 64, "optical": {"passes_per_day": 2.71, "gap_median_h": 0.87, "gap_p90_h": 23.62}, "no_sun": {"passes_per_day": 5.76, "gap_median_h": 0.6, "gap_p90_h": 11.88}}, {"n": 119, "optical": {"passes_per_day": 5.29, "gap_median_h": 0.24, "gap_p90_h": 22.7}, "no_sun": {"passes_per_day": 10.86, "gap_median_h": 0.2, "gap_p90_h": 10.31}}], "detection": {"schema": "orbital-triage.sar-detection/0.2.0", "metric": "ratio_p05", "normalization": "减去全景 z 中位（湿度共模），门控 IQR<=2.0", "threshold_z": 8.825, "scene_reject_rate": 0.196, "rejected_scenes": ["2024-11-27_asc", "2024-11-27_des", "2025-01-14_des", "2025-01-26_des", "2025-02-02_asc", "2025-02-07_asc", "2025-02-07_des", "2025-02-14_asc", "2025-02-14_des", "2025-02-19_des"], "by_burn_fraction": [{"lo": 0.02, "hi": 0.1, "p_detect_sar": 0.0, "p_detect_optical": 0.3846}, {"lo": 0.1, "hi": 0.3, "p_detect_sar": 0.0588, "p_detect_optical": 0.6}, {"lo": 0.5, "hi": 0.8, "p_detect_sar": 0.4615, "p_detect_optical": 1.0}, {"lo": 0.8, "hi": 1.01, "p_detect_sar": 0.9167, "p_detect_optical": 1.0}]}, "steps": [{"label": "原始（瓦片中位数）", "sep_all": 0.89, "sep_heavy": 4.42, "fa_p99": 25.94}, {"label": "换成 p05 分位数", "sep_all": 1.39, "sep_heavy": 5.69, "fa_p99": 18.68}, {"label": "+ 去湿度共模", "sep_all": 2.59, "sep_heavy": 12.36, "fa_p99": 15.42}, {"label": "+ 降水门控", "sep_all": 3.68, "sep_heavy": 17.5, "fa_p99": 8.83}], "series": {"tile_id": "t0403", "burn_frac": 0.9387, "series": {"asc137": [{"date": "2024-09-04", "z": -0.66, "post": false}, {"date": "2024-09-16", "z": 0.43, "post": false}, {"date": "2024-09-28", "z": -0.05, "post": false}, {"date": "2024-10-10", "z": -0.02, "post": false}, {"date": "2024-10-22", "z": 0.3, "post": false}, {"date": "2024-11-03", "z": 0.41, "post": false}, {"date": "2024-11-15", "z": 1.06, "post": false}, {"date": "2024-11-27", "z": -1.84, "post": false}, {"date": "2024-12-09", "z": 1.08, "post": false}, {"date": "2024-12-21", "z": 0.53, "post": false}, {"date": "2025-01-02", "z": 0.46, "post": false}, {"date": "2025-01-14", "z": 9.77, "post": true}, {"date": "2025-01-26", "z": 11.85, "post": true}, {"date": "2025-02-07", "z": 14.39, "post": true}, {"date": "2025-02-19", "z": 16.15, "post": true}], "des144": [{"date": "2024-09-04", "z": 0.42, "post": false}, {"date": "2024-09-16", "z": 0.12, "post": false}, {"date": "2024-09-28", "z": 0.39, "post": false}, {"date": "2024-10-10", "z": 1.08, "post": false}, {"date": "2024-10-22", "z": 0.25, "post": false}, {"date": "2024-11-03", "z": 0.18, "post": false}, {"date": "2024-11-15", "z": 0.64, "post": false}, {"date": "2024-11-27", "z": -1.67, "post": false}, {"date": "2024-12-09", "z": 0.41, "post": false}, {"date": "2025-01-02", "z": 0.24, "post": false}, {"date": "2025-01-14", "z": 15.94, "post": true}, {"date": "2025-01-26", "z": 41.95, "post": true}, {"date": "2025-02-07", "z": 35.52, "post": true}, {"date": "2025-02-19", "z": 23.13, "post": true}]}}, "cross_sensor": [{"label": "光学 Sentinel-2 ×3", "n": 3, "alerted": 17, "total": 17, "median_h": 34.87, "p90_h": 154.87, "passes_per_sat_day": 0.095, "by_sensor": {"optical": 6}}, {"label": "SAR Sentinel-1 ×3", "n": 3, "alerted": 9, "total": 17, "median_h": 64.5, "p90_h": 232.7, "passes_per_sat_day": 0.254, "by_sensor": {"sar": 16}}, {"label": "光学×3 + SAR×3", "n": 6, "alerted": 17, "total": 17, "median_h": 34.87, "p90_h": 64.5, "passes_per_sat_day": 0.175, "by_sensor": {"optical": 6, "sar": 16}}], "rejected": [{"key": "2024-11-27_asc", "iqr": 4.0}, {"key": "2024-11-27_des", "iqr": 3.1}, {"key": "2025-01-14_des", "iqr": 2.3}, {"key": "2025-01-26_des", "iqr": 4.9}, {"key": "2025-02-02_asc", "iqr": 4.0}, {"key": "2025-02-07_asc", "iqr": 4.7}, {"key": "2025-02-07_des", "iqr": 4.9}, {"key": "2025-02-14_asc", "iqr": 7.3}, {"key": "2025-02-14_des", "iqr": 7.8}, {"key": "2025-02-19_des", "iqr": 4.6}], "scenes_total": 51}, {"id": "method", "name": "方法", "sub": "为什么这些数字可信", "question": "怎么知道这些结论是关于世界的，而不是关于我的设定？", "headline": {"value": "5 / 5", "unit": "个假设被自己的数据推翻或修正", "note": "如果所有实验都验证了预期，那才该怀疑"}, "falsifier": "这一节没有可证伪条件——它记录的就是证伪本身。"}], "falsified": [{"hypothesis": "世界模型（会算机会成本）应该稳赢短视策略", "verdict": "只在资源紧时赢", "detail": "9/25 个格点占优，集中在算力 4–8 块/轨（最大赢面 +17.6 个点）。算力充裕时打平甚至略输。而且第一版把世界模型用在「现在算还是等下一轨」上，结果反而更差——算力按轨作废，推迟处理没有任何上行收益。"}, {"hypothesis": "降低延迟靠轨道面分散度，不靠卫星数", "verdict": "只在小星座成立", "detail": "16 颗时散开赢 3.4 倍，64 颗时挤在一起反而更好（24h 违约 0% vs 29%）。太阳同步的 RAAN 对应地方时，散开等于摊到光照更差的时段。"}, {"hypothesis": "Agent 编译的配置应该比手写默认好", "verdict": "更差", "detail": "而且五轮迭代里四轮查到最后是我的接口设计错误，不是模型能力问题。"}, {"hypothesis": "Agent 至少能把不同意图翻译成不同行为", "verdict": "不能", "detail": "门槛 0.15→0.95 九档、误报代价 0.10→1.80 七档，检出率与误报率一个数字都不动。后验双峰（94.2% 在 0.05 以下，4.7% 在 0.95 以上），旋钮本身没有区分度。"}, {"hypothesis": "SAR 灵敏度太低，看不见这些烧痕", "verdict": "统计量选错了", "detail": "第一版算出 0.29σ 确实像看不见。但那是瓦片中位数被未烧区域稀释；换成 p05 分位数、去湿度共模、加降水门控之后是 17.5σ。"}], "pitfalls": [{"symptom": "策略烧光算力却几乎不上报", "cause": "每块瓦片只有 2 个火前晴天样本 → MAD≈0 → sigma 触底 → z 炸到 +29.97 → 四个假设的似然同时下溢到 0 → 归一化分母为 0 → 后验永远不动", "fix": "对数空间更新、z 裁剪、尺度池化、档案往前扩 4 个月"}, {"symptom": "16 颗星和 3 颗星结果完全相同", "cause": "采样假象。Dove 幅宽 24 km、地速 7 km/s，穿过捕获带只要 6.7 秒，60 秒步长跨过九成过顶", "fix": "两段式：粗扫找极小 + 2 秒细化。过顶率从 0.1/天 修正到 5.6/天"}, {"symptom": "z=10 的像元被判「太热了不像火」", "cause": "fire 似然是对称高斯，中心 4.0、σ=1.0，z=10 离中心 6σ。只有引入方差更大的 unknown 假设时才暴露", "fix": "改成单调饱和似然——越热越像火"}, {"symptom": "SAR 分离度只有 0.29σ，像是完全看不见", "cause": "瓦片中位数被未烧区域稀释——21 块烧毁里 14 块面积不到 50%。光学侧一开始就用 p99 极值，SAR 侧用中位数是没对齐", "fix": "换 p05 分位数 → 1.39σ；再去湿度共模 → 12.36σ；加降水门控 → 17.50σ"}, {"symptom": "完整性检查掩盖了我自己造成的破坏", "cause": "清 __pycache__ 时删掉上游 63 个被提交的 .pyc，而我写的 is_pristine 无条件忽略含 __pycache__ 的行", "fix": "已恢复。豁免要按变更类型（未跟踪），不能按路径"}], "images": {"burn": "/mission-studio-showcase/reports/assets/e8f0716cc9d5e2fa.webp"}};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const pct = (v,d=1) => v==null ? "—" : (v*100).toFixed(d)+"%";
+const hrs = v => v==null ? "—" : v.toFixed(1)+"h";
+const NS = "http://www.w3.org/2000/svg";
+const el = (t,a={}) => { const e=document.createElementNS(NS,t);
+  for(const[k,v] of Object.entries(a)) if(v!=null) e.setAttribute(k,v); return e; };
+const svgIn = (host,vb) => { host.innerHTML=""; const s=el("svg",{viewBox:vb,role:"img"});
+  host.appendChild(s); return s; };
+
+/* ── 顶栏证据等级 ── */
+const PCOLOR = {observed:"var(--obs)", geometry:"var(--geo)", modelled:"var(--mod)"};
+$("prov").innerHTML = D.provenance.map((p,i)=>
+  `<button data-p="${i}"><i style="background:${PCOLOR[p.kind]}"></i>${esc(p.label)}
+   <span class="n">${p.items.length}</span></button>`).join("");
+$("prov").addEventListener("click", e => {
+  const b = e.target.closest("button[data-p]"); if(!b) return;
+  const p = D.provenance[+b.dataset.p];
+  $("dlgT").textContent = p.label;
+  $("dlgL").innerHTML = p.items.map(i=>`<li>${esc(i)}</li>`).join("");
+  $("dlg").showModal();
+});
+$("dlgX").onclick = () => $("dlg").close();
+
+/* ── 左栏 ── */
+$("rail").innerHTML = D.layers.map(l=>
+  `<li><button data-l="${l.id}"><div class="nm">${esc(l.name)}</div>
+   <div class="sb">${esc(l.sub)}</div></button></li>`).join("");
+$("rail").addEventListener("click", e => {
+  const b = e.target.closest("button[data-l]"); if(b) show(b.dataset.l);
+});
+
+function frame(layer, body){
+  return `<div class="q">${esc(layer.sub)}</div>
+    <h2 class="layer">${esc(layer.name)}</h2>
+    <p class="ask">${esc(layer.question)}</p>
+    <div class="hero"><div class="v">${esc(layer.headline.value)}</div>
+      <div class="u">${esc(layer.headline.unit)}</div>
+      <div class="nt">${esc(layer.headline.note)}</div></div>
+    ${body}
+    <div class="falsi"><b>什么会推翻它</b>${esc(layer.falsifier)}</div>`;
+}
+
+/* ── 各层主体 ── */
+const RENDER = {
+
+rig(L){
+  return frame(L, `
+  <div class="card"><h3>真值靠一个时间差，不靠标注</h3>
+    <p class="cap">Agent 在回放中只能看到 t 时刻之前的影像；评测器能看到整个档案，
+      包括火后几周的烧痕。所以「星上扔掉的那块地里到底有没有火」，我们知道，agent 不知道。
+      烧痕由 dNBR（USGS 阈值体系）从火后影像独立算出——没有人工标注、没有外部 API、
+      没有合作方数据。</p>
+    <figure><img src="${D.images.burn}" alt="LA 2025 火场烧痕">
+      <figcaption>左下沿海是 Palisades，右上山麓是 Eaton。位置与真实火场一致，
+        水体已屏蔽（NBR 在水面不稳定）。这张图完全由本项目的 Sentinel-2 档案算出。</figcaption>
+    </figure></div>
+  <div class="card"><h3>两条纪律住在测试里，不住在文档里</h3>
+    <p class="cap">这两件事做错了整个结果作废，而且不会有任何征兆。所以它们跑在 CI 里。</p>
+    <div class="pit"><div class="sy">paired replay</div>
+      <div class="ca">所有策略必须见到逐位相同的输入。否则它们之间的差异可能来自输入，
+        而不是决策。</div></div>
+    <div class="pit"><div class="sy">no truth leakage</div>
+      <div class="ca">把真值<b>扰动之后重跑</b>：偷看过真值的策略行为必然改变，没偷看的
+        必然逐位不变。同时有反向对照，确保 oracle 确实对真值敏感——否则这个测试是空的。</div></div>
+    <div class="pit"><div class="sy">no future leakage</div>
+      <div class="ca">基线与世界模型只能用起火前的数据拟合。测试会把起火后的观测抹掉
+        再拟合一次，要求结果完全一致。</div></div>
+  </div>`);
+},
+
+triage(L){
+  const order = ["always_downlink","fixed_threshold","myopic_bayes","full","hindsight_oracle"];
+  const NM = {always_downlink:["A 全下传","无星上智能"],fixed_threshold:["B 固定阈值","今天的做法"],
+    myopic_bayes:["C 贝叶斯信念","无世界模型"],full:["D 信念 + 世界模型",""],
+    hindsight_oracle:["E 事后真值参照","知识上界"]};
+  const by = Object.fromEntries(L.scorecards.map(c=>[c.policy,c]));
+  const rows = order.filter(n=>by[n]).map(n=>{
+    const c=by[n], cls = n==="full"?"hi":(n==="hindsight_oracle"?"dim":"");
+    return `<tr class="${cls}"><td>${NM[n][0]}<br><span style="font-size:11px;color:var(--muted)">${NM[n][1]}</span></td>
+      <td>${pct(c.detection_rate)}</td><td>${pct(c.silent_discard_rate)}</td>
+      <td>${pct(c.false_alarm_rate)}</td><td>${c.downlink_used}</td></tr>`;}).join("");
+  return frame(L, `
+  <div class="card"><h3>五条策略，同一份数据、同一个 planner、同一份预算</h3>
+    <p class="cap">差异只在「知道什么、算什么账」。分母是真实烧毁<b>且当天按真实云况本来
+      看得见</b>的瓦片——被厚云盖住的不计入，那不是决策失误，是物理限制。</p>
+    <div class="tw"><table><thead><tr><th>策略</th><th>检出率</th><th>误删率</th>
+      <th>误报率</th><th>下行用量</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="lg"><span style="color:var(--muted)">误删 = 真的烧了、当天看得见、却被丢弃且再没报上来
+      —— 地面永远不会知道这个错误</span></div>
+  </div>
+  <div class="card"><h3>但预算一宽松，这一层就不重要了</h3>
+    <p class="cap">扫过 25 个预算格点。策略间的差异只在左下角（算力和带宽都紧）才出现；
+      右上角基本打平——这正是下一层要回答的问题。</p>
+    <div id="sweepHeat"></div></div>`);
+},
+
+agent(L){
+  const iters = L.iterations.map(it=>`<div class="pit">
+    <div class="sy">${esc(it.symptom)}<span style="font-family:'IBM Plex Mono',monospace;
+      font-size:10.5px;color:var(--muted);border:1px solid var(--hairline);
+      padding:1px 7px;margin-left:8px">我的接口错误</span></div>
+    <div class="ca">${esc(it.cause)}</div>
+    <div class="fx">→ ${esc(it.fix)}</div></div>`).join("");
+  return frame(L, `
+  <div class="card"><h3>边界：模型提议，求解器授权</h3>
+    <p class="cap">Agent 负责把人话翻译成目标、优先级、竞争假设、什么时候交给人。
+      排时间表、判可行性、分配预算、执行——全部在确定性求解器手里。
+      模型的输出全部先过 gate，越界一律拒绝并有界地让它修。</p></div>
+  <div class="g2">
+    <div class="card"><h3>门槛扫九档，结果一个数字都不动</h3>
+      <p class="cap">其余一切不变，只扫 report_threshold。</p>
+      <div id="sensChart"></div></div>
+    <div class="card"><h3>因为后验是双峰的</h3>
+      <p class="cap">目标事件后验的分布。中间几乎是空的。</p>
+      <div id="postChart"></div></div>
+  </div>
+  <div class="card"><h3>五轮迭代，四轮是我的接口设计错误</h3>
+    <p class="cap">gate 每留一个语义漏洞，模型就会找到它。而查到最后，多数「agent 的错」
+      都是我把系统的内部编码泄漏给了它。</p>${iters}</div>`);
+},
+
+constellation(L){
+  const st = L.stations.map(s=>`<tr><td>${esc(s.name)}</td><td>${s.lat.toFixed(1)}°</td>
+    <td>${s.per_day}</td><td>${s.minutes_per_day} min</td></tr>`).join("");
+  const co = L.coordination.filter(c=>c.none>0).map(c=>{
+    const saved = c.none ? (c.none-c.ground_relay)/c.none : 0;
+    return `<tr class="${c.none>500?'hi':''}"><td>${esc(c.fleet_key)}</td><td>${c.none}</td>
+      <td>${c.ground_relay}</td><td>${c.oracle}</td><td>${pct(saved,0)}</td></tr>`;}).join("");
+  return frame(L, `
+  <div class="card"><h3>延迟的四段分解</h3>
+    <p class="cap">补上地面站之后，链路才完整。之前「每轨 N 个带宽单位」是编的——
+      真实卫星只有过地面站那几分钟能下传。</p>
+    <div id="waterfall"></div></div>
+  <div class="g2">
+    <div class="card"><h3>地面站接触窗口</h3>
+      <p class="cap">SGP4 从真实两行根数算出来的。Sentinel-2 每天绕 14.3 圈——
+        Svalbard 在 78°N 几乎每圈都能过站，这就是 SvalSat 存在的物理原因。</p>
+      <div class="tw"><table><thead><tr><th>地面站</th><th>纬度</th><th>次数/日</th>
+        <th>时长/日</th></tr></thead><tbody>${st}</tbody></table></div></div>
+    <div class="card"><h3>星间不通信的浪费</h3>
+      <p class="cap">同一场火被多颗星看到，各自下传就是几份带宽换一条告警。
+        唯一的协同渠道是地面——每颗星只有过站时才知道别人报过什么。</p>
+      <div class="tw"><table><thead><tr><th>星座</th><th>不协同</th><th>地面中转</th>
+        <th>理想</th><th>省下</th></tr></thead><tbody>${co}</tbody></table></div></div>
+  </div>
+  <div class="card"><h3>Planet 在轨 119 颗，94% 挤在两个轨道面</h3>
+    <p class="cap">我据此猜「降延迟靠轨道面数」，然后判决性实验推翻了它——
+      太阳同步的 RAAN 对应地方时，散开等于摊到光照更差的时段。</p>
+    <div id="planeChart"></div></div>`);
+},
+
+sensor(L){
+  const dr = L.detection.by_burn_fraction.map(b=>
+    `<tr class="${b.hi>1?'hi':''}"><td>${(b.lo*100).toFixed(0)}–${Math.min(b.hi*100,100).toFixed(0)}%</td>
+     <td>${pct(b.p_detect_sar,1)}</td><td>${pct(b.p_detect_optical,1)}</td></tr>`).join("");
+  const cs = L.cross_sensor.map((r,i)=>`<tr class="${i===2?'hi':''}"><td>${esc(r.label)}</td>
+    <td>${r.n}</td><td>${r.alerted}/${r.total}</td><td>${hrs(r.median_h)}</td>
+    <td>${hrs(r.p90_h)}</td></tr>`).join("");
+  const sp = L.steps.map((s,i)=>`<tr class="${i===L.steps.length-1?'hi':''}">
+    <td>${esc(s.label)}</td><td>${s.sep_all.toFixed(2)}σ</td>
+    <td>${s.sep_heavy.toFixed(2)}σ</td><td>${s.fa_p99.toFixed(1)}</td></tr>`).join("");
+  return frame(L, `
+  <div class="card"><h3>判决性实验：同一批轨道，只切换要不要日照</h3>
+    <p class="cap">如果地板真是光照造成的，去掉这个约束就该看到它塌下去。别的全不动。</p>
+    <div id="dayChart"></div>
+    <div class="lg"><span><i style="background:var(--alert)"></i>需要日照 ≥15°（光学）</span>
+      <span><i style="background:var(--ok)"></i>无光照约束（SAR 物理）</span>
+      <span style="color:var(--muted)">纵轴：机会间隔 p90 —— 两次能看的机会之间最长要等多久</span></div>
+  </div>
+  <div class="g2">
+    <div class="card"><h3>SAR 看得见吗</h3>
+      <p class="cap">51 景真实 Sentinel-1 RTC 实测的检出率，按瓦片烧毁面积分档。</p>
+      <div class="tw"><table><thead><tr><th>烧毁面积</th><th>SAR</th><th>光学</th></tr></thead>
+        <tbody>${dr}</tbody></table></div>
+      <div class="lg"><span style="color:var(--muted)">大面积追平光学，小面积几乎看不见</span></div></div>
+    <div class="card"><h3>一块重度烧毁瓦片的时序</h3>
+      <p class="cap">${esc(L.series.tile_id)}（烧毁 ${(L.series.burn_frac*100).toFixed(0)}%）
+        的 VH−VV 偏离，升降轨独立复现。</p>
+      <div id="sarSeries"></div></div>
+  </div>
+  <div class="card"><h3>三个方法学的坑，每个都改变了结论</h3>
+    <p class="cap">第一版算出 0.29σ，看起来 SAR 完全没用。中间每一步都是我的方法学错误，
+      不是 SAR 的物理限制。</p>
+    <div class="tw"><table><thead><tr><th>处理步骤</th><th>全部烧毁</th><th>重度烧毁</th>
+      <th>虚警 p99</th></tr></thead><tbody>${sp}</tbody></table></div></div>
+  <div class="card"><h3>端到端：混合星座</h3>
+    <p class="cap">SAR 单独覆盖不了小面积烧毁，但它把光学的长尾砍掉一半以上。</p>
+    <div class="tw"><table><thead><tr><th>星座</th><th>颗数</th><th>覆盖</th>
+      <th>中位延迟</th><th>p90 延迟</th></tr></thead><tbody>${cs}</tbody></table></div>
+    <div class="lg"><span style="color:var(--muted)">SAR 不是替代品，是保险</span></div></div>`);
+},
+
+method(L){
+  const f = D.falsified.map(x=>`<li><div><div class="hy">${esc(x.hypothesis)}</div>
+    <div class="dt">${esc(x.detail)}</div></div>
+    <div class="vd">${esc(x.verdict)}</div></li>`).join("");
+  const p = D.pitfalls.map(x=>`<div class="pit"><div class="sy">${esc(x.symptom)}</div>
+    <div class="ca">${esc(x.cause)}</div><div class="fx">→ ${esc(x.fix)}</div></div>`).join("");
+  return frame(L, `
+  <div class="card"><h3>被自己的数据推翻或修正的假设</h3>
+    <p class="cap">这是这台测量台最值得看的一节。如果所有实验都验证了预期，那才应该怀疑。</p>
+    <ul class="ledger">${f}</ul></div>
+  <div class="card"><h3>踩过的坑，记根因不只记修法</h3>
+    <p class="cap">每一条都在 docs/DECISIONS.md 里有完整记录：决定了什么 / 为什么 /
+      什么会推翻它 / 后来怎么样了。</p>${p}</div>`);
+}};
+
+/* ── 图表 ── */
+function drawSweep(host, sweep){
+  const rows = sweep.rows, cs = sweep.grid.compute, dl = sweep.grid.downlink;
+  const gains = rows.map(r=>r.world_model_gain), mx = Math.max(...gains.map(Math.abs))||1;
+  let h = `<div style="display:grid;gap:2px;grid-template-columns:78px repeat(${dl.length},1fr);
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px">`;
+  h += `<div></div>` + dl.map(d=>`<div style="text-align:center;color:var(--muted);
+    font-size:10px;padding:6px 0">下行 ${d}</div>`).join("");
+  for(const c of cs){
+    h += `<div style="text-align:right;padding:9px 10px 0 0;color:var(--muted);font-size:10px">算力 ${c}</div>`;
+    for(const d of dl){
+      const r = rows.find(x=>x.compute_per_pass===c && x.downlink_per_pass===d);
+      const g = r ? r.world_model_gain : 0, t = Math.min(1, Math.abs(g)/mx);
+      const bg = Math.abs(g)<0.001 ? "var(--sunk)"
+        : `color-mix(in oklab, ${g>0?"var(--ok)":"var(--alert)"} ${(32+62*t).toFixed(0)}%, var(--panel-2))`;
+      h += `<div style="background:${bg};padding:9px 2px;text-align:center;
+        ${t>0.45?"color:#fff;font-weight:500":""}">${g===0?"·":(g>0?"+":"")+(g*100).toFixed(1)}</div>`;
+    }
+  }
+  host.innerHTML = h + `</div><div class="lg">
+    <span><i style="background:var(--ok)"></i>世界模型占优</span>
+    <span><i style="background:var(--sunk)"></i>打平</span>
+    <span><i style="background:var(--alert)"></i>短视更好</span>
+    <span style="color:var(--muted)">格内 = D 检出率 − C 检出率（百分点）</span></div>`;
+}
+
+function drawSens(host, pts){
+  const W=440,H=230,L=50,R=18,T=20,B=44;
+  const s = svgIn(host, `0 0 ${W} ${H}`);
+  const x=i=>L+i*(W-L-R)/(pts.length-1), y=v=>H-B-v*(H-T-B);
+  for(let g=0;g<=4;g++){const yy=T+g*(H-T-B)/4;
+    s.appendChild(el("line",{class:"grid",x1:L,x2:W-R,y1:yy,y2:yy}));
+    const t=el("text",{x:L-8,y:yy+4,"text-anchor":"end"}); t.textContent=((4-g)*25)+"%";
+    s.appendChild(t);}
+  s.appendChild(el("line",{class:"axis",x1:L,x2:W-R,y1:H-B,y2:H-B}));
+  for(const [k,c,lab] of [["detection","var(--geo)","检出率"],["false_alarm","var(--alert)","误报率"]]){
+    s.appendChild(el("path",{d:pts.map((p,i)=>`${i?"L":"M"}${x(i)},${y(p[k])}`).join(" "),
+      fill:"none",stroke:c,"stroke-width":2.5}));
+    pts.forEach((p,i)=>s.appendChild(el("circle",{cx:x(i),cy:y(p[k]),r:3.2,fill:c,
+      stroke:"var(--panel)","stroke-width":2})));
+    const t=el("text",{x:W-R,y:y(pts[0][k])-9,"text-anchor":"end"});
+    t.setAttribute("fill",c); t.textContent=`${lab} ${pct(pts[0][k])}`; s.appendChild(t);
+  }
+  pts.forEach((p,i)=>{if(i%2===0){const t=el("text",{x:x(i),y:H-B+16,"text-anchor":"middle"});
+    t.textContent=p.x.toFixed(2); s.appendChild(t);}});
+  const ax=el("text",{x:L,y:H-B+32}); ax.textContent="上报门槛 report_threshold"; s.appendChild(ax);
+}
+
+function drawPost(host, post){
+  const W=440,H=230,L=50,R=18,T=20,B=44;
+  const s = svgIn(host, `0 0 ${W} ${H}`);
+  const {edges,counts,n}=post, bw=(W-L-R)/counts.length, mx=Math.max(...counts);
+  s.appendChild(el("line",{class:"axis",x1:L,x2:W-R,y1:H-B,y2:H-B}));
+  counts.forEach((c,i)=>{
+    const h=(c/mx)*(H-T-B), x=L+i*bw, edge = i===0||i===counts.length-1;
+    s.appendChild(el("rect",{x:x+2,y:H-B-h,width:bw-4,height:h,
+      fill:edge?"var(--geo)":"var(--sunk)",stroke:"var(--hairline)"}));
+    const t=el("text",{x:x+bw/2,y:H-B-h-6,"text-anchor":"middle"});
+    t.setAttribute("font-size","10");
+    t.textContent=(c/n*100).toFixed(c/n>0.02?0:1)+"%"; s.appendChild(t);
+    if(i%2===0){const e=el("text",{x:x+bw/2,y:H-B+16,"text-anchor":"middle"});
+      e.setAttribute("font-size","10"); e.textContent=edges[i].toFixed(2); s.appendChild(e);}
+  });
+  const ax=el("text",{x:L,y:H-B+32}); ax.textContent=`目标事件后验 p（n=${n} 次观测）`;
+  s.appendChild(ax);
+}
+
+function drawWaterfall(host, scaling){
+  const s2 = scaling.find(r=>r.fleet_key==="sentinel2") || scaling[0];
+  const total = s2.median_total_h;
+  const segs = [["① 重访等待","哪颗星能飞到这块地上空，且有光、没云",s2.median_revisit_wait_h,"var(--alert)"],
+    ["② 星上处理","花算力算出结论",120/3600,"var(--geo)"],
+    ["③ 下传等待","这颗星什么时候过地面站",s2.median_downlink_wait_h,"var(--ok)"]];
+  let acc=0;
+  host.innerHTML = segs.map(([n,sub,v,c])=>{
+    const left=acc/total*100, w=Math.max(v/total*100,0.7); acc+=v;
+    return `<div style="display:grid;grid-template-columns:120px 1fr 78px;align-items:center;
+      gap:12px;padding:10px 0;border-top:1px solid var(--rule)">
+      <div style="font-size:13.5px">${n}<div style="font-size:11px;color:var(--muted);
+        margin-top:1px">${sub}</div></div>
+      <div style="height:24px;background:var(--sunk);position:relative">
+        <div style="position:absolute;top:0;bottom:0;left:${left}%;width:${w}%;background:${c}"></div></div>
+      <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:14px">
+        ${v<0.1?(v*60).toFixed(0)+"min":hrs(v)}</div></div>`;
+  }).join("") + `<div style="display:grid;grid-template-columns:120px 1fr 78px;gap:12px;
+    padding:11px 0;border-top:1px solid var(--hairline);font-weight:600">
+    <div style="font-size:13.5px">客户收到告警</div><div></div>
+    <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:14px">${hrs(total)}</div></div>
+    <div class="lg"><span style="color:var(--muted)">重访等待占
+      ${pct(s2.median_revisit_wait_h/total,0)}——多打一颗星和多建一个地面站，成本差着数量级</span></div>`;
+}
+
+function drawPlanes(host, planes){
+  const W=880,H=190,L=40,R=18,T=16,B=40;
+  const s = svgIn(host, `0 0 ${W} ${H}`);
+  const {bins,counts,total}=planes, bw=(W-L-R)/bins.length, mx=Math.max(...counts);
+  s.appendChild(el("line",{class:"axis",x1:L,x2:W-R,y1:H-B,y2:H-B}));
+  counts.forEach((c,i)=>{
+    const h=(c/mx)*(H-T-B), x=L+i*bw, big=c>=20;
+    s.appendChild(el("rect",{x:x+2,y:H-B-h,width:bw-4,height:h,
+      fill:big?"var(--alert)":"var(--sunk)",stroke:"var(--hairline)"}));
+    if(c>0){const t=el("text",{x:x+bw/2,y:H-B-h-5,"text-anchor":"middle"});
+      t.setAttribute("fill",big?"var(--alert)":"var(--muted)");
+      t.setAttribute("font-size","10"); t.textContent=c; s.appendChild(t);}
+    if(i%3===0){const t=el("text",{x:x+bw/2,y:H-B+15,"text-anchor":"middle"});
+      t.setAttribute("font-size","10"); t.textContent=bins[i]+"°"; s.appendChild(t);}
+  });
+  const ax=el("text",{x:L,y:H-B+31});
+  ax.textContent=`升交点赤经 RAAN（15° 一箱）· 共 ${total} 颗`; s.appendChild(ax);
+}
+
+function drawDaylight(host, rows){
+  const W=880,H=260,L=54,R=20,T=20,B=50;
+  const s = svgIn(host, `0 0 ${W} ${H}`);
+  const gw=(W-L-R)/rows.length, bw=Math.min(56,gw*0.3);
+  const mx=Math.max(...rows.flatMap(r=>[r.optical.gap_p90_h,r.no_sun.gap_p90_h]))*1.15;
+  const y=v=>H-B-(v/mx)*(H-T-B);
+  for(let g=0;g<=4;g++){const yy=T+g*(H-T-B)/4;
+    s.appendChild(el("line",{class:"grid",x1:L,x2:W-R,y1:yy,y2:yy}));
+    const t=el("text",{x:L-8,y:yy+4,"text-anchor":"end"});
+    t.textContent=(mx*(4-g)/4).toFixed(0)+"h"; s.appendChild(t);}
+  s.appendChild(el("line",{class:"axis",x1:L,x2:W-R,y1:H-B,y2:H-B}));
+  rows.forEach((r,i)=>{
+    const cx=L+gw*(i+0.5);
+    [["optical","var(--alert)",-1],["no_sun","var(--ok)",1]].forEach(([k,c,side])=>{
+      const v=r[k].gap_p90_h, x=cx+side*(bw/2+2)-bw/2;
+      s.appendChild(el("rect",{x,y:y(v),width:bw,height:(H-B)-y(v),fill:c}));
+      const t=el("text",{x:x+bw/2,y:y(v)-6,"text-anchor":"middle"});
+      t.setAttribute("fill",c); t.textContent=v.toFixed(1)+"h"; s.appendChild(t);});
+    const n=el("text",{x:cx,y:H-B+17,"text-anchor":"middle"});
+    n.textContent="Planet ×"+r.n; s.appendChild(n);
+    const p=el("text",{x:cx,y:H-B+32,"text-anchor":"middle"}); p.setAttribute("font-size","10");
+    p.textContent=`${r.optical.passes_per_day} → ${r.no_sun.passes_per_day} 次/天`;
+    s.appendChild(p);
+  });
+}
+
+function drawSeries(host, spec){
+  const W=440,H=250,L=44,R=16,T=18,B=46;
+  const s = svgIn(host, `0 0 ${W} ${H}`);
+  const all=Object.values(spec.series).flat();
+  const mx=Math.max(...all.map(p=>p.z)), mn=Math.min(...all.map(p=>p.z),-3);
+  const y=v=>H-B-((v-mn)/(mx-mn))*(H-T-B);
+  const n=Math.max(...Object.values(spec.series).map(a=>a.length));
+  const x=i=>L+i*(W-L-R)/Math.max(n-1,1);
+  s.appendChild(el("line",{class:"grid",x1:L,x2:W-R,y1:y(0),y2:y(0)}));
+  const z0=el("text",{x:L-7,y:y(0)+4,"text-anchor":"end"}); z0.textContent="0"; s.appendChild(z0);
+  const first=Object.values(spec.series)[0].findIndex(p=>p.post);
+  if(first>0){const xx=x(first)-((x(1)-x(0))/2);
+    s.appendChild(el("line",{x1:xx,x2:xx,y1:T,y2:H-B,stroke:"var(--alert)","stroke-width":2,opacity:.5}));
+    const t=el("text",{x:xx+5,y:T+11}); t.setAttribute("fill","var(--alert)");
+    t.textContent="起火"; s.appendChild(t);}
+  Object.entries(spec.series).forEach(([geom,pts],gi)=>{
+    const c = gi===0?"var(--geo)":"var(--ok)";
+    s.appendChild(el("path",{d:pts.map((p,i)=>`${i?"L":"M"}${x(i)},${y(p.z)}`).join(" "),
+      fill:"none",stroke:c,"stroke-width":2.2}));
+    pts.forEach((p,i)=>s.appendChild(el("circle",{cx:x(i),cy:y(p.z),r:2.8,fill:c,
+      stroke:"var(--panel)","stroke-width":1.4})));
+    const t=el("text",{x:W-R,y:y(pts[pts.length-1].z)+(gi?13:-6),"text-anchor":"end"});
+    t.setAttribute("fill",c); t.textContent=geom; s.appendChild(t);});
+  const ax=el("text",{x:L,y:H-B+30}); ax.textContent="按成像时间排序（升轨 / 降轨各一条）";
+  s.appendChild(ax);
+}
+
+/* ── 切换 ── */
+function show(id){
+  const layer = D.layers.find(l=>l.id===id) || D.layers[0];
+  $("stage").innerHTML = RENDER[layer.id](layer);
+  document.querySelectorAll("#rail button").forEach(b=>
+    b.setAttribute("aria-current", String(b.dataset.l===layer.id)));
+  if(layer.id==="triage")       drawSweep($("sweepHeat"), layer.sweep);
+  if(layer.id==="agent"){       drawSens($("sensChart"), layer.sensitivity.threshold);
+                                drawPost($("postChart"), layer.posterior); }
+  if(layer.id==="constellation"){drawWaterfall($("waterfall"), layer.scaling);
+                                drawPlanes($("planeChart"), layer.planes); }
+  if(layer.id==="sensor"){      drawDaylight($("dayChart"), layer.daylight);
+                                drawSeries($("sarSeries"), layer.series); }
+  if(location.hash.slice(1)!==layer.id) history.replaceState(null,"","#"+layer.id);
+  window.scrollTo({top:0,behavior:"instant"});
+}
+addEventListener("hashchange",()=>show(location.hash.slice(1)));
+show(location.hash.slice(1) || "rig");
+</script>

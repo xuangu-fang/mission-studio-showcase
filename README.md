@@ -86,6 +86,7 @@ packages/contracts/       public schema、类型与验证器
 packages/domain/          事件排序、投影、因果链与回放语义
 public/fixtures/          小型、经过审查的 public trace
 public/assets/            可再分发的轻量视觉资产
+public/reports/           独立研究仓库产出的静态研究页面（见 S-017，勿手工编辑）
 docs/                     架构、UX、计划、contract 与场景说明
 tests/                    后续 interaction、a11y 与 visual tests
 AGENTS.md                 coding agent 必读的边界与交接上下文

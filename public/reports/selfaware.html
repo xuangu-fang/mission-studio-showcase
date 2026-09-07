@@ -1,0 +1,392 @@
+<title>星上自知力</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --ground:#e8e6e1; --surface:#fbfaf8; --surface-2:#f1efeb; --inset:#e3e0da;
+  --ink:#141820; --ink-2:#4a515e; --muted:#767d8a;
+  --line:rgba(20,24,32,.13); --rule:rgba(20,24,32,.07);
+  --fault:#b04a1c; --fault-soft:rgba(176,74,28,.13);
+  --know:#0d6f79; --know-soft:rgba(13,111,121,.13);
+  --unknown:#6a5a8c; --unknown-soft:rgba(106,90,140,.14);
+  --ok:#3f7a3a;
+  --shadow:0 1px 2px rgba(20,24,32,.05), 0 10px 28px rgba(20,24,32,.06);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  color-scheme: dark;
+  --ground:#0e1116; --surface:#161b22; --surface-2:#1c222b; --inset:#111620;
+  --ink:#e9edf2; --ink-2:#a6b0bd; --muted:#7c8593;
+  --line:rgba(233,237,242,.15); --rule:rgba(233,237,242,.08);
+  --fault:#e07a45; --fault-soft:rgba(224,122,69,.17);
+  --know:#2fa3ae; --know-soft:rgba(47,163,174,.17);
+  --unknown:#9a86c4; --unknown-soft:rgba(154,134,196,.18);
+  --ok:#69ad62;
+  --shadow:0 1px 2px rgba(0,0,0,.45), 0 12px 32px rgba(0,0,0,.38);
+}}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --ground:#0e1116; --surface:#161b22; --surface-2:#1c222b; --inset:#111620;
+  --ink:#e9edf2; --ink-2:#a6b0bd; --muted:#7c8593;
+  --line:rgba(233,237,242,.15); --rule:rgba(233,237,242,.08);
+  --fault:#e07a45; --fault-soft:rgba(224,122,69,.17);
+  --know:#2fa3ae; --know-soft:rgba(47,163,174,.17);
+  --unknown:#9a86c4; --unknown-soft:rgba(154,134,196,.18);
+  --ok:#69ad62;
+  --shadow:0 1px 2px rgba(0,0,0,.45), 0 12px 32px rgba(0,0,0,.38);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans","Noto Sans SC",-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:16px; line-height:1.72; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px; margin:0 auto; padding:0 24px 96px}
+code,.mono,td.num,th.num{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+
+header.hero{padding:72px 0 40px; border-bottom:1px solid var(--line)}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin-bottom:18px}
+h1{font-size:clamp(30px,4.6vw,48px); line-height:1.16; margin:0 0 18px; font-weight:600;
+  letter-spacing:-.015em; text-wrap:balance; max-width:20ch}
+.lede{font-size:18.5px; color:var(--ink-2); max-width:62ch; margin:0}
+.lede strong{color:var(--ink); font-weight:600}
+
+section{padding:52px 0 8px; border-bottom:1px solid var(--rule)}
+section:last-of-type{border-bottom:none}
+h2{font-size:24px; margin:0 0 6px; font-weight:600; letter-spacing:-.01em; display:flex;
+  align-items:baseline; gap:12px}
+h2 .n{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
+  letter-spacing:.1em; font-weight:500}
+h3{font-size:16.5px; margin:32px 0 10px; font-weight:600; color:var(--ink)}
+.sub{color:var(--muted); font-size:14.5px; margin:0 0 22px; max-width:64ch}
+p{max-width:66ch; color:var(--ink-2)} p strong{color:var(--ink); font-weight:600}
+
+.card{background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  padding:20px 22px; box-shadow:var(--shadow); margin:18px 0}
+.card.flush{padding:0; overflow:hidden}
+.grid{display:grid; gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}
+
+.stat{background:var(--surface); border:1px solid var(--line); border-radius:9px; padding:15px 17px}
+.stat .k{font-size:12px; color:var(--muted); letter-spacing:.02em; margin-bottom:5px}
+.stat .v{font-family:"IBM Plex Mono",monospace; font-size:25px; font-weight:600;
+  letter-spacing:-.02em; line-height:1.15}
+.stat .u{font-size:12.5px; color:var(--muted); margin-top:3px}
+.stat.bad .v{color:var(--fault)} .stat.good .v{color:var(--know)}
+.stat.warn .v{color:var(--unknown)}
+
+.tw{overflow-x:auto; margin:16px 0; border:1px solid var(--line); border-radius:9px;
+  background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:14px}
+th,td{padding:9px 13px; text-align:left; border-bottom:1px solid var(--rule); white-space:nowrap}
+th{font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted);
+  font-weight:600; background:var(--surface-2); position:sticky; top:0}
+tbody tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right}
+tr.hl td{background:var(--know-soft)}
+tr.dim td{color:var(--muted)}
+
+.pill{display:inline-block; padding:1.5px 8px; border-radius:999px; font-size:11.5px;
+  font-weight:600; font-family:"IBM Plex Mono",monospace; letter-spacing:.02em}
+.pill.fault{background:var(--fault-soft); color:var(--fault)}
+.pill.know{background:var(--know-soft); color:var(--know)}
+.pill.unk{background:var(--unknown-soft); color:var(--unknown)}
+.pill.na{background:var(--rule); color:var(--muted)}
+
+.bar{position:relative; height:9px; border-radius:5px; background:var(--inset); overflow:hidden;
+  min-width:70px}
+.bar span{position:absolute; inset:0 auto 0 0; border-radius:5px}
+.bar.f span{background:var(--fault)} .bar.k span{background:var(--know)}
+
+.note{border-left:2.5px solid var(--know); padding:2px 0 2px 15px; margin:20px 0;
+  color:var(--ink-2); font-size:14.5px; max-width:64ch}
+.note.warn{border-left-color:var(--fault)}
+.note b{color:var(--ink)}
+
+figure{margin:20px 0}
+figure img{width:100%; height:auto; display:block; border:1px solid var(--line);
+  border-radius:7px; background:var(--inset); image-rendering:pixelated}
+figcaption{font-size:13px; color:var(--muted); margin-top:8px; display:flex;
+  justify-content:space-between; gap:16px; flex-wrap:wrap}
+.panel-key{display:flex; gap:0; font-size:11.5px; color:var(--muted);
+  font-family:"IBM Plex Mono",monospace; margin-bottom:5px}
+.panel-key span{flex:1; text-align:center}
+
+footer{padding:44px 0 0; color:var(--muted); font-size:13px}
+footer a{color:var(--know)}
+.toc{display:flex; flex-wrap:wrap; gap:8px; margin:26px 0 0}
+.toc a{font-size:12.5px; font-family:"IBM Plex Mono",monospace; color:var(--ink-2);
+  text-decoration:none; border:1px solid var(--line); border-radius:999px; padding:4px 11px;
+  background:var(--surface)}
+.toc a:hover{border-color:var(--know); color:var(--know)}
+.missing{background:var(--surface-2); border:1px dashed var(--line); border-radius:9px;
+  padding:16px 18px; color:var(--muted); font-size:14px}
+</style>
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">mission-self-aware-autonomy · 真实 Sentinel-2 · 真实 TLE</div>
+  <h1>我坏了，还是世界变了？</h1>
+  <p class="lede">自主卫星在观测上<strong>无法区分这两件事</strong>。
+  「连续 40 轨没检出火」同时兼容「真的没火」和「我的探测器漂了」——两种情况下发的遥测一模一样。
+  轨道上没有维修，没有参照。这一页把这个问题拆开、量出来，
+  并给出一条能在星上跑的路：<strong>免费的景内自检负责触发，一次定标场访问负责定量。</strong></p>
+  <div class="toc"><a href="#identify">分不开</a><a href="#free">免费通道有多少信息</a><a href="#select">监视器与选择性</a><a href="#speed">免费通道有多慢</a><a href="#real">真实定标场，零注入</a><a href="#econ">自检的经济学</a><a href="#robust">一个反直觉的实测</a><a href="#sr">模型没有定标场</a><a href="#guard">问模型，还是问仪器</a><a href="#limits">还没做到的</a></div>
+</header>
+<section id="identify">
+        <h2><span class="n">01</span>分不开</h2>
+        <p class="sub">世界状态与自身状态通过同一个观测通道纠缠</p>
+        
+    <p>「连续 40 轨没检出火」这一条证据，同时兼容四种解释——真的没火 / 探测器定标漂了 /
+    超分模型进了分布外在编造 / 指向偏了根本没看那儿。<strong>四种解释下发的遥测一模一样。</strong>
+    而轨道上没有维修，没有参照，地面只拿到涓流般的遥测。</p>
+    <p>唯一的一阶抓手是<strong>空间结构</strong>：仪器故障是共模的（所有瓦片一起变），
+    世界事件是差分的（少数瓦片变）。但它不够——大火和大范围云也是共模的，
+    死列却不是共模的。<strong>共模只给先验，要靠动作才能真正解开。</strong></p>
+    <div class="grid g2">
+      <div class="card"><h3 style="margin-top:0">可校正的退化</h3>
+        <p style="font-size:14.5px;margin:0">增益漂移、加性偏置。故障只是给观测加了一个偏置，
+        <strong>信息没有损失</strong>。景内参考目标的共模漂移就是这个偏置的估计，减掉即可。</p></div>
+      <div class="card"><h3 style="margin-top:0">不可校正的退化</h3>
+        <p style="font-size:14.5px;margin:0">MTF 模糊、死列、单粒子翻转。故障<strong>真的销毁了信息</strong>，
+        没有任何标量修正能把细节还回来。正确的反应是放大不确定度、必要时弃权——
+        一个把模糊误当偏置去「修正」的系统，会一边修一边更自信，比不修更危险。</p></div>
+    </div>
+    <div class="note">系统必须知道自己得的是哪一种。这就是诊断层存在的理由，
+    也是它和传统航天 FDIR 的分界：FDIR 建在星务遥测的阈值规则上，
+    它的词表里没有「我的模型正在自信地编造细节」这一项。</div></section><section id="free">
+        <h2><span class="n">02</span>免费通道有多少信息</h2>
+        <p class="sub">景内目标能测什么、测不了什么，是结构性的</p>
+        
+    <p>先问一个经验问题：这景影像里有没有「自己不变」的东西可以当参照？
+    在真实洛杉矶档案的 25 景火前影像上量各瓦片的时间变异系数：</p>
+    <div class="grid g4">
+      <div class="stat bad"><div class="k">原始反射率</div><div class="v">1.178</div><div class="u">CV 中位数</div></div>
+      <div class="stat "><div class="k">NDVI</div><div class="v">0.313</div><div class="u">稳 3.8 倍</div></div>
+      <div class="stat good"><div class="k">SWIR16/NIR</div><div class="v">0.094</div><div class="u">稳 12.6 倍</div></div>
+      <div class="stat good"><div class="k">红/绿</div><div class="v">0.048</div><div class="u">稳 24.8 倍</div></div>
+    </div>
+    <div class="note"><b>结论是结构性的，不是调参得来的。</b>
+    整体增益下降与「地面变暗 / 太阳角变低 / 大气变厚」在单景上完全不可区分——
+    <b>绝对增益在原理上就不可识别</b>，除非去看已知不变的目标。
+    而波段之间的<b>相对</b>漂移会改变比值，地表和光照到一阶不会。<br><br>
+    于是自检天然分成两半：<b class="pill know">免费</b> 相对增益、锐度、空间结构、孤立异常；
+    <b class="pill fault">要花一轨</b> 绝对增益、加性偏置。<br>
+    而免费那一半，恰好就是污染 NBR 与火指数、凭空造出火烧迹地的那一类故障。</div></section><section id="select">
+        <h2><span class="n">03</span>监视器与选择性</h2>
+        <p class="sub">能说「有事」不够，要能说「什么事」</p>
+        
+    <p>每一类故障应当只点亮属于它的监视器。做不到选择性，就没有诊断力——
+    只能说「有事」，说不出「什么事」，也就无从决定该修正还是该弃权。
+    下表在真实 Sentinel-2 像元上注入各故障，量每个监视器相对无故障基线的响应，
+    单位是无故障时的景间正常波动（σ）。</p>
+    <div class="tw"><table><thead><tr><th class="">注入的故障</th><th class="num">死列占比</th><th class="num">孤立极端</th></tr></thead><tbody><tr class="dim"><td class="">无故障</td><td class="num"><span style="color:var(--muted)">+0.0</span></td><td class="num"><span style="color:var(--muted)">+0.0</span></td></tr><tr class=""><td class="">增益漂移</td><td class="num"><span style="color:var(--muted)">+0.0</span></td><td class="num"><span style="color:var(--muted)">+0.0</span></td></tr><tr class=""><td class="">加性偏置</td><td class="num"><span style="color:var(--muted)">+0.0</span></td><td class="num"><span style="color:var(--muted)">+0.0</span></td></tr><tr class=""><td class="">探测器条带</td><td class="num"><span style="color:var(--muted)">+0.0</span></td><td class="num"><span style="color:var(--muted)">+0.0</span></td></tr><tr class=""><td class="">死列</td><td class="num"><span class="pill fault">仅此一项</span></td><td class="num"><span style="color:var(--muted)">-0.0</span></td></tr><tr class=""><td class="">MTF 模糊</td><td class="num"><span style="color:var(--muted)">+0.0</span></td><td class="num"><span style="color:var(--muted)">-0.3</span></td></tr><tr class=""><td class="">单粒子翻转</td><td class="num"><span style="color:var(--muted)">+0.0</span></td><td class="num"><span class="pill fault">+4.9σ</span></td></tr></tbody></table></div>
+    <div class="note">对角线之外基本是空的——这正是需要的。
+    <b>没有任何自然地物会沿着探测器模块边界排列</b>，所以列方向的结构是最强的
+    「这是仪器不是世界」的证据。</div></section><section id="speed">
+        <h2><span class="n">04</span>免费通道有多慢</h2>
+        <p class="sub">慢漂移单景不可见，只能靠趋势累积</p>
+        
+    <p>慢漂移在<strong>单景上不可能被看见</strong>：3 倍文献速率的增益漂移两年后让红/绿比值变 1.1%，
+    而这个比值的景间自然波动是 4.75%——信噪比 0.23σ。它只能靠时间累积。</p>
+    <div class="tw"><table><thead><tr><th class="">故障族</th><th class="">强度</th><th class="">最灵敏监视器</th><th class="num">每年信噪比</th><th class="num">需要多久</th></tr></thead><tbody><tr class=""><td class="">增益漂移</td><td class="">1×</td><td class="">比值 红/绿</td><td class="num">0.039</td><td class="num">12.0 年</td></tr><tr class=""><td class="">增益漂移</td><td class="">3×</td><td class="">比值 红/绿</td><td class="num">0.118</td><td class="num">5.8 年</td></tr><tr class=""><td class="">增益漂移</td><td class="">10×</td><td class="">比值 红/绿</td><td class="num">0.397</td><td class="num">2.5 年</td></tr><tr class=""><td class="">加性偏置</td><td class="">1×</td><td class="">列台阶</td><td class="num">0.078</td><td class="num">7.5 年</td></tr><tr class=""><td class="">加性偏置</td><td class="">3×</td><td class="">比值 NIR/红</td><td class="num">0.212</td><td class="num">3.9 年</td></tr><tr class=""><td class="">加性偏置</td><td class="">10×</td><td class="">比值 NIR/红</td><td class="num">0.527</td><td class="num">2.1 年</td></tr><tr class=""><td class="">探测器条带</td><td class="">1×</td><td class="">模块 F</td><td class="num">0.055</td><td class="num">9.5 年</td></tr><tr class="hl"><td class="">探测器条带</td><td class="">4×</td><td class="">模块 F</td><td class="num">1.128</td><td class="num"><b>1.3 年</b></td></tr><tr class="hl"><td class="">探测器条带</td><td class="">10×</td><td class="">模块 F</td><td class="num">6.971</td><td class="num"><b>0.4 年</b></td></tr><tr class=""><td class="">MTF 模糊</td><td class="">1×</td><td class="">锐度</td><td class="num">0.000</td><td class="num">超出寿命</td></tr><tr class="hl"><td class="">MTF 模糊</td><td class="">3.5×</td><td class="">锐度</td><td class="num">1.099</td><td class="num"><b>1.3 年</b></td></tr><tr class="hl"><td class="">MTF 模糊</td><td class="">10×</td><td class="">锐度</td><td class="num">2.043</td><td class="num"><b>0.9 年</b></td></tr><tr class="hl"><td class="">单粒子翻转</td><td class="">1×</td><td class="">孤立极端</td><td class="num">0.826</td><td class="num"><b>1.6 年</b></td></tr><tr class="hl"><td class="">单粒子翻转</td><td class="">10×</td><td class="">孤立极端</td><td class="num">8.311</td><td class="num"><b>0.3 年</b></td></tr><tr class="hl"><td class="">单粒子翻转</td><td class="">100×</td><td class="">孤立极端</td><td class="num">74.162</td><td class="num"><b>0.1 年</b></td></tr></tbody></table></div>
+    <div class="note"><b>信噪比 &lt; 1 意味着单景完全看不见。</b>
+    「需要多久」按趋势检验的标度 t∝T<sup>1.5</sup> 解析外推到 |t|&gt;4.0，
+    重访 5 天；季节噪声刻意未扣除，因此是保守上界。</div>
+    <div class="note warn"><b>这条线上我错了两次，方向还相反。</b><br>
+    第一次：把 34 景循环使用来「模拟多年在轨」，循环制造出周期 170 天的锯齿，
+    残差被撑爆，所有慢漂移「未检出」。<br>
+    第二次：改用真实日期序列并扣除年/半年谐波。但档案只有 170 天，
+    <b>年谐波在半个周期内与线性项近似共线</b>——回归把漂移整个吃进谐波项，
+    于是 30× 增益漂移和无故障给出同样的 t。<br><br>
+    根子在数据，不在写法：<b>观测窗短于约一年时，线性漂移与年周期在原理上不可分。</b>
+    第三版因此不联合拟合，改为分开测两个成分——配对注入给故障速率，
+    干净序列给监视器噪声——再解析外推。</div>
+    <div class="note"><b>这张表把自检的经济学闭合了：</b>
+    文献量级的辐射漂移，免费通道要 <b>12 年</b>才判定得出来，超过卫星寿命；
+    而有空间结构的故障（条带、单粒子翻转）几个月就抓到。<br>
+    所以该跑定标场的恰恰是前一类——下一节算它的真实代价。</div></section><section id="real">
+        <h2><span class="n">05</span>真实定标场，零注入</h2>
+        <p class="sub">Libya-4 九年序列，唯一完全真实的一节</p>
+        
+    <p>前面所有结论都建立在<strong>注入</strong>的故障上。这一节没有任何注入。
+    Libya-4 是 CEOS 一级辐射定标场：撒哈拉腹地的沙丘，地表常年不变、云量中位 0.0%。
+    「世界不变」在这里是可以成立的前提，所以九年序列里剩下的一切变化都属于仪器、大气和几何。</p>
+    <div class="grid g4">
+      <div class="stat "><div class="k">时间跨度</div><div class="v">9.0 年</div><div class="u">178/180 景晴空</div></div>
+      <div class="stat good"><div class="k">比值稳定性</div><div class="v">1.6×</div><div class="u">相对绝对反射率</div></div>
+      <div class="stat "><div class="k">站点</div><div class="v">Libya-4</div><div class="u">MGRS-34RGS</div></div>
+      <div class="stat good"><div class="k">注入</div><div class="v">无</div><div class="u">全部为真实观测</div></div>
+    </div>
+    <div class="tw"><table><thead><tr><th class="">量</th><th class="num">年趋势</th><th class="num">t</th><th class="num">残差 CV</th><th class="num">季节振幅</th></tr></thead><tbody><tr class=""><td class="">blue</td><td class="num">+0.152%</td><td class="num">2.4</td><td class="num">0.0209</td><td class="num">1.95%</td></tr><tr class="hl"><td class="">green</td><td class="num">-0.172%</td><td class="num">-3.4</td><td class="num">0.0166</td><td class="num">0.57%</td></tr><tr class="hl"><td class="">red</td><td class="num">-0.138%</td><td class="num">-3.1</td><td class="num">0.0148</td><td class="num">0.98%</td></tr><tr class=""><td class="">nir08</td><td class="num">-0.072%</td><td class="num">-1.6</td><td class="num">0.0149</td><td class="num">1.97%</td></tr><tr class=""><td class="">swir16</td><td class="num">-0.043%</td><td class="num">-1.1</td><td class="num">0.0136</td><td class="num">2.85%</td></tr><tr class=""><td class="">swir22</td><td class="num">+0.017%</td><td class="num">0.2</td><td class="num">0.0240</td><td class="num">2.81%</td></tr><tr class=""><td class="">red/green</td><td class="num">+0.034%</td><td class="num">1.9</td><td class="num">0.0060</td><td class="num">0.50%</td></tr><tr class="hl"><td class="">blue/green</td><td class="num">+0.324%</td><td class="num">7.8</td><td class="num">0.0138</td><td class="num">1.46%</td></tr><tr class=""><td class="">swir16/nir08</td><td class="num">+0.029%</td><td class="num">1.1</td><td class="num">0.0091</td><td class="num">1.17%</td></tr><tr class=""><td class="">swir22/swir16</td><td class="num">+0.061%</td><td class="num">0.9</td><td class="num">0.0211</td><td class="num">0.34%</td></tr><tr class="hl"><td class="">nir08/red</td><td class="num">+0.067%</td><td class="num">5.8</td><td class="num">0.0038</td><td class="num">1.07%</td></tr></tbody></table></div>
+    <div class="note">回归已扣除年与半年谐波——沙漠也有 BRDF，太阳天顶角随季节变化，
+    不扣季节会把季节读成漂移。逐平台（S2A/S2B/S2C）分开估，因为那是三台不同的仪器。<br><br>
+    这里量到的比值/绝对稳定性之比，是在<b>真正不变</b>的地表上得到的，
+    比洛杉矶那种「相对稳定」的近似更可信——两处结论方向一致，互为佐证。</div></section><section id="econ">
+        <h2><span class="n">06</span>自检的经济学</h2>
+        <p class="sub">什么时候值得花一轨去认识自己</p>
+        
+    <p>自检的代价这一侧必须是真实的，否则「值不值得去」就是空的。
+    这里用真实 Sentinel-2 TLE 与 SGP4，算从任意时刻到下一次能观测某个 CEOS 定标场的等待。</p>
+    <div class="tw"><table><thead><tr><th class="">目标</th><th class="num">窗口/年</th><th class="num">等待中位(天)</th><th class="num">p90(天)</th><th class="num">最长(天)</th></tr></thead><tbody><tr class="hl"><td class="">Libya-4（CEOS 一级定标场）</td><td class="num">142</td><td class="num">1.49</td><td class="num">3.88</td><td class="num">7.39</td></tr><tr class=""><td class="">Algeria-3（CEOS 定标场）</td><td class="num">161</td><td class="num">1.15</td><td class="num">3.03</td><td class="num">5.26</td></tr><tr class=""><td class="">Dome C（南极高原，极稳暗端）</td><td class="num">248</td><td class="num">36.89</td><td class="num">182.49</td><td class="num">218.89</td></tr><tr class=""><td class="">洛杉矶任务区</td><td class="num">165</td><td class="num">1.16</td><td class="num">3.0</td><td class="num">4.92</td></tr></tbody></table></div>
+    <div class="note warn"><b>这一条推翻了我自己的假设。</b>
+    我原以为跑一趟定标场要等几周，所以等待时间是主要成本。实际上单星到 Libya-4
+    的等待中位只有 4.07 天（p90 8.3 天），三星星座 1.49 天。
+    <b>定标在时间上是便宜的；真正的成本是那一轨没去干任务。</b><br><br>
+    Dome C 是反例：248 次窗口/年，但等待中位 36.9 天、p90 182 天——极夜。
+    可达性由轨道和光照决定，不由任务需要决定。</div>
+    <div class="note"><b>于是架构结论要改写，而且比原来的干净：</b><br>
+    景内免费通道<b>不是用来定量的，是用来触发的</b>。它每一轨都在低成本地问「有没有事」；
+    证据累积到阈值，就花一轨去定标场把「是什么、多大」一次问清楚。</div></section><section id="robust">
+        <h2><span class="n">07</span>一个反直觉的实测</h2>
+        <p class="sub">比值型检测器对仪器退化天然稳健——这是零结果</p>
+        
+    <p>我原本预期仪器故障会让火点检测崩掉。<strong>实测不是。</strong>八种物理注入的故障下，
+    检出率全部是 76.2%——纹丝不动。</p>
+    <div class="tw"><table><thead><tr><th class="">注入的故障</th><th class="num">检出</th><th class="num">误报</th><th class="num">平均熵（盲 → 自知）</th><th class="">系统的自诊断</th></tr></thead><tbody><tr class="dim"><td class="">无故障</td><td class="num">76.2%</td><td class="num">1.4%</td><td class="num">0.376 → 0.371</td><td class=""><span class="pill know">一切正常</span> <span class="mono" style="font-size:12px;color:var(--muted)">0.74</span></td></tr><tr class=""><td class="">增益漂移 1×</td><td class="num">76.2%</td><td class="num">1.4%</td><td class="num">0.378 → 0.372</td><td class=""><span class="pill know">一切正常</span> <span class="mono" style="font-size:12px;color:var(--muted)">0.75</span></td></tr><tr class=""><td class="">增益漂移 3×</td><td class="num">76.2%</td><td class="num">1.4%</td><td class="num">0.381 → 0.375</td><td class=""><span class="pill know">一切正常</span> <span class="mono" style="font-size:12px;color:var(--muted)">0.76</span></td></tr><tr class=""><td class="">增益漂移 10×</td><td class="num">76.2%</td><td class="num">0.0%</td><td class="num">0.398 → 0.389</td><td class=""><span class="pill know">一切正常</span> <span class="mono" style="font-size:12px;color:var(--muted)">0.78</span></td></tr><tr class=""><td class="">加性偏置</td><td class="num">76.2%</td><td class="num">1.4%</td><td class="num">0.367 → 0.359</td><td class=""><span class="pill know">一切正常</span> <span class="mono" style="font-size:12px;color:var(--muted)">0.72</span></td></tr><tr class=""><td class="">MTF 模糊</td><td class="num">76.2%</td><td class="num">1.4%</td><td class="num">0.330 → 0.343</td><td class=""><span class="pill unk">不知道哪儿坏了</span> <span class="mono" style="font-size:12px;color:var(--muted)">0.66</span></td></tr><tr class=""><td class="">探测器条带</td><td class="num">76.2%</td><td class="num">1.4%</td><td class="num">0.376 → 0.378</td><td class=""><span class="pill fault">探测器条带</span> <span class="mono" style="font-size:12px;color:var(--muted)">0.62</span></td></tr><tr class=""><td class="">死列</td><td class="num">76.2%</td><td class="num">1.4%</td><td class="num">0.376 → 0.381</td><td class=""><span class="pill fault">死列</span> <span class="mono" style="font-size:12px;color:var(--muted)">0.78</span></td></tr></tbody></table></div>
+    <div class="note"><b>零结果不是 bug，原因可以精确说清楚。</b>
+    直接量瓦片特征：10× 增益漂移让烧过瓦片的火指数变 <b>+1.40%</b>，
+    干净瓦片也变 <b>+1.40%</b>——<b>完全共模</b>。因为火指数是波段比值（SWIR22/NIR），
+    它自己就把共模增益约掉了；而每瓦片基线又在同一尺度上做了差。
+    比值 + 基线这个组合，让阈值型检测任务对仪器退化天然稳健。</div>
+    <div class="note warn"><b>一处必须更正的自我夸大。</b>
+    这条线最初的动机实验，是在<b>特征层</b>直接把 fire_p99 乘 0.5，
+    得到「检出率 76.2% → 42.9%、熵反而下降」这个戏剧性结果。
+    那个注入是非物理的——真实故障发生在像元上，经过波段比值之后被大幅抵消。
+    <b>物理正确地注入之后，那个戏剧性结论不成立。</b>本节保留原始数字，
+    因为把它删掉就等于假装没错过。</div>
+    <p>但最后一列说明<strong>诊断层本身是工作的</strong>：条带被认出（p=0.62）、
+    死列被认出（p=0.78）、MTF 模糊被归到「不知道哪儿坏了」（p=0.66）——
+    后者恰恰是想要的行为，因为 MTF 的签名在这组监视器上确实不够独特。</p>
+    <p>零结果的价值在于它指向了正确的地方：<strong>脆弱的不是检测器，是直接吃像元的 AI 载荷。</strong>
+    超分模型没有比值可以自归一，没有基线可以做差。下面两节量的就是它。</p></section><section id="sr">
+        <h2><span class="n">08</span>模型没有定标场</h2>
+        <p class="sub">传感器可以去沙漠标定，超分模型不行</p>
+        <p>传感器有定标场可查。<strong>模型没有。</strong>
+    这是自我认知里最难的一块，也正是把 AI 载荷送上轨道的公司要回答的第一个问题——
+    「你这个超分输出是真的还是编的？」轨道上没有真值，所以这个问题在星上无法直接回答。</p>
+    <p>这里的设计是：真值靠<strong>留出</strong>。低分输入由真实 20m Sentinel-2 抗混叠降采样得到，
+    真实 20m 影像就是真值。模型看不到它，评测方看得到。于是可以问真正的问题——
+    <strong>在拿不到真值的条件下，什么可算的信号能预测这次输出不可信？</strong></p>
+<div class="grid g4">
+        <div class="stat "><div class="k">模型</div><div class="v">EDSR 0.78M</div><div class="u">2× 超分，6 波段</div></div>
+        <div class="stat "><div class="k">训练</div><div class="v">14 景</div><div class="u">洛杉矶火前，仅左侧网格</div></div>
+        <div class="stat "><div class="k">同分布验证 L1</div><div class="v">0.01189</div><div class="u">训练 0.01189，无过拟合</div></div>
+        <div class="stat good"><div class="k">相对双线性</div><div class="v">39%</div><div class="u">空间留出区</div></div>
+        </div>
+<div class="tw"><table><thead><tr><th class="">测试域</th><th class=""></th><th class="num">RMSE</th><th class="num">PSNR</th><th class="num">相对双线性</th><th class="num">幻觉比</th></tr></thead><tbody><tr class="dim"><td class="">洛杉矶·同分布</td><td class=""><span class="pill know">分布内</span></td><td class="num">0.01622</td><td class="num">32.43</td><td class="num">+41.6%</td><td class="num">2.092</td></tr><tr class="dim"><td class="">洛杉矶·空间留出</td><td class=""><span class="pill know">分布内</span></td><td class="num">0.01529</td><td class="num">32.54</td><td class="num">+41.6%</td><td class="num">2.040</td></tr><tr class=""><td class="">利比亚沙漠</td><td class=""><span class="pill fault">分布外</span></td><td class="num">0.00768</td><td class="num">39.54</td><td class="num">+23.8%</td><td class="num">2.297</td></tr><tr class=""><td class="">北方针叶林</td><td class=""><span class="pill fault">分布外</span></td><td class="num">0.00601</td><td class="num">37.28</td><td class="num">+43.6%</td><td class="num">1.747</td></tr><tr class=""><td class="">亚马逊雨林</td><td class=""><span class="pill fault">分布外</span></td><td class="num">0.00953</td><td class="num">37.19</td><td class="num">+46.3%</td><td class="num">1.948</td></tr><tr class=""><td class="">东京城区</td><td class=""><span class="pill fault">分布外</span></td><td class="num">0.02072</td><td class="num">33.48</td><td class="num">+34.8%</td><td class="num">2.041</td></tr><tr class=""><td class="">洛杉矶·MTF 轻度</td><td class=""><span class="pill fault">分布外</span></td><td class="num">0.01723</td><td class="num">31.53</td><td class="num">+35.7%</td><td class="num">1.721</td></tr><tr class=""><td class="">洛杉矶·MTF 重度</td><td class=""><span class="pill fault">分布外</span></td><td class="num">0.03043</td><td class="num">26.52</td><td class="num">+6.4%</td><td class="num">1.180</td></tr></tbody></table></div>
+<h3>星上可算的信号，能不能预测「这次不可信」</h3>
+<div class="tw"><table><thead><tr><th class="">无参考信号</th><th class="num">域内相关（中位）</th><th class="num">跨域汇总相关</th><th class="num">识别「仪器已退化」的 AUC</th></tr></thead><tbody><tr class=""><td class="">hallucination_ratio</td><td class="num">+0.278</td><td class="num">-0.186</td><td class="num">0.079</td></tr><tr class=""><td class="">cycle_error</td><td class="num">+0.829</td><td class="num">+0.024</td><td class="num">0.161</td></tr><tr class=""><td class="">tta_disagreement</td><td class="num">+0.895</td><td class="num">+0.375</td><td class="num">0.262</td></tr></tbody></table></div>
+<div class="note warn">三列讲三件事，而且越往右越糟。<br>
+        <b>域内</b>：在同一片地表上，循环误差与 TTA 分歧都很能排序（0.83 / 0.90）。<br>
+        <b>跨域</b>：换一片地表就崩了。信号的绝对水平被地表纹理主导，不可跨域比较。<br>
+        <b>识别仪器退化</b>：AUC 全部<b>低于 0.5</b>——是反向的。
+        镜头一糊，输入变平滑，模型对所有增广变换给出一致的、自信的、错误的输出。
+        <b>信号恰好在最不该说「可信」的时候说「可信」。</b></div>
+<h3>幻觉长什么样</h3>
+<p>下面每一格是同一块地表的四种样子。要看的不是「超分比双线性清楚」——那是显然的。
+        要看的是分布外那几行：模型在陌生地表上照样输出锐利纹理，但那些纹理和真值对不上。</p>
+<figure>
+            <div class="panel-key"><span>输入 40m</span><span>双线性</span><span>超分</span><span>真值 20m</span></div>
+            <img src="/mission-studio-showcase/reports/assets/a6840642a7a40b1e.png" alt="洛杉矶（训练分布内）">
+            <figcaption><span>洛杉矶（训练分布内） <span class="pill know">分布内</span> · 2024-09-09</span>
+            <span class="mono">超分 RMSE 0.02341 · 双线性 0.03971
+            · 增益 +41.0%</span></figcaption></figure>
+<figure>
+            <div class="panel-key"><span>输入 40m</span><span>双线性</span><span>超分</span><span>真值 20m</span></div>
+            <img src="/mission-studio-showcase/reports/assets/8eb297e37753ec9e.png" alt="洛杉矶·空间留出">
+            <figcaption><span>洛杉矶·空间留出 <span class="pill fault">分布外</span> · 2024-09-04</span>
+            <span class="mono">超分 RMSE 0.02034 · 双线性 0.04115
+            · 增益 +50.6%</span></figcaption></figure>
+<figure>
+            <div class="panel-key"><span>输入 40m</span><span>双线性</span><span>超分</span><span>真值 20m</span></div>
+            <img src="/mission-studio-showcase/reports/assets/b519b2dd2008089f.png" alt="北方针叶林（分布外）">
+            <figcaption><span>北方针叶林（分布外） <span class="pill fault">分布外</span> · 2023-05-12</span>
+            <span class="mono">超分 RMSE 0.00702 · 双线性 0.01587
+            · 增益 +55.7%</span></figcaption></figure>
+<figure>
+            <div class="panel-key"><span>输入 40m</span><span>双线性</span><span>超分</span><span>真值 20m</span></div>
+            <img src="/mission-studio-showcase/reports/assets/a3a3a5873e4277de.png" alt="亚马逊雨林（分布外）">
+            <figcaption><span>亚马逊雨林（分布外） <span class="pill fault">分布外</span> · 2023-08-08</span>
+            <span class="mono">超分 RMSE 0.02533 · 双线性 0.03910
+            · 增益 +35.2%</span></figcaption></figure>
+<figure>
+            <div class="panel-key"><span>输入 40m</span><span>双线性</span><span>超分</span><span>真值 20m</span></div>
+            <img src="/mission-studio-showcase/reports/assets/5c5a3531a62d45f6.png" alt="东京城区（分布外）">
+            <figcaption><span>东京城区（分布外） <span class="pill fault">分布外</span> · 2024-06-05</span>
+            <span class="mono">超分 RMSE 0.02624 · 双线性 0.04138
+            · 增益 +36.6%</span></figcaption></figure>
+<figure>
+            <div class="panel-key"><span>输入 40m</span><span>双线性</span><span>超分</span><span>真值 20m</span></div>
+            <img src="/mission-studio-showcase/reports/assets/2665f250150b3ac8.png" alt="洛杉矶 + MTF 退化">
+            <figcaption><span>洛杉矶 + MTF 退化 <span class="pill fault">分布外</span> · 2024-09-09</span>
+            <span class="mono">超分 RMSE 0.05391 · 双线性 0.05861
+            · 增益 +8.0%</span></figcaption></figure>
+<div class="note warn"><b>最后一行是三条线合到一处的地方。</b>
+            光学 MTF 退化 = 模型输入的分布外。镜头变糊，输入就偏离了训练时的锐度分布，
+            模型照样输出锐利结果，那些细节是编的。
+            相对双线性的增益从分布内的 +41.0% 掉到 +8.0%，
+            RMSE 从 0.0234 涨到 0.0539。<br><br>
+            <b>硬件故障和超分幻觉是同一个问题的两面。</b>而模型自己不知道。</div></section><section id="guard">
+        <h2><span class="n">09</span>问模型，还是问仪器</h2>
+        <p class="sub">整条线的收口：一个决定性对照</p>
+        
+    <p>这是整条线的收口：<strong>要判断 AI 载荷现在还可不可信，该问模型自己，还是问仪器？</strong></p>
+    <p>把两个轴叉开——<strong>5 种真实地表 × 4 档 MTF 退化</strong>，
+    共 20 个格点。真值（超分相对双线性的增益）需要地面真值才能算，星上算不出来；
+    下面每个预测器都是星上可算的。</p>
+    <div class="grid g2">
+          <div class="stat good"><div class="k">健康卫星 · 拍利比亚沙漠</div>
+            <div class="v">0.00622</div>
+            <div class="u">模型自省的 TTA 分歧 · 超分增益 +22.9%</div></div>
+          <div class="stat bad"><div class="k">退化 3 年的卫星 · 拍洛杉矶</div>
+            <div class="v">0.00645</div>
+            <div class="u">模型自省的 TTA 分歧 · 超分增益 +24.7%</div></div>
+        </div>
+    <div class="note warn">上面两格是同一件事的两面：<b>模型自省完全分不开
+    「地表本来就平滑」和「我的镜头糊了」</b>——两者的分歧信号几乎相同，
+    而真实价值一个是 +22.9%、一个是 +24.7%。
+    这就是可识别性问题在载荷层的样子。</div>
+    <div class="tw"><table><thead><tr><th class="">预测器</th><th class="num">跨场景（真问题）</th><th class="num">同场景内</th></tr></thead><tbody><tr class=""><td class="">模型自省 · TTA 分歧</td><td class="num">+0.576</td><td class="num">1.000</td></tr><tr class=""><td class="">模型自省 · 幻觉比</td><td class="num">+0.053</td><td class="num">1.000</td></tr><tr class=""><td class="">模型自省 · 循环误差</td><td class="num">+0.000</td><td class="num">1.000</td></tr><tr class="hl"><td class="">仪器自检 · 锐度监视器</td><td class="num">+0.823</td><td class="num">1.000</td></tr></tbody></table></div>
+    <div class="note"><b>同场景内所有信号都是满分</b>——沿单调剂量轴，
+    任何单调变化的量都「预测」得完美。<b>跨场景才是真问题</b>，
+    因为星上不知道自己在拍什么地表。<br><br>
+    在真问题上：模型自省 +0.000 ~ +0.576，
+    <b>仪器自检 +0.823</b>。<br>
+    结论是架构性的：<b>不能问模型自己可不可信，要问仪器。</b>
+    而问仪器这条通道是免费的——它每一轨都在那儿。</div>
+    <h3>完整网格</h3>
+    <div class="tw"><table><thead><tr><th class="">地表</th><th class="num">MTF 剂量</th><th class="num">模糊 σ</th><th class="num">超分真实价值</th><th class="num">模型自省 TTA</th><th class="num">仪器锐度</th></tr></thead><tbody><tr class=""><td class="">洛杉矶</td><td class="num">0.0 年</td><td class="num">0.00px</td><td class="num">+40.81%</td><td class="num">0.01245</td><td class="num">0.6109</td></tr><tr class=""><td class="">洛杉矶</td><td class="num">1.5 年</td><td class="num">0.53px</td><td class="num">+39.58%</td><td class="num">0.01035</td><td class="num">0.5071</td></tr><tr class=""><td class="">洛杉矶</td><td class="num">3.0 年</td><td class="num">1.05px</td><td class="num">+24.70%</td><td class="num">0.00645</td><td class="num">0.3571</td></tr><tr class=""><td class="">洛杉矶</td><td class="num">6.0 年</td><td class="num">2.10px</td><td class="num">+6.61%</td><td class="num">0.00306</td><td class="num">0.2803</td></tr><tr class=""><td class="">利比亚沙漠</td><td class="num">0.0 年</td><td class="num">0.00px</td><td class="num">+22.86%</td><td class="num">0.00622</td><td class="num">0.3851</td></tr><tr class=""><td class="">利比亚沙漠</td><td class="num">1.5 年</td><td class="num">0.53px</td><td class="num">+22.51%</td><td class="num">0.00573</td><td class="num">0.3507</td></tr><tr class=""><td class="">利比亚沙漠</td><td class="num">3.0 年</td><td class="num">1.05px</td><td class="num">+13.26%</td><td class="num">0.00478</td><td class="num">0.3144</td></tr><tr class=""><td class="">利比亚沙漠</td><td class="num">6.0 年</td><td class="num">2.10px</td><td class="num">-1.35%</td><td class="num">0.00386</td><td class="num">0.2819</td></tr><tr class=""><td class="">北方针叶林</td><td class="num">0.0 年</td><td class="num">0.00px</td><td class="num">+45.81%</td><td class="num">0.00521</td><td class="num">0.5238</td></tr><tr class=""><td class="">北方针叶林</td><td class="num">1.5 年</td><td class="num">0.53px</td><td class="num">+45.26%</td><td class="num">0.00451</td><td class="num">0.4159</td></tr><tr class=""><td class="">北方针叶林</td><td class="num">3.0 年</td><td class="num">1.05px</td><td class="num">+31.30%</td><td class="num">0.00319</td><td class="num">0.3048</td></tr><tr class=""><td class="">北方针叶林</td><td class="num">6.0 年</td><td class="num">2.10px</td><td class="num">+10.37%</td><td class="num">0.00192</td><td class="num">0.2655</td></tr><tr class=""><td class="">亚马逊雨林</td><td class="num">0.0 年</td><td class="num">0.00px</td><td class="num">+43.52%</td><td class="num">0.00792</td><td class="num">0.5667</td></tr><tr class=""><td class="">亚马逊雨林</td><td class="num">1.5 年</td><td class="num">0.53px</td><td class="num">+42.69%</td><td class="num">0.00683</td><td class="num">0.4328</td></tr><tr class=""><td class="">亚马逊雨林</td><td class="num">3.0 年</td><td class="num">1.05px</td><td class="num">+28.98%</td><td class="num">0.00475</td><td class="num">0.3041</td></tr><tr class=""><td class="">亚马逊雨林</td><td class="num">6.0 年</td><td class="num">2.10px</td><td class="num">+9.37%</td><td class="num">0.00276</td><td class="num">0.2631</td></tr><tr class=""><td class="">东京城区</td><td class="num">0.0 年</td><td class="num">0.00px</td><td class="num">+35.84%</td><td class="num">0.01527</td><td class="num">0.6373</td></tr><tr class=""><td class="">东京城区</td><td class="num">1.5 年</td><td class="num">0.53px</td><td class="num">+35.29%</td><td class="num">0.01271</td><td class="num">0.5262</td></tr><tr class=""><td class="">东京城区</td><td class="num">3.0 年</td><td class="num">1.05px</td><td class="num">+23.20%</td><td class="num">0.00796</td><td class="num">0.3599</td></tr><tr class=""><td class="">东京城区</td><td class="num">6.0 年</td><td class="num">2.10px</td><td class="num">+6.84%</td><td class="num">0.00386</td><td class="num">0.2817</td></tr></tbody></table></div>
+    <div class="note">注意利比亚沙漠 6 年那一行：<b>超分增益变成负的</b>——
+    模型已经比双线性插值更差，但它照样输出，而且它的自省信号说一切正常。</div></section><section id="limits">
+        <h2><span class="n">10</span>还没做到的</h2>
+        <p class="sub">把边界写在最后，而不是不写</p>
+        
+    <p>这一页刻意把没做到的写在最后，而不是不写。</p>
+    <ul style="max-width:66ch;color:var(--ink-2)">
+      <li><b>硬件故障是合成的。</b>故障模型的形式取自公开在轨退化文献，
+      但注入是我做的。唯一完全真实的是 Libya-4 那一节。</li>
+      <li><b>云掩膜没有跟着坏。</b>实验里云/有效掩膜取自 L2A 的 SCL，不受注入影响。
+      真实星上云判是从同一批坏掉的反射率算出来的，会一起劣化——<b>真实情况比这里更糟</b>，
+      本页结论是下界。</li>
+      <li><b>只有一场火、一个 AOI。</b>21 块真烧瓦片，样本小。
+      所有百分比都应当按这个 n 来读。</li>
+      <li><b>超分任务是 40m→20m，不是 10m→2.5m。</b>受档案分辨率所限。
+      量级关系应当保持，绝对数字不可外推。</li>
+      <li><b>还没有做敏捷侧摆。</b>固定天底成像意味着「往哪看」不是决策，
+      这限制了自检预算能被优化的空间。</li>
+    </ul></section>
+<footer>
+  <p>全部数字由 <code>runs/report/selfaware.json</code> 直接渲染，不在页面里做任何计算。
+  可复现路径：<code>tools/selectivity.py</code> · <code>tools/detection_time.py</code> ·
+  <code>tools/closed_loop.py</code> · <code>tools/real_drift.py</code> ·
+  <code>tools/calibration_cost.py</code> · <code>tools/train_sr.py</code> ·
+  <code>tools/sr_ood.py</code></p>
+  <p>数据来源：Copernicus Sentinel-2 L2A（免费开放）· Celestrak TLE ·
+  CEOS 辐射定标场 Libya-4。本页已装载：selectivity, detection_time, closed_loop, calibration_cost, real_drift, sr_ood, payload_guard, sr_train, sr_panels</p>
+</footer>
+</div>

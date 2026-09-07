@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<title>研究页面 · mission-self-aware-autonomy</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{color-scheme:light;--bg:#e8e6e1;--card:#fbfaf8;--ink:#141820;--muted:#767d8a;
+--line:rgba(20,24,32,.13);--accent:#0d6f79}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+--bg:#0e1116;--card:#161b22;--ink:#e9edf2;--muted:#7c8593;
+--line:rgba(233,237,242,.15);--accent:#2fa3ae}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0e1116;--card:#161b22;--ink:#e9edf2;
+--muted:#7c8593;--line:rgba(233,237,242,.15);--accent:#2fa3ae}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,
+BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;padding:72px 24px}
+.w{max-width:660px;margin:0 auto}
+h1{font-size:27px;margin:0 0 8px;font-weight:600;letter-spacing:-.01em}
+p.s{color:var(--muted);margin:0 0 30px;font-size:14.5px}
+ul{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+a{display:flex;justify-content:space-between;gap:18px;align-items:baseline;
+background:var(--card);border:1px solid var(--line);border-radius:9px;
+padding:16px 19px;text-decoration:none;color:var(--ink)}
+a:hover{border-color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a span{color:var(--muted);font-size:13.5px;text-align:right}
+footer{margin-top:34px;color:var(--muted);font-size:13px}
+</style></head><body><div class="w">
+<h1>研究页面</h1>
+<p class="s">自包含静态页，除 Google Fonts 外不联网。数据来源为 Copernicus Sentinel-1/2、
+Celestrak TLE 与 CEOS 辐射定标场，全部公开。</p>
+<ul><li><a href="selfaware.html"><b>星上自知力</b><span>卫星怎么区分「世界变了」和「我变了」</span></a></li>
+<li><a href="explainer.html"><b>从零讲起</b><span>不熟悉这个领域的人从这里进</span></a></li>
+<li><a href="workbench.html"><b>测量台工作台</b><span>六层可切换的仪表盘</span></a></li>
+<li><a href="index.html"><b>星上取舍 · LA 2025</b><span>单星决策的结果页</span></a></li>
+<li><a href="constellation.html"><b>星座与 Agent</b><span>多星延迟与任务分解</span></a></li></ul>
+<footer>由 <code>mission-self-aware-autonomy</code> 的 <code>tools/publish_site.py</code>
+生成，请勿直接编辑。</footer>
+</div></body></html>

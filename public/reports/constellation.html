@@ -1,0 +1,588 @@
+<title>打破昼夜地板</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --ground:#eceef1; --surface:#fff; --surface-2:#f4f6f8; --sunk:#e4e8ec;
+  --ink:#101519; --ink-2:#455261; --muted:#6b7887;
+  --hairline:rgba(16,21,25,.13); --rule:rgba(16,21,25,.07);
+  --orbit:#1d5c96; --orbit-soft:rgba(29,92,150,.13);
+  --wait:#b8471c; --wait-soft:rgba(184,71,28,.14);
+  --link:#0d7a68; --link-soft:rgba(13,122,104,.14);
+  --floor:#6b7887;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme: dark;
+  --ground:#0b1014; --surface:#141b21; --surface-2:#1a232a; --sunk:#0f161b;
+  --ink:#e7edf2; --ink-2:#a5b3c0; --muted:#7d8b98;
+  --hairline:rgba(231,237,242,.15); --rule:rgba(231,237,242,.08);
+  --orbit:#4e9ade; --orbit-soft:rgba(78,154,222,.18);
+  --wait:#e07044; --wait-soft:rgba(224,112,68,.18);
+  --link:#2ba892; --link-soft:rgba(43,168,146,.18);
+  --floor:#8494a1;
+}}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --ground:#0b1014; --surface:#141b21; --surface-2:#1a232a; --sunk:#0f161b;
+  --ink:#e7edf2; --ink-2:#a5b3c0; --muted:#7d8b98;
+  --hairline:rgba(231,237,242,.15); --rule:rgba(231,237,242,.08);
+  --orbit:#4e9ade; --orbit-soft:rgba(78,154,222,.18);
+  --wait:#e07044; --wait-soft:rgba(224,112,68,.18);
+  --link:#2ba892; --link-soft:rgba(43,168,146,.18);
+  --floor:#8494a1;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font:400 16px/1.62 "IBM Plex Sans","Noto Sans SC",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:52px 24px 90px}
+h1,h2{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",sans-serif;margin:0;text-wrap:balance}
+h1{font-size:clamp(32px,4.6vw,48px);font-weight:700;line-height:1.07;letter-spacing:-.012em}
+h2{font-size:25px;font-weight:600}
+p{margin:0;max-width:64ch}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted)}
+header{padding-bottom:34px;border-bottom:1px solid var(--hairline)}
+.thesis{font-size:19px;line-height:1.55;color:var(--ink-2);margin-top:18px;max-width:58ch}
+.thesis b{color:var(--ink);font-weight:600}
+section{padding-top:54px}
+.sechead{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+.sechead .rule{flex:1;height:1px;background:var(--rule)}
+.lede{color:var(--ink-2);margin:12px 0 26px;font-size:15.5px}
+.card{background:var(--surface);border:1px solid var(--hairline);padding:24px}
+.grid2{display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:860px){.grid2{grid-template-columns:1fr 1fr}}
+
+.band{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;
+  background:var(--hairline);border:1px solid var(--hairline);margin-top:28px}
+.band .cell{background:var(--surface);padding:17px 19px}
+.band .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--muted)}
+.band .v{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:600;font-size:30px;
+  line-height:1.1;margin-top:5px}
+.band .s{font-size:12.5px;color:var(--muted);margin-top:3px}
+.v.wait{color:var(--wait)} .v.link{color:var(--link)} .v.floor{color:var(--floor)}
+
+/* 瀑布 */
+.wf{display:grid;grid-template-columns:132px 1fr 92px;align-items:center;gap:14px;padding:11px 0}
+.wf + .wf{border-top:1px solid var(--rule)}
+.wf .n{font-size:14px}
+.wf .n small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+.wf .track{height:26px;background:var(--sunk);position:relative;overflow:hidden}
+.wf .seg{position:absolute;top:0;bottom:0}
+.wf .val{text-align:right;font-family:"IBM Plex Mono",monospace;font-size:15px;font-weight:500}
+
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px}
+.tablewrap{overflow-x:auto;border:1px solid var(--hairline);background:var(--surface);margin-top:8px}
+th,td{padding:10px 13px;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+thead th{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--surface-2)}
+tbody td{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+tbody td:first-child{font-family:"IBM Plex Sans",sans-serif}
+tbody tr:last-child td{border-bottom:0}
+tr.hi td{background:var(--orbit-soft);font-weight:600}
+
+svg{display:block;width:100%;height:auto}
+svg text{fill:var(--muted);font-size:11px;font-family:"IBM Plex Mono",monospace}
+.axis{stroke:var(--hairline);stroke-width:1}
+.grid{stroke:var(--rule);stroke-width:1}
+
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:16px;font-size:12.5px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:11px;height:11px;flex:none;border:1px solid var(--hairline)}
+
+ol.iters{list-style:none;counter-reset:it;padding:0;margin:20px 0 0}
+ol.iters li{counter-increment:it;display:grid;grid-template-columns:34px 1fr;gap:16px;
+  padding:16px 0;border-bottom:1px solid var(--rule)}
+ol.iters li::before{content:counter(it);font-family:"IBM Plex Mono",monospace;font-size:12px;
+  color:var(--muted);border:1px solid var(--hairline);width:28px;height:28px;
+  display:grid;place-items:center}
+ol.iters .sym{font-weight:600;font-size:14.5px;color:var(--wait)}
+ol.iters .cause{font-size:14px;color:var(--ink-2);margin-top:4px;line-height:1.55}
+ol.iters .fix{font-size:13px;color:var(--link);margin-top:5px}
+ol.iters .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);
+  border:1px solid var(--hairline);padding:1px 7px;margin-left:8px;white-space:nowrap}
+
+.callout{border-left:3px solid var(--wait);background:var(--surface);padding:18px 22px;
+  margin-top:24px;font-size:15px;line-height:1.62}
+.callout b{color:var(--wait)}
+footer{margin-top:62px;padding-top:22px;border-top:1px solid var(--hairline);
+  font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 22px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Orbital triage · 星座与端到端延迟</div>
+  <h1 id="h1">—</h1>
+  <p class="thesis">纯光学星座的机会间隔有一个<b>约 23 小时的地板</b>，从 64 颗加到 119 颗几乎不动——
+    那就是昼夜周期。换成不看光照的 SAR，地板降到 <b>10.3 小时</b>，而且<b>饱和本身消失了</b>。
+    代价是灵敏度：SAR 对大面积烧毁追平光学，对小面积远不如。<b>它不是替代品，是保险。</b></p>
+</header>
+
+<section>
+  <div class="sechead"><h2>延迟花在哪</h2><div class="rule"></div></div>
+  <p class="lede">之前整个模型把延迟等同于「哪一天的影像里能看出来」。那不是客户感受到的延迟。
+    补上地面站之后链路有四段，而每一段的成本差着数量级——多打一颗星和多建一个地面站，
+    不是一个量级的决策。</p>
+  <div class="band" id="band"></div>
+  <div class="card" style="margin-top:22px" id="waterfall"></div>
+</section>
+
+<section>
+  <div class="sechead"><h2>地面站接触窗口</h2><div class="rule"></div></div>
+  <p class="lede">SGP4 从真实两行根数算出来的，不是查表。Sentinel-2 每天绕 14.3 圈——
+    Svalbard 在 78°N，几乎<b>每一圈都能过站</b>，这就是 SvalSat 存在的物理原因。
+    纬度一降下来，机会数直接掉到四分之一。</p>
+  <div class="tablewrap"><table id="stations"></table></div>
+</section>
+
+<section>
+  <div class="sechead"><h2>多打星有用吗</h2><div class="rule"></div></div>
+  <p class="lede" id="scaleLede">—</p>
+  <div class="card"><svg id="scaleChart" viewBox="0 0 900 340" role="img"
+    aria-label="星座规模与端到端延迟"></svg>
+    <div class="legend">
+      <span><i style="background:var(--wait)"></i>重访等待</span>
+      <span><i style="background:var(--link)"></i>下传等待</span>
+      <span><i style="background:var(--floor);height:2px;border:0"></i>光照地板</span>
+    </div></div>
+</section>
+
+<section>
+  <div class="sechead"><h2>为什么加到 119 颗也没用</h2><div class="rule"></div></div>
+  <p class="lede" id="planeLede">—</p>
+  <div class="card"><svg id="planeChart" viewBox="0 0 900 220" role="img"
+    aria-label="Planet 星座的轨道面分布"></svg></div>
+  <div class="callout" id="planeCallout"></div>
+</section>
+
+<section>
+  <div class="sechead"><h2>判决性实验：地板到底是不是昼夜周期</h2><div class="rule"></div></div>
+  <p class="lede">同一批真实 Planet 轨道，<b>只切换一件事</b>——要不要日照。别的全不动。
+    如果地板真是光照造成的，去掉这个约束就该看到它塌下去。</p>
+  <div class="card"><svg id="daylight" viewBox="0 0 900 300" role="img"
+    aria-label="光照约束对机会间隔的影响"></svg>
+    <div class="legend">
+      <span><i style="background:var(--wait)"></i>需要日照 ≥15°（光学）</span>
+      <span><i style="background:var(--link)"></i>无光照约束（SAR 物理）</span>
+      <span style="color:var(--muted)">纵轴是机会间隔的 p90——两次能看的机会之间最长要等多久</span>
+    </div></div>
+  <div class="callout" id="daylightCallout"></div>
+</section>
+
+<section>
+  <div class="sechead"><h2>但 SAR 看得见这些烧痕吗</h2><div class="rule"></div></div>
+  <p class="lede">几何上 SAR 赢得很轻松。但如果它根本分不出烧痕，那些多出来的机会一文不值。
+    所以拉了 <b>51 景真实 Sentinel-1 RTC</b> 实测——不引用文献里的说法。</p>
+  <div class="grid2">
+    <div class="card"><svg id="sarSeries" viewBox="0 0 440 260" role="img"
+      aria-label="一块重度烧毁瓦片的 SAR 时序"></svg>
+      <div class="legend"><span id="seriesCap" style="color:var(--muted)"></span></div></div>
+    <div class="card"><svg id="sarDetect" viewBox="0 0 440 260" role="img"
+      aria-label="SAR 与光学的检出率对比"></svg>
+      <div class="legend">
+        <span><i style="background:var(--orbit)"></i>光学</span>
+        <span><i style="background:var(--link)"></i>SAR</span></div></div>
+  </div>
+  <div class="callout" id="sarCallout"></div>
+</section>
+
+<section>
+  <div class="sechead"><h2>SAR 侧踩的三个坑，每个都改变了结论</h2><div class="rule"></div></div>
+  <p class="lede">第一版算出来分离度 0.29σ，看起来 SAR 完全没用。三步修完之后，
+    重度烧毁的分离度是 <b>17.5σ</b>。中间每一步都是方法学错误，不是物理限制。</p>
+  <div class="tablewrap"><table id="sarSteps"></table></div>
+  <div class="callout" id="stepsCallout"></div>
+</section>
+
+<section>
+  <div class="sechead"><h2>端到端：混合星座</h2><div class="rule"></div></div>
+  <p class="lede">把标定出来的 SAR 检出率接进延迟仿真。SAR 单独用覆盖不了小面积烧毁，
+    但它把光学的长尾砍掉一半以上。</p>
+  <div class="tablewrap"><table id="crossSensor"></table></div>
+</section>
+
+<section>
+  <div class="sechead"><h2>星间不能通信，会浪费多少带宽</h2><div class="rule"></div></div>
+  <p class="lede">同一场火被多颗星看到，各自下传就是几份带宽换一条告警。而它们之间没有星间链路，
+    唯一的协同渠道是地面——每颗星只有轮到自己过站时，才知道别人已经报过什么。</p>
+  <div class="tablewrap"><table id="coord"></table></div>
+</section>
+
+<section>
+  <div class="sechead"><h2>Agent 层：五次迭代，四次是我的接口错误</h2><div class="rule"></div></div>
+  <p class="lede">Agent 只做一件事：把人话编译成任务配置，过确定性 gate 后驱动同一套 planner。
+    它不排时间表、不判可行性、不改预算。下面每一轮的「根因」列，都是我自己的契约漏洞——
+    <b>gate 每留一个语义漏洞，模型就会找到它。</b></p>
+  <ol class="iters" id="iters"></ol>
+</section>
+
+<section>
+  <div class="sechead"><h2>最后发现：这些旋钮根本没有灵敏度</h2><div class="rule"></div></div>
+  <p class="lede" id="sensLede">—</p>
+  <div class="grid2">
+    <div class="card"><svg id="sensTh" viewBox="0 0 440 240" role="img" aria-label="上报门槛灵敏度"></svg></div>
+    <div class="card"><svg id="sensPost" viewBox="0 0 440 240" role="img" aria-label="后验分布"></svg></div>
+  </div>
+  <div class="callout" id="sensCallout"></div>
+</section>
+
+<section>
+  <div class="sechead"><h2>边界</h2><div class="rule"></div></div>
+  <div class="card" id="bounds"></div>
+</section>
+
+<footer id="footer"></footer>
+</div>
+
+<script>
+const D = {"stations": [{"id": "svalbard", "name": "Svalbard (SvalSat), 挪威", "lat": 78.229, "lon": 15.408, "per_day": 14, "minutes_per_day": 144.3, "max_elev": 85.9}, {"id": "inuvik", "name": "Inuvik, 加拿大", "lat": 68.318, "lon": -133.549, "per_day": 10, "minutes_per_day": 107.0, "max_elev": 85.4}, {"id": "matera", "name": "Matera (ESA), 意大利", "lat": 40.649, "lon": 16.704, "per_day": 5, "minutes_per_day": 48.0, "max_elev": 63.3}, {"id": "maspalomas", "name": "Maspalomas (ESA), 西班牙", "lat": 27.763, "lon": -15.634, "per_day": 5, "minutes_per_day": 51.7, "max_elev": 33.2}], "scaling": [{"fleet_key": "sentinel2", "median_total_h": 37.87, "p90_total_h": 157.87, "median_revisit_wait_h": 36.75, "median_downlink_wait_h": 1.08, "tiles_alerted": 17, "tiles_total": 17, "duplicate_downlinks": 0, "downlinks_total": 17, "sla_breach_rate_6h": 1.0, "sla_breach_rate_24h": 1.0, "sla_breach_rate_48h": 0.1176, "n": 3, "label": "Sentinel-2 A/B/C（真实，且档案里有它们的真实影像）"}, {"fleet_key": "sentinel1_sar", "median_total_h": 67.5, "p90_total_h": 235.7, "median_revisit_wait_h": 67.42, "median_downlink_wait_h": 0.04, "tiles_alerted": 9, "tiles_total": 17, "duplicate_downlinks": 0, "downlinks_total": 9, "sla_breach_rate_6h": 1.0, "sla_breach_rate_24h": 1.0, "sla_breach_rate_48h": 0.7647, "n": 3, "label": "Sentinel-1 A/C/D（SAR，不看光照、穿云）"}, {"fleet_key": "optical_plus_sar", "median_total_h": 37.87, "p90_total_h": 67.5, "median_revisit_wait_h": 36.75, "median_downlink_wait_h": 1.08, "tiles_alerted": 17, "tiles_total": 17, "duplicate_downlinks": 0, "downlinks_total": 17, "sla_breach_rate_6h": 1.0, "sla_breach_rate_24h": 1.0, "sla_breach_rate_48h": 0.1176, "n": 6, "label": "光学三星 + SAR 三星（真实在役）"}, {"fleet_key": "planet119", "median_total_h": 13.73, "p90_total_h": 13.77, "median_revisit_wait_h": 12.65, "median_downlink_wait_h": 1.05, "tiles_alerted": 17, "tiles_total": 17, "duplicate_downlinks": 25, "downlinks_total": 42, "sla_breach_rate_6h": 1.0, "sla_breach_rate_24h": 0.0, "sla_breach_rate_48h": 0.0, "n": 119, "label": "Planet 真实在轨 119 颗"}], "coordination": [{"fleet_key": "sentinel2", "none": 62, "ground_relay": 0, "oracle": 0}, {"fleet_key": "sentinel1_sar", "none": 42, "ground_relay": 0, "oracle": 0}, {"fleet_key": "optical_plus_sar", "none": 113, "ground_relay": 0, "oracle": 0}, {"fleet_key": "planet119", "none": 1226, "ground_relay": 25, "oracle": 0}], "planes": {"bins": [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345], "counts": [0, 5, 1, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 1, 0, 0, 3, 2, 2, 0, 45, 55, 1], "total": 119}, "sensitivity": {"threshold": [{"x": 0.15, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.25, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.35, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.45, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.55, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.65, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.75, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.85, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.95, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}], "false_alarm_cost": [{"x": 0.1, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.2, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.35, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.5, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 0.8, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 1.2, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 1.8, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}], "compute": [{"x": 2, "detection": 0.5294117647058824, "false_alarm": 0.15384615384615385}, {"x": 4, "detection": 0.47058823529411764, "false_alarm": 0.16666666666666666}, {"x": 8, "detection": 0.6470588235294118, "false_alarm": 0.125}, {"x": 12, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 24, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}, {"x": 48, "detection": 0.6470588235294118, "false_alarm": 0.125}, {"x": 91, "detection": 0.7058823529411765, "false_alarm": 0.11764705882352941}]}, "posterior": {"edges": [0, 0.05, 0.2, 0.4, 0.6, 0.8, 0.95, 1.01], "counts": [2611, 7, 6, 2, 4, 10, 131], "n": 2771}, "agent_iterations": [{"n": 1, "symptom": "检出归零", "cause": "契约只要求存在 id 为 fire 的假设，没说目标事件的概率质量必须全在那里。agent 合法地拆成 flaming/smoldering", "fix": "加 is_target，按集合求和", "mine": true}, {"n": 2, "symptom": "检出归零", "cause": "agent 交了 H1..H6 这种不透明 id，系统无从判断套哪条似然", "fix": "拆开 id 与物理语义，加固定词表 family", "mine": true}, {"n": 3, "symptom": "gate 连拒三次", "cause": "我让模型写正则匹配位置编码的瓦片 id，它三次把 5 位写成 4 位", "fix": "改成行列范围，第一次就过", "mine": true}, {"n": 4, "symptom": "检出归零", "cause": "agent 加了方差更大的 unknown 假设，暴露我的 fire 似然是对称高斯——z=10 离中心 6σ，被判「太热不像火」", "fix": "改单调饱和似然：越热越像火", "mine": true}, {"n": 5, "symptom": "参数方向全反", "cause": "false_alarm_cost 语义没写明，agent 理解成「能承受多少误报」而非「施加多少惩罚」", "fix": "提示词写明每个参数调高调低的方向", "mine": true}], "intents": [{"label": "手写默认（参照）", "report_threshold": 0.55, "false_alarm_cost": 0.35, "detection_rate": 0.7058823529411765, "false_alarm_rate": 0.11764705882352941, "downlink_used": 17}, {"label": "保守 · 怕误报", "report_threshold": 0.85, "false_alarm_cost": 1.8, "detection_rate": 0.6470588235294118, "false_alarm_rate": 0.0, "downlink_used": 12}, {"label": "激进 · 怕漏报", "report_threshold": 0.35, "false_alarm_cost": 0.2, "detection_rate": 0.5882352941176471, "false_alarm_rate": 0.0, "downlink_used": 12}, {"label": "平衡", "report_threshold": 0.6, "false_alarm_cost": 0.8, "detection_rate": 0.6470588235294118, "false_alarm_rate": 0.13333333333333333, "downlink_used": 15}], "truth": {"tiles_total": 91, "tiles_burned": 21, "tiles_burned_and_observable": 17}, "epoch_note": "公开 TLE 只有当前历元，往回传播 20 个月位置会失真。所以轨道几何在当前窗口用当前真实 TLE 算，事件的时空模式取自 2025-01 真实火场并整体平移。", "sar_steps": [{"label": "原始（瓦片中位数）", "sep_all": 0.89, "sep_heavy": 4.42, "fa_p99": 25.94}, {"label": "换成 p05 分位数", "sep_all": 1.39, "sep_heavy": 5.69, "fa_p99": 18.68}, {"label": "+ 去湿度共模", "sep_all": 2.59, "sep_heavy": 12.36, "fa_p99": 15.42}, {"label": "+ 降水门控", "sep_all": 3.68, "sep_heavy": 17.5, "fa_p99": 8.83}], "sar_rejected": [{"key": "2024-11-27_asc", "iqr": 4.0}, {"key": "2024-11-27_des", "iqr": 3.1}, {"key": "2025-01-14_des", "iqr": 2.3}, {"key": "2025-01-26_des", "iqr": 4.9}, {"key": "2025-02-02_asc", "iqr": 4.0}, {"key": "2025-02-07_asc", "iqr": 4.7}, {"key": "2025-02-07_des", "iqr": 4.9}, {"key": "2025-02-14_asc", "iqr": 7.3}, {"key": "2025-02-14_des", "iqr": 7.8}, {"key": "2025-02-19_des", "iqr": 4.6}], "sar_scenes_total": 51, "sar_series": {"tile_id": "t0403", "burn_frac": 0.9387, "series": {"asc137": [{"date": "2024-09-04", "z": -0.66, "post": false}, {"date": "2024-09-16", "z": 0.43, "post": false}, {"date": "2024-09-28", "z": -0.05, "post": false}, {"date": "2024-10-10", "z": -0.02, "post": false}, {"date": "2024-10-22", "z": 0.3, "post": false}, {"date": "2024-11-03", "z": 0.41, "post": false}, {"date": "2024-11-15", "z": 1.06, "post": false}, {"date": "2024-11-27", "z": -1.84, "post": false}, {"date": "2024-12-09", "z": 1.08, "post": false}, {"date": "2024-12-21", "z": 0.53, "post": false}, {"date": "2025-01-02", "z": 0.46, "post": false}, {"date": "2025-01-14", "z": 9.77, "post": true}, {"date": "2025-01-26", "z": 11.85, "post": true}, {"date": "2025-02-07", "z": 14.39, "post": true}, {"date": "2025-02-19", "z": 16.15, "post": true}], "des144": [{"date": "2024-09-04", "z": 0.42, "post": false}, {"date": "2024-09-16", "z": 0.12, "post": false}, {"date": "2024-09-28", "z": 0.39, "post": false}, {"date": "2024-10-10", "z": 1.08, "post": false}, {"date": "2024-10-22", "z": 0.25, "post": false}, {"date": "2024-11-03", "z": 0.18, "post": false}, {"date": "2024-11-15", "z": 0.64, "post": false}, {"date": "2024-11-27", "z": -1.67, "post": false}, {"date": "2024-12-09", "z": 0.41, "post": false}, {"date": "2025-01-02", "z": 0.24, "post": false}, {"date": "2025-01-14", "z": 15.94, "post": true}, {"date": "2025-01-26", "z": 41.95, "post": true}, {"date": "2025-02-07", "z": 35.52, "post": true}, {"date": "2025-02-19", "z": 23.13, "post": true}]}}, "sar_detection": {"schema": "orbital-triage.sar-detection/0.2.0", "metric": "ratio_p05", "normalization": "减去全景 z 中位（湿度共模），门控 IQR<=2.0", "threshold_z": 8.825, "scene_reject_rate": 0.196, "rejected_scenes": ["2024-11-27_asc", "2024-11-27_des", "2025-01-14_des", "2025-01-26_des", "2025-02-02_asc", "2025-02-07_asc", "2025-02-07_des", "2025-02-14_asc", "2025-02-14_des", "2025-02-19_des"], "by_burn_fraction": [{"lo": 0.02, "hi": 0.1, "p_detect_sar": 0.0, "p_detect_optical": 0.3846}, {"lo": 0.1, "hi": 0.3, "p_detect_sar": 0.0588, "p_detect_optical": 0.6}, {"lo": 0.5, "hi": 0.8, "p_detect_sar": 0.4615, "p_detect_optical": 1.0}, {"lo": 0.8, "hi": 1.01, "p_detect_sar": 0.9167, "p_detect_optical": 1.0}]}, "daylight_experiment": [{"n": 16, "optical": {"passes_per_day": 0.67, "gap_median_h": 24.18, "gap_p90_h": 66.6}, "no_sun": {"passes_per_day": 1.62, "gap_median_h": 11.35, "gap_p90_h": 36.0}}, {"n": 64, "optical": {"passes_per_day": 2.71, "gap_median_h": 0.87, "gap_p90_h": 23.62}, "no_sun": {"passes_per_day": 5.76, "gap_median_h": 0.6, "gap_p90_h": 11.88}}, {"n": 119, "optical": {"passes_per_day": 5.29, "gap_median_h": 0.24, "gap_p90_h": 22.7}, "no_sun": {"passes_per_day": 10.86, "gap_median_h": 0.2, "gap_p90_h": 10.31}}], "cross_sensor": [{"label": "光学 Sentinel-2 ×3", "n": 3, "alerted": 17, "total": 17, "median_h": 34.87, "p90_h": 154.87, "passes_per_sat_day": 0.095, "by_sensor": {"optical": 6}}, {"label": "SAR Sentinel-1 ×3", "n": 3, "alerted": 9, "total": 17, "median_h": 64.5, "p90_h": 232.7, "passes_per_sat_day": 0.254, "by_sensor": {"sar": 16}}, {"label": "光学×3 + SAR×3", "n": 6, "alerted": 17, "total": 17, "median_h": 34.87, "p90_h": 64.5, "passes_per_sat_day": 0.175, "by_sensor": {"optical": 6, "sar": 16}}]};
+const $ = id => document.getElementById(id);
+const pct = (v,d=1)=> v==null?"—":(v*100).toFixed(d)+"%";
+const hrs = v => v==null?"—":v.toFixed(1)+"h";
+const esc = s => String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const NS="http://www.w3.org/2000/svg";
+const el=(t,a={})=>{const e=document.createElementNS(NS,t);
+  for(const[k,v] of Object.entries(a)) if(v!=null) e.setAttribute(k,v); return e;};
+
+$("h1").textContent = "打破昼夜地板";
+
+const s2 = D.scaling.find(r=>r.fleet_key==="sentinel2");
+const big = D.scaling[D.scaling.length-1];
+$("band").innerHTML = [
+ ["真实烧毁瓦片", `${D.truth.tiles_burned_and_observable}`, `共 ${D.truth.tiles_total} 块`, ""],
+ ["三星星座 中位延迟", hrs(s2.median_total_h), "Sentinel-2 A/B/C，真实 TLE", ""],
+ ["其中 重访等待", hrs(s2.median_revisit_wait_h), `占 ${pct(s2.median_revisit_wait_h/s2.median_total_h,0)}`, "wait"],
+ ["其中 下传等待", hrs(s2.median_downlink_wait_h), "四个真实地面站", "link"],
+ [`${big.n} 颗时的地板`, hrs(big.median_total_h), "再加星也压不下去", "floor"],
+].map(([k,v,s,c])=>`<div class="cell"><div class="k">${k}</div>
+  <div class="v ${c}">${v}</div><div class="s">${s}</div></div>`).join("");
+
+// 瀑布
+(()=> {
+  const total = s2.median_total_h;
+  const rows = [
+    ["① 重访等待","哪颗星能飞到这块地上空，且有光、没云", s2.median_revisit_wait_h, "var(--wait)"],
+    ["② 星上处理","花算力算出结论", 120/3600, "var(--orbit)"],
+    ["③ 下传等待","这颗星什么时候过地面站", s2.median_downlink_wait_h, "var(--link)"],
+  ];
+  let acc=0;
+  $("waterfall").innerHTML = rows.map(([n,sub,v,color])=>{
+    const left = acc/total*100, w = Math.max(v/total*100, 0.6); acc += v;
+    return `<div class="wf"><div class="n">${n}<small>${sub}</small></div>
+      <div class="track"><div class="seg" style="left:${left}%;width:${w}%;background:${color}"></div></div>
+      <div class="val">${v<0.1? (v*60).toFixed(0)+"min" : hrs(v)}</div></div>`;
+  }).join("") + `<div class="wf" style="border-top:1px solid var(--hairline)">
+      <div class="n" style="font-weight:600">客户收到告警</div>
+      <div class="track" style="background:transparent"></div>
+      <div class="val" style="font-weight:600">${hrs(total)}</div></div>`;
+})();
+
+$("stations").innerHTML = `<thead><tr><th>地面站</th><th>纬度</th><th>接触次数/日</th>
+  <th>可用时长/日</th><th>最高仰角</th></tr></thead><tbody>` +
+  D.stations.map(s=>`<tr><td>${esc(s.name)}</td><td>${s.lat.toFixed(1)}°</td>
+    <td>${s.per_day}</td><td>${s.minutes_per_day} min</td><td>${s.max_elev}°</td></tr>`).join("")
+  + `</tbody>`;
+
+// 规模曲线
+(()=> {
+  const rows = D.scaling.filter((r,i,a)=>a.findIndex(x=>x.n===r.n)===i).sort((a,b)=>a.n-b.n);
+  const W=900,H=340,L=64,R=24,T=20,B=52;
+  const xs = rows.map((_,i)=>L+i*(W-L-R)/(rows.length-1));
+  const maxY = Math.max(...rows.map(r=>r.median_total_h))*1.1;
+  const y = v => H-B-(v/maxY)*(H-T-B);
+  const svg=$("scaleChart"); svg.innerHTML="";
+  for(let g=0;g<=4;g++){const yy=T+g*(H-T-B)/4;
+    svg.appendChild(el("line",{class:"grid",x1:L,x2:W-R,y1:yy,y2:yy}));
+    const t=el("text",{x:L-9,y:yy+4,"text-anchor":"end"});
+    t.textContent=((maxY*(4-g)/4)).toFixed(0)+"h"; svg.appendChild(t);}
+  svg.appendChild(el("line",{class:"axis",x1:L,x2:W-R,y1:H-B,y2:H-B}));
+  const bw = Math.min(56,(W-L-R)/rows.length*0.55);
+  rows.forEach((r,i)=>{
+    const rev=r.median_revisit_wait_h||0, dl=r.median_downlink_wait_h||0;
+    svg.appendChild(el("rect",{x:xs[i]-bw/2,y:y(rev),width:bw,height:(H-B)-y(rev),fill:"var(--wait)"}));
+    svg.appendChild(el("rect",{x:xs[i]-bw/2,y:y(rev+dl)-1,width:bw,
+      height:Math.max(2,y(rev)-y(rev+dl)),fill:"var(--link)"}));
+    const lab=el("text",{x:xs[i],y:y(rev+dl)-8,"text-anchor":"middle"});
+    lab.setAttribute("fill","var(--ink)"); lab.textContent=r.median_total_h.toFixed(0)+"h";
+    svg.appendChild(lab);
+    const nx=el("text",{x:xs[i],y:H-B+18,"text-anchor":"middle"});
+    nx.textContent=r.n+" 颗"; svg.appendChild(nx);
+    const kx=el("text",{x:xs[i],y:H-B+34,"text-anchor":"middle"});
+    kx.textContent=r.fleet_key==="sentinel2"?"S2":"Planet"; svg.appendChild(kx);
+  });
+  const floor = Math.min(...rows.map(r=>r.median_total_h));
+  svg.appendChild(el("line",{x1:L,x2:W-R,y1:y(floor),y2:y(floor),
+    stroke:"var(--floor)","stroke-width":2,"stroke-dasharray":"none",opacity:.55}));
+  const ft=el("text",{x:W-R,y:y(floor)-8,"text-anchor":"end"});
+  ft.setAttribute("fill","var(--floor)");
+  ft.textContent=`光照地板 ${floor.toFixed(1)}h — 一天只有一次好光照`;
+  svg.appendChild(ft);
+  const drop = rows.find(r=>r.median_total_h<=floor*1.05);
+  $("scaleLede").innerHTML = `从 3 颗加到 ${rows[rows.length-1].n} 颗，中位延迟从
+    ${hrs(rows[0].median_total_h)} 降到 ${hrs(floor)}——但它不是平滑下降，是<b>一级台阶</b>：
+    ${rows.filter(r=>r.median_total_h>floor*1.05).map(r=>r.n).join("、")} 颗全都停在
+    ${hrs(rows[0].median_total_h)}（两天一次），到 ${drop?drop.n:"—"} 颗才跳到
+    ${hrs(floor)}（一天一次），然后<b>再加星完全没有改善</b>。`;
+})();
+
+// 轨道面
+(()=> {
+  const {bins,counts,total}=D.planes, W=900,H=220,L=44,R=20,T=18,B=42;
+  const bw=(W-L-R)/bins.length, maxC=Math.max(...counts);
+  const svg=$("planeChart"); svg.innerHTML="";
+  svg.appendChild(el("line",{class:"axis",x1:L,x2:W-R,y1:H-B,y2:H-B}));
+  counts.forEach((c,i)=>{
+    const h=(c/maxC)*(H-T-B), x=L+i*bw;
+    svg.appendChild(el("rect",{x:x+2,y:H-B-h,width:bw-4,height:h,
+      fill:c>=20?"var(--wait)":"var(--orbit-soft)",stroke:c>=20?"none":"var(--hairline)"}));
+    if(c>0){const t=el("text",{x:x+bw/2,y:H-B-h-6,"text-anchor":"middle"});
+      t.setAttribute("fill",c>=20?"var(--wait)":"var(--muted)");
+      t.textContent=c; svg.appendChild(t);}
+    if(i%3===0){const t=el("text",{x:x+bw/2,y:H-B+17,"text-anchor":"middle"});
+      t.textContent=bins[i]+"°"; svg.appendChild(t);}
+  });
+  const ax=el("text",{x:L,y:H-B+34}); ax.textContent="升交点赤经 RAAN（15° 一箱）"; svg.appendChild(ax);
+  const top2=[...counts].sort((a,b)=>b-a).slice(0,2).reduce((a,b)=>a+b,0);
+  $("planeLede").innerHTML = `把 Planet 在轨 ${total} 颗的真实 TLE 按升交点赤经分箱——
+    <b>${pct(top2/total,0)} 挤在两个轨道面里</b>。同一个面上的星以相同的地方时鱼贯而过，
+    看到的是同一时刻的同一片地。`;
+  $("planeCallout").innerHTML = `我据此猜「降延迟靠轨道面数而不是卫星数」，然后做了判决性实验：
+    同样的星只改挑法。<b>16 颗时散开赢 3.4 倍（70.5h → 20.5h），但 64 颗时挤在一起反而更好</b>
+    （24h 违约率 0% vs 29%）。假设被自己的数据推翻了。<br><br>
+    原因是这些全是太阳同步轨道，<b>RAAN 对应地方时</b>：散开等于把卫星摊到光照更差的时段。
+    64 颗挤在一起时过顶的太阳高度角均值 57°、无一低于 25°；散开后均值降到 51.7°，
+    4% 的过顶低于 25°。<b>Planet 把星堆在两个面上不是偷懒——那两个面正好在最优地方时。</b>`;
+})();
+
+// ---- 判决性实验：光照约束 ----
+(()=> {
+  const rows=D.daylight_experiment, W=900,H=300,L=60,R=24,T=22,B=56;
+  const groups=rows.length, gw=(W-L-R)/groups, bw=Math.min(58,gw*0.32);
+  const maxY=Math.max(...rows.flatMap(r=>[r.optical.gap_p90_h,r.no_sun.gap_p90_h]))*1.15;
+  const y=v=>H-B-(v/maxY)*(H-T-B);
+  const svg=$("daylight"); svg.innerHTML="";
+  for(let g=0;g<=4;g++){const yy=T+g*(H-T-B)/4;
+    svg.appendChild(el("line",{class:"grid",x1:L,x2:W-R,y1:yy,y2:yy}));
+    const t=el("text",{x:L-9,y:yy+4,"text-anchor":"end"});
+    t.textContent=(maxY*(4-g)/4).toFixed(0)+"h"; svg.appendChild(t);}
+  svg.appendChild(el("line",{class:"axis",x1:L,x2:W-R,y1:H-B,y2:H-B}));
+  rows.forEach((r,i)=>{
+    const cx=L+gw*(i+0.5);
+    [["optical","var(--wait)",-1],["no_sun","var(--link)",1]].forEach(([k,c,side])=>{
+      const v=r[k].gap_p90_h, x=cx+side*(bw/2+2)-bw/2;
+      svg.appendChild(el("rect",{x,y:y(v),width:bw,height:(H-B)-y(v),fill:c}));
+      const t=el("text",{x:x+bw/2,y:y(v)-7,"text-anchor":"middle"});
+      t.setAttribute("fill",c); t.textContent=v.toFixed(1)+"h"; svg.appendChild(t);
+    });
+    const n=el("text",{x:cx,y:H-B+18,"text-anchor":"middle"});
+    n.textContent="Planet ×"+r.n; svg.appendChild(n);
+    const pd=el("text",{x:cx,y:H-B+34,"text-anchor":"middle"});
+    pd.textContent=`${r.optical.passes_per_day}/天 → ${r.no_sun.passes_per_day}/天`;
+    svg.appendChild(pd);
+  });
+  const last=rows[rows.length-1], prev=rows[rows.length-2];
+  $("daylightCallout").innerHTML =
+    `光学那一侧从 ${prev.n} 颗加到 ${last.n} 颗，机会间隔 p90 只从
+     ${prev.optical.gap_p90_h}h 动到 <b>${last.optical.gap_p90_h}h</b>——<b>饱和了</b>。
+     一天只有一次好光照，再多的星也造不出第二次。<br><br>
+     同一批轨道去掉光照约束：p90 降到 <b>${last.no_sun.gap_p90_h}h</b>，
+     而且从 ${prev.n} 到 ${last.n} 颗还在继续下降
+     （${prev.no_sun.gap_p90_h}h → ${last.no_sun.gap_p90_h}h）——<b>饱和消失了</b>。
+     这就是地板的成因，也是 SAR 能破它的原因。`;
+})();
+
+// ---- SAR 时序 ----
+(()=> {
+  const {tile_id,burn_frac,series}=D.sar_series, W=440,H=260,L=48,R=16,T=20,B=48;
+  const all=Object.values(series).flat();
+  const maxZ=Math.max(...all.map(p=>p.z)), minZ=Math.min(...all.map(p=>p.z),-3);
+  const y=v=>H-B-((v-minZ)/(maxZ-minZ))*(H-T-B);
+  const n=Math.max(...Object.values(series).map(a=>a.length));
+  const x=i=>L+i*(W-L-R)/Math.max(n-1,1);
+  const svg=$("sarSeries"); svg.innerHTML="";
+  svg.appendChild(el("line",{class:"grid",x1:L,x2:W-R,y1:y(0),y2:y(0)}));
+  const z0=el("text",{x:L-8,y:y(0)+4,"text-anchor":"end"}); z0.textContent="0"; svg.appendChild(z0);
+  const firstPost=Object.values(series)[0].findIndex(p=>p.post);
+  if(firstPost>0){
+    const xx=x(firstPost)-((x(1)-x(0))/2);
+    svg.appendChild(el("line",{x1:xx,x2:xx,y1:T,y2:H-B,stroke:"var(--wait)",
+      "stroke-width":2,opacity:.55}));
+    const t=el("text",{x:xx+5,y:T+11}); t.setAttribute("fill","var(--wait)");
+    t.textContent="起火"; svg.appendChild(t);
+  }
+  Object.entries(series).forEach(([geom,pts],gi)=>{
+    const color=gi===0?"var(--orbit)":"var(--link)";
+    svg.appendChild(el("path",{d:pts.map((p,i)=>`${i?"L":"M"}${x(i)},${y(p.z)}`).join(" "),
+      fill:"none",stroke:color,"stroke-width":2.2}));
+    pts.forEach((p,i)=>svg.appendChild(el("circle",{cx:x(i),cy:y(p.z),r:3,fill:color,
+      stroke:"var(--surface)","stroke-width":1.5})));
+    const lb=el("text",{x:W-R,y:y(pts[pts.length-1].z)+(gi?12:-6),"text-anchor":"end"});
+    lb.setAttribute("fill",color); lb.textContent=geom; svg.appendChild(lb);
+  });
+  const ax=el("text",{x:L,y:H-B+30}); ax.textContent="按成像时间排序（升轨/降轨各一条）";
+  svg.appendChild(ax);
+  $("seriesCap").textContent=
+    `${tile_id}（烧毁面积 ${(burn_frac*100).toFixed(0)}%）的 VH−VV 偏离，升降轨独立复现`;
+})();
+
+// ---- SAR vs 光学检出率 ----
+(()=> {
+  const bands=D.sar_detection.by_burn_fraction, W=440,H=260,L=52,R=16,T=20,B=52;
+  const gw=(W-L-R)/bands.length, bw=Math.min(30,gw*0.34);
+  const y=v=>H-B-v*(H-T-B);
+  const svg=$("sarDetect"); svg.innerHTML="";
+  for(let g=0;g<=4;g++){const yy=T+g*(H-T-B)/4;
+    svg.appendChild(el("line",{class:"grid",x1:L,x2:W-R,y1:yy,y2:yy}));
+    const t=el("text",{x:L-8,y:yy+4,"text-anchor":"end"});
+    t.textContent=((4-g)*25)+"%"; svg.appendChild(t);}
+  svg.appendChild(el("line",{class:"axis",x1:L,x2:W-R,y1:H-B,y2:H-B}));
+  bands.forEach((b,i)=>{
+    const cx=L+gw*(i+0.5);
+    [["p_detect_optical","var(--orbit)",-1],["p_detect_sar","var(--link)",1]].forEach(([k,c,side])=>{
+      const v=b[k], x=cx+side*(bw/2+1.5)-bw/2;
+      if(v>0.001) svg.appendChild(el("rect",{x,y:y(v),width:bw,height:(H-B)-y(v),fill:c}));
+      const t=el("text",{x:x+bw/2,y:y(v)-6,"text-anchor":"middle"});
+      t.setAttribute("fill",c); t.setAttribute("font-size","10");
+      t.textContent=(v*100).toFixed(0); svg.appendChild(t);
+    });
+    const n=el("text",{x:cx,y:H-B+18,"text-anchor":"middle"});
+    n.setAttribute("font-size","10");
+    n.textContent=`${(b.lo*100).toFixed(0)}–${Math.min(b.hi*100,100).toFixed(0)}%`;
+    svg.appendChild(n);
+  });
+  const ax=el("text",{x:L,y:H-B+36}); ax.textContent="瓦片烧毁面积占比"; svg.appendChild(ax);
+  const big=bands[bands.length-1], small=bands[0];
+  $("sarCallout").innerHTML =
+    `大面积烧毁上 SAR 追平光学（<b>${(big.p_detect_sar*100).toFixed(0)}%</b> vs
+     ${(big.p_detect_optical*100).toFixed(0)}%）；小面积上几乎看不见
+     （${(small.p_detect_sar*100).toFixed(0)}% vs ${(small.p_detect_optical*100).toFixed(0)}%）。
+     原因是瓦片尺度的后向散射变化会被未烧区域稀释。<br><br>
+     还要说清一条：这是<b>城乡交界火</b>，烧的有相当一部分是建筑。烧毁的建筑仍是强角反射体，
+     SAR 上变化不大——换纯山林火场，SAR 的灵敏度应该更好。这条结论对本案例成立，
+     不对所有火场成立。`;
+})();
+
+// ---- 三个坑 ----
+(()=> {
+  const steps=D.sar_steps;
+  $("sarSteps").innerHTML=`<thead><tr><th>处理步骤</th><th>全部烧毁 分离度</th>
+    <th>重度烧毁 分离度</th><th>虚警 p99</th></tr></thead><tbody>`+
+    steps.map((s,i)=>`<tr${i===steps.length-1?' class="hi"':''}><td>${esc(s.label)}</td>
+      <td>${s.sep_all.toFixed(2)}σ</td><td>${s.sep_heavy.toFixed(2)}σ</td>
+      <td>${s.fa_p99.toFixed(1)}</td></tr>`).join("")+`</tbody>`;
+  const rej=D.sar_rejected;
+  $("stepsCallout").innerHTML =
+    `<b>一、统计量选错。</b>瓦片中位数被未烧区域稀释——21 块烧毁里 14 块面积不到 50%。
+     光学侧一开始就用 p99 极值，SAR 侧用中位数是我没对齐。<b>统计量必须匹配信号的空间结构。</b>
+     <br><br>
+     <b>二、湿度共模，SAR 的「云」。</b>2025 年 2 月洛杉矶火后的大气河降雨，让未烧瓦片的 z
+     中位从平时的 ±1 跳到 +6.4。减掉<b>全景中位</b>（用全部瓦片算——卫星不知道哪些烧了，
+     用未烧瓦片算就是偷看真值）后，重度分离从 5.7σ 升到 12.4σ。
+     <br><br>
+     <b>三、降水门控，在轨可判。</b>湿度不只抬高中位，还抬高空间离散度：正常景 z 的 IQR
+     在 0.3–1.1，大雨景涨到 3.1–7.8。按 IQR≤2.0 门控掉 <b>${rej.length}/${D.sar_scenes_total}</b>
+     景，分离度到 <b>17.5σ</b>。被门控掉的全部对得上真实天气事件，而这个量只用本景数据算，
+     <b>不需要外部气象数据</b>。`;
+})();
+
+$("crossSensor").innerHTML=`<thead><tr><th>星座</th><th>颗数</th><th>过顶/星/天</th>
+  <th>覆盖</th><th>中位延迟</th><th>p90 延迟</th></tr></thead><tbody>`+
+  D.cross_sensor.map((r,i)=>`<tr${i===2?' class="hi"':''}><td>${esc(r.label)}</td>
+    <td>${r.n}</td><td>${r.passes_per_sat_day.toFixed(3)}</td>
+    <td>${r.alerted}/${r.total}</td><td>${hrs(r.median_h)}</td>
+    <td>${hrs(r.p90_h)}</td></tr>`).join("")+`</tbody>`;
+
+$("coord").innerHTML = `<thead><tr><th>星座</th><th>不协同</th><th>地面中转</th>
+  <th>理想协同</th><th>省下的重复下传</th></tr></thead><tbody>` +
+  D.coordination.map(c=>{
+    const saved = c.none ? (c.none-c.ground_relay)/c.none : 0;
+    const hi = c.none>500 ? ' class="hi"' : "";
+    return `<tr${hi}><td>${esc(c.fleet_key)}</td><td>${c.none}</td>
+      <td>${c.ground_relay}</td><td>${c.oracle}</td><td>${pct(saved,0)}</td></tr>`;
+  }).join("") + `</tbody>`;
+
+$("iters").innerHTML = D.agent_iterations.map(it=>`<li><div>
+  <div class="sym">${esc(it.symptom)}${it.mine?'<span class="tag">我的接口错误</span>':''}</div>
+  <div class="cause">${esc(it.cause)}</div>
+  <div class="fix">→ ${esc(it.fix)}</div></div></li>`).join("");
+
+// 灵敏度
+(()=> {
+  const th=D.sensitivity.threshold, W=440,H=240,L=52,R=18,T=22,B=44;
+  const x=i=>L+i*(W-L-R)/(th.length-1), y=v=>H-B-v*(H-T-B);
+  const svg=$("sensTh"); svg.innerHTML="";
+  for(let g=0;g<=4;g++){const yy=T+g*(H-T-B)/4;
+    svg.appendChild(el("line",{class:"grid",x1:L,x2:W-R,y1:yy,y2:yy}));
+    const t=el("text",{x:L-8,y:yy+4,"text-anchor":"end"});
+    t.textContent=((4-g)*25)+"%"; svg.appendChild(t);}
+  svg.appendChild(el("line",{class:"axis",x1:L,x2:W-R,y1:H-B,y2:H-B}));
+  for(const[key,color] of [["detection","var(--orbit)"],["false_alarm","var(--wait)"]]){
+    svg.appendChild(el("path",{d:th.map((p,i)=>`${i?"L":"M"}${x(i)},${y(p[key])}`).join(" "),
+      fill:"none",stroke:color,"stroke-width":2.5}));
+    th.forEach((p,i)=>svg.appendChild(el("circle",{cx:x(i),cy:y(p[key]),r:3.5,fill:color,
+      stroke:"var(--surface)","stroke-width":2})));
+  }
+  th.forEach((p,i)=>{if(i%2===0){const t=el("text",{x:x(i),y:H-B+17,"text-anchor":"middle"});
+    t.textContent=p.x.toFixed(2); svg.appendChild(t);}});
+  const ax=el("text",{x:L,y:H-B+34}); ax.textContent="上报门槛 report_threshold"; svg.appendChild(ax);
+  const d0=th[0].detection, f0=th[0].false_alarm;
+  const dl=el("text",{x:W-R,y:y(d0)-9,"text-anchor":"end"}); dl.setAttribute("fill","var(--orbit)");
+  dl.textContent="检出率 "+pct(d0); svg.appendChild(dl);
+  const fl=el("text",{x:W-R,y:y(f0)-9,"text-anchor":"end"}); fl.setAttribute("fill","var(--wait)");
+  fl.textContent="误报率 "+pct(f0); svg.appendChild(fl);
+})();
+
+(()=> {
+  const {edges,counts,n}=D.posterior, W=440,H=240,L=52,R=18,T=22,B=44;
+  const bw=(W-L-R)/counts.length, maxC=Math.max(...counts);
+  const svg=$("sensPost"); svg.innerHTML="";
+  svg.appendChild(el("line",{class:"axis",x1:L,x2:W-R,y1:H-B,y2:H-B}));
+  counts.forEach((c,i)=>{
+    const h=(c/maxC)*(H-T-B), x=L+i*bw;
+    svg.appendChild(el("rect",{x:x+2,y:H-B-h,width:bw-4,height:h,
+      fill:i===0||i===counts.length-1?"var(--orbit)":"var(--orbit-soft)",
+      stroke:"var(--hairline)"}));
+    const t=el("text",{x:x+bw/2,y:H-B-h-6,"text-anchor":"middle"});
+    t.textContent=(c/n*100).toFixed(c/n>0.02?0:1)+"%"; svg.appendChild(t);
+    if(i%2===0){const e=el("text",{x:x+bw/2,y:H-B+17,"text-anchor":"middle"});
+      e.textContent=edges[i].toFixed(2); svg.appendChild(e);}
+  });
+  const ax=el("text",{x:L,y:H-B+34}); ax.textContent=`目标事件后验 p（n=${n} 次观测）`;
+  svg.appendChild(ax);
+})();
+
+const mid = D.posterior.counts.slice(1,-1).reduce((a,b)=>a+b,0);
+$("sensLede").innerHTML = `Agent 的参数方向最终全对了（保守档门槛 0.85、误报代价 1.80；
+  激进档 0.35 / 0.20）。但三种意图跑出来的行为<b>几乎完全一样</b>。直接测灵敏度才发现，
+  问题不在 agent：<b>这些旋钮本身没有区分度</b>。`;
+$("sensCallout").innerHTML = `门槛从 0.15 扫到 0.95 共九档，检出率、误报率、上报数
+  <b>一个数字都不动</b>。误报代价从 0.10 到 1.80 同样。算力从 8/轨 加到 91/轨
+  （整幅每轨全算）也纹丝不动。<br><br>
+  原因在右图：后验极度双峰，${pct(D.posterior.counts[0]/D.posterior.n,1)} 落在 0.05 以下，
+  ${pct(D.posterior.counts[D.posterior.counts.length-1]/D.posterior.n,1)} 在 0.95 以上，
+  中间只有 ${pct(mid/D.posterior.n,1)}。所以 0.05–0.95 之间任何门槛选出的都是同一批瓦片。
+  再往下查，被检出瓦片信号日的最大 z 中位是 <b>10.00</b>（撞到裁剪上限），
+  漏掉那块只有 <b>4.64</b>——<b>检出率由探测器灵敏度决定，策略层改不动它。</b><br><br>
+  <b>对合作方的含义：</b>算力够把整幅算一遍时，星上决策层不值得投入，钱该花在探测器上。
+  星上智能只在资源真正卡脖子时创造价值（本例是算力 ≤4/轨，检出率掉到 47–53%），
+  而那个区间可以事先算出来，不用猜。`;
+
+$("bounds").innerHTML = `<ul style="margin:0;padding-left:20px;line-height:1.75;color:var(--ink-2)">
+  <li>${esc(D.epoch_note)}</li>
+  <li>本模型按<b>固定天底</b>成像建模（Sentinel-2 就不侧摆）。引入侧摆会把有效幅宽放大数倍，
+      光照地板会下移——这是下一步该建的。</li>
+  <li>档案成像日的云况是真实观测；星座变大后过顶落在档案日之间，那时的云由起火前拟合的
+      可用概率确定性抽样——<b>那是模型，不是观测</b>。</li>
+  <li>结论对"这个探测器 + 这个案例"成立。换一个信噪比更低的任务（薄烟、早期火线、小目标），
+      后验不会这么双峰，门槛会重新变得有意义。</li>
+</ul>`;
+
+$("footer").innerHTML = ["真实 TLE · Celestrak","真实影像 · Copernicus Sentinel-2 L2A",
+  "地面站 · Sentinel-2 X 波段核心网","真值 · dNBR / USGS 阈值体系",
+  "Agent · DeepSeek，输出全程过确定性 gate"].map(t=>`<span>${t}</span>`).join("");
+</script>

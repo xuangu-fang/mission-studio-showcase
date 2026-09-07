@@ -83,3 +83,12 @@
 - 独立研究仓库只产生版本化、带 provenance 的结果和清理后 public export；Showcase 不安装其 Python package，也不在浏览器执行研究模型。
 - `mission-run-bundle/0.1.0` envelope 复用当前 Public Manifest/Event/Outcome validator，并可携带独立 `research_result`。Research Result 只能解释多假设 uncertainty、calibration 与 policy benchmark，不能直接生成已授权行动或改写 Runtime Trace。
 - Story 回放仍以同一条 Public Runtime Trace 为事实源。Uncertainty Lens 是研究 artifact 的可视化投影，并明确标注 synthetic claim boundary。
+
+## S-017 — 研究页面作为静态 artifact 挂在 `public/reports/`，不进入前端运行时
+
+- Status: Accepted for Gate B research bridge
+- 延续 S-016 的分工：独立研究仓库（`mission-self-aware-autonomy`）产出自包含的静态 HTML 报告，Showcase 只负责托管与索引，**不安装其 Python 依赖、不在浏览器执行其模型、不把它接进 trace 回放**。这些页面是研究结论的呈现，不是 Public Runtime Trace 的投影，因此不共用 Story/Operator 的时钟与事实源，也不受 Public Trace Contract 约束。
+- 放在 `public/reports/`（Vite `publicDir` 原样拷贝），因此 URL 为 `/mission-studio-showcase/reports/`。与 `public/fixtures/`（受 contract 约束的 trace）和 `public/assets/`（前端使用的视觉资产）区分开——三者的审查标准不同，混在一起会让「哪些东西受 contract 管」变得含糊。
+- 发布时把 HTML 里的 base64 data URI **拆成独立文件**，按内容 sha256 前 16 位命名。理由有三：`AGENTS.md` 要求提交的资产保持小；内嵌 base64 在 Git 里几乎没有 delta 压缩空间，每改一次正文就多存一份完整副本；拆开后浏览器可以缓存图片，正文的 diff 也变得可读。实测五个页面 4.1 MB → 正文 0.35 MB + 去重资产 2.56 MB，且后续正文改动只动那 0.35 MB。
+- 发布由上游仓库的 `tools/publish_site.py` 生成，`public/reports/` 下的文件**不得手工编辑**——它们会在下次发布时被覆盖。
+- 这些页面公开可读。上游发布前已检查不含合作方指涉、私有仓库引用、端点或凭据，符合 AGENTS.md 的 public/private invariant。
