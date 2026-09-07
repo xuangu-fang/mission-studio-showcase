@@ -1,0 +1,498 @@
+<title>星上自知力</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --paper:#eeece6; --sheet:#fcfbf8; --sunk:#e6e3db;
+  --ink:#1a1c20; --ink-2:#43474e; --muted:#7a7f88;
+  --line:rgba(26,28,32,.14); --rule:rgba(26,28,32,.075);
+  --accent:#0b5f6b; --accent-soft:rgba(11,95,107,.12);
+  --warn:#a8461c; --warn-soft:rgba(168,70,28,.10);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  color-scheme: dark;
+  --paper:#12141a; --sheet:#191c23; --sunk:#0e1116;
+  --ink:#e8eaef; --ink-2:#aab0ba; --muted:#7e848f;
+  --line:rgba(232,234,239,.16); --rule:rgba(232,234,239,.08);
+  --accent:#38a3b0; --accent-soft:rgba(56,163,176,.15);
+  --warn:#e08050; --warn-soft:rgba(224,128,80,.14);
+}}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#12141a; --sheet:#191c23; --sunk:#0e1116;
+  --ink:#e8eaef; --ink-2:#aab0ba; --muted:#7e848f;
+  --line:rgba(232,234,239,.16); --rule:rgba(232,234,239,.08);
+  --accent:#38a3b0; --accent-soft:rgba(56,163,176,.15);
+  --warn:#e08050; --warn-soft:rgba(224,128,80,.14);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Source Serif 4",Georgia,"Songti SC","Noto Serif CJK SC",
+              "Source Han Serif SC","SimSun",serif;
+  font-size:17px; line-height:1.85; -webkit-font-smoothing:antialiased;
+}
+code,pre,.mono,td.n,th.n{
+  font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---- 版面：常驻目录 + 单栏正文 ---- */
+.shell{display:grid; grid-template-columns:minmax(0,1fr); max-width:1180px; margin:0 auto}
+@media(min-width:1080px){ .shell{grid-template-columns:236px minmax(0,1fr); gap:44px} }
+nav.toc{display:none}
+@media(min-width:1080px){
+  nav.toc{
+    display:block; position:sticky; top:0; align-self:start; max-height:100vh;
+    overflow-y:auto; padding:44px 0 44px 24px; font-size:13px; line-height:1.6;
+    font-family:"IBM Plex Mono",monospace;
+  }
+  nav.toc a{display:block; color:var(--muted); text-decoration:none;
+    padding:2.5px 0; border-left:2px solid transparent; padding-left:11px}
+  nav.toc a:hover{color:var(--accent); border-left-color:var(--accent)}
+  nav.toc a.h2{color:var(--ink-2); margin-top:9px; font-weight:500}
+  nav.toc a.h3{padding-left:22px; font-size:12.5px}
+}
+main{padding:56px 24px 110px; min-width:0}
+
+/* ---- 文字 ---- */
+h1{font-size:clamp(29px,4.2vw,42px); line-height:1.22; margin:0 0 12px;
+  font-weight:600; letter-spacing:-.012em; text-wrap:balance; max-width:22ch}
+.sub{color:var(--muted); font-size:14px; margin:0 0 6px;
+  font-family:"IBM Plex Mono",monospace; letter-spacing:.09em; text-transform:uppercase}
+h2{font-size:25px; margin:60px 0 14px; font-weight:600; letter-spacing:-.008em;
+  padding-bottom:9px; border-bottom:1px solid var(--line); scroll-margin-top:24px}
+h3{font-size:19px; margin:38px 0 10px; font-weight:600; scroll-margin-top:24px}
+h4{font-size:16.5px; margin:26px 0 8px; font-weight:600; color:var(--ink-2)}
+p{margin:0 0 17px; max-width:70ch; color:var(--ink-2)}
+p strong,li strong,td strong{color:var(--ink); font-weight:600}
+a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-soft)}
+a:hover{border-bottom-color:var(--accent)}
+hr{border:none; border-top:1px solid var(--rule); margin:44px 0}
+ul,ol{max-width:70ch; color:var(--ink-2); padding-left:1.35em; margin:0 0 17px}
+li{margin:5px 0}
+li>ul,li>ol{margin:5px 0}
+code{background:var(--sunk); padding:1.5px 5px; border-radius:4px; font-size:.855em;
+  border:1px solid var(--rule)}
+pre{background:var(--sheet); border:1px solid var(--line); border-radius:8px;
+  padding:15px 18px; overflow-x:auto; margin:0 0 20px; font-size:13.5px; line-height:1.62}
+pre code{background:none; border:none; padding:0; font-size:inherit}
+blockquote{margin:22px 0; padding:3px 0 3px 19px; border-left:3px solid var(--accent);
+  color:var(--ink); max-width:70ch}
+blockquote p{color:var(--ink); margin-bottom:9px}
+blockquote p:last-child{margin-bottom:0}
+
+/* ---- 表格 ---- */
+.tw{overflow-x:auto; margin:0 0 24px; border:1px solid var(--line);
+  border-radius:8px; background:var(--sheet)}
+table{border-collapse:collapse; width:100%; font-size:14.5px;
+  font-family:"IBM Plex Sans",-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+th,td{padding:9px 14px; text-align:left; border-bottom:1px solid var(--rule);
+  vertical-align:top}
+th{font-size:12px; letter-spacing:.05em; color:var(--muted); font-weight:600;
+  background:var(--sunk); white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+td.n,th.n{text-align:right; white-space:nowrap}
+td code{font-size:.86em}
+
+footer{margin-top:70px; padding-top:22px; border-top:1px solid var(--rule);
+  color:var(--muted); font-size:13.5px}
+</style>
+<div class="shell">
+<nav class="toc"><a class="h2" href="#摘要">摘要</a><a class="h2" href="#1.-引言">1. 引言</a><a class="h3" href="#1.1-这份报告要回答什么">1.1 这份报告要回答什么</a><a class="h3" href="#1.2-为什么现在问">1.2 为什么现在问</a><a class="h3" href="#1.3-结论预览与阅读路径">1.3 结论预览与阅读路径</a><a class="h2" href="#2.-动机-一次切口重设">2. 动机：一次切口重设</a><a class="h3" href="#2.1-原来的切口">2.1 原来的切口</a><a class="h3" href="#2.2-触发转向的实验">2.2 触发转向的实验</a><a class="h3" href="#2.3-转向后的切口">2.3 转向后的切口</a><a class="h2" href="#3.-背景">3. 背景</a><a class="h3" href="#3.1-成像链路-从光子到瓦片统计量">3.1 成像链路：从光子到瓦片统计量</a><a class="h3" href="#3.2-在轨退化的物理">3.2 在轨退化的物理</a><a class="h3" href="#3.3-辐射定标场-pics">3.3 辐射定标场（PICS）</a><a class="h3" href="#3.4-两类载荷的差别">3.4 两类载荷的差别</a><a class="h3" href="#3.5-与已有工作的关系">3.5 与已有工作的关系</a><a class="h2" href="#4.-问题形式化">4. 问题形式化</a><a class="h3" href="#4.1-联合状态与观测模型">4.1 联合状态与观测模型</a><a class="h3" href="#4.2-可识别性-什么能分-什么不能">4.2 可识别性：什么能分，什么不能</a><a class="h3" href="#4.3-可校正-vs-破坏性">4.3 可校正 vs 破坏性</a><a class="h3" href="#4.4-自检作为决策问题">4.4 自检作为决策问题</a><a class="h2" href="#5.-方法">5. 方法</a><a class="h3" href="#5.1-故障的物理参数化与像元级注入">5.1 故障的物理参数化与像元级注入</a><a class="h3" href="#5.2-景内自检监视器">5.2 景内自检监视器</a><a class="h3" href="#5.3-诊断-广义似然比检验">5.3 诊断：广义似然比检验</a><a class="h3" href="#5.4-自身信念如何改写世界信念">5.4 自身信念如何改写世界信念</a><a class="h3" href="#5.5-自检的经济学">5.5 自检的经济学</a><a class="h3" href="#5.6-超分载荷与三个无参考信号">5.6 超分载荷与三个无参考信号</a><a class="h2" href="#6.-实验与结果">6. 实验与结果</a><a class="h3" href="#6.0-实验设置">6.0 实验设置</a><a class="h3" href="#6.1-景内不变目标能提供多少信息">6.1 景内不变目标能提供多少信息</a><a class="h3" href="#6.2-监视器的选择性">6.2 监视器的选择性</a><a class="h3" href="#6.3-免费通道有多慢">6.3 免费通道有多慢</a><a class="h3" href="#6.4-定标场的真实代价">6.4 定标场的真实代价</a><a class="h3" href="#6.5-真实定标场上的真实漂移-零注入">6.5 真实定标场上的真实漂移（零注入）</a><a class="h3" href="#6.6-闭环-阈值型检测任务对仪器退化天然稳健-零结果">6.6 闭环：阈值型检测任务对仪器退化天然稳健（零结果）</a><a class="h3" href="#6.7-真正脆弱的是-ai-载荷">6.7 真正脆弱的是 AI 载荷</a><a class="h3" href="#6.8-决定性对照-该问模型-还是该问仪器">6.8 决定性对照：该问模型，还是该问仪器</a><a class="h2" href="#7.-讨论">7. 讨论</a><a class="h3" href="#7.1-so-what-三条可以直接用的结论">7.1 So what：三条可以直接用的结论</a><a class="h3" href="#7.2-为什么这是-ai-载荷上星的关键路径">7.2 为什么这是 AI 载荷上星的关键路径</a><a class="h3" href="#7.3-四次自我纠正">7.3 四次自我纠正</a><a class="h3" href="#7.4-局限">7.4 局限</a><a class="h3" href="#7.5-下一步">7.5 下一步</a><a class="h2" href="#8.-附录">8. 附录</a><a class="h3" href="#8.1-复现">8.1 复现</a><a class="h3" href="#8.2-代码结构">8.2 代码结构</a><a class="h3" href="#8.3-数据来源与许可">8.3 数据来源与许可</a><a class="h3" href="#8.4-相关文档">8.4 相关文档</a></nav>
+<main>
+<p class="sub">技术报告 · 2026-09-07</p>
+<h1>星上自知力：自主卫星如何区分「世界变了」和「我变了」</h1>
+<hr>
+<h2 id="摘要">摘要</h2>
+<p>自主卫星的推理系统普遍只对<strong>世界</strong>建模，把<strong>自身</strong>默认为完美。这个默认在观测上 是站不住的：世界状态 W 与自身状态 S 通过同一个观测通道纠缠， 「连续 40 轨没检出火」同时兼容「真的没火」和「我的探测器漂了」， 两种情况下发的遥测<strong>一模一样</strong>。轨道上没有维修、没有参照，地面只拿到涓流般的遥测。</p>
+<p>本报告把这个问题形式化，并在<strong>完全真实的公开数据</strong>上把它量出来： 5 个 Sentinel-2 档案（含 CEOS 一级辐射定标场 Libya-4 的九年序列）、真实 TLE 轨道几何、 6 类物理参数化的在轨故障、一个真训练的超分模型。主要结论：</p>
+<ol>
+<li><strong>绝对增益在原理上不可识别。</strong> 景内目标只能测波段之间的<strong>相对</strong>漂移 （比值比绝对反射率稳 24.8 倍）。整体增益下降与「地面变暗」在单景上完全同构。</li>
+<li><strong>免费自检通道很慢，而且慢得可以算。</strong> 文献量级的辐射漂移需要 <strong>12.0 年</strong> 才能判定，超过卫星寿命；有空间结构的故障（条带、单粒子翻转）几个月即可。</li>
+<li><strong>去定标场很便宜——这一条推翻了我们自己的假设。</strong> 真实 TLE 算下来， 单星到 Libya-4 的等待中位仅 <strong>4.07 天</strong>。贵的不是时间，是那一轨没去干任务。 于是架构应为：<strong>景内通道负责触发，定标访问负责定量。</strong></li>
+<li><strong>在真正不变的地表上，真实在轨漂移是可测的。</strong> Libya-4 九年 178 景晴空， blue/green 比值 <strong>+0.324 %/yr</strong>，在 S2A 与 S2B 上独立显著（t=7.2 / 6.3）。 这一节<strong>零注入</strong>。</li>
+<li><strong>阈值型检测任务对仪器退化天然稳健——这是个零结果。</strong> 8 类物理注入下 火点检出率全部 76.2%，因为火指数是波段比值、且有每瓦片基线，共模项被两次约掉。</li>
+<li><strong>真正脆弱的是直接吃像元的 AI 载荷。</strong> 同一个 MTF 退化下， 检测器 76.2% → 76.2%，<strong>超分相对双线性的增益 +41.6% → +6.4%</strong>； 在沙漠上甚至变成 <strong>−1.35%</strong>，即比双线性插值更差。</li>
+<li><strong>AI 载荷不能自省。</strong> 预测超分崩溃：模型自身的无参考信号跨场景秩相关 0.000 ~ 0.576，<strong>仪器侧自检 0.823</strong>。识别「仪器已退化」时， 模型自省信号的 AUC 全部<strong>低于 0.5</strong>——是反向的。</li>
+</ol>
+<p><strong>所以</strong>：把 AI 载荷送上轨道，缺的不是更好的模型，是一条<strong>独立于模型的仪器侧自检通道</strong>。 模型在最该说「不可信」的时候恰恰最自信。</p>
+<hr>
+<h2 id="1.-引言">1. 引言</h2>
+<h3 id="1.1-这份报告要回答什么">1.1 这份报告要回答什么</h3>
+<p>一句话：<strong>卫星怎么知道自己还准。</strong></p>
+<p>展开是三个递进的问题：</p>
+<ol>
+<li>在只有星上可算的信息时，能不能把「世界变了」和「我变了」分开？ 能分开到什么程度，什么在原理上就分不开？</li>
+<li>分开这件事要花多少代价？免费的通道有多慢，花钱的通道有多贵？</li>
+<li>这件事对谁最要紧？——答案不是显然的，本报告量出来的答案与直觉相反。</li>
+</ol>
+<h3 id="1.2-为什么现在问">1.2 为什么现在问</h3>
+<p>商业遥感正在把<strong>AI 模型</strong>送上轨道：星上超分、星上检测、星上任务规划。 这带来一个传统航天没有的问题。</p>
+<p>传统的星上故障管理（FDIR，Fault Detection, Isolation and Recovery）是成熟工程： 它建立在星务遥测的阈值规则上——电流异常、温度越界、姿态发散。 <strong>但它的词表里没有「我的超分模型正在自信地编造不存在的细节」这一项。</strong></p>
+<p>传感器有定标场可查：把卫星指向撒哈拉一块几十年不变的沙丘， 表观反射率的任何变化都只能归给仪器。<strong>模型没有这样的东西。</strong> 模型的失效是分布偏移、是静默退化、是在陌生输入上给出自信的错误输出—— 这些不会触发任何阈值。</p>
+<p>而客户问的第一个问题恰恰是：<strong>「你这个超分输出是真的还是编的？」</strong> 轨道上没有真值，所以这个问题在星上无法直接回答。</p>
+<h3 id="1.3-结论预览与阅读路径">1.3 结论预览与阅读路径</h3>
+<p>本报告的论证链是这样一条线：</p>
+<pre><code>可识别性极限（§4）  →  能免费拿到什么（§6.1）  →  免费通道有多慢（§6.3）
+                                                        ↓
+                          该不该花一轨（§6.4）  ←  定标场有多贵（§6.4）
+                                                        ↓
+                    谁真的脆弱（§6.6, §6.7）  →  该问模型还是问仪器（§6.8）</code></pre>
+<p>赶时间的读者：读 §4（问题形式化）、§6.8（决定性对照）、§7.1（三条可以直接用的结论）。</p>
+<hr>
+<h2 id="2.-动机-一次切口重设">2. 动机：一次切口重设</h2>
+<h3 id="2.1-原来的切口">2.1 原来的切口</h3>
+<p>这个仓库的第一条研究线做的是<strong>星上取舍</strong>：下行带宽稀缺时， 卫星该保留什么、丢什么、报什么。那是个真问题，也做出了结果 （见 <code>docs/TECHNICAL_REPORT.md</code>）。但它有两个弱点：</p>
+<ul>
+<li><strong>学术上不新。</strong> 星上智能筛选这条线已被做得相当透（Φ-sat、OPS-SAT、 CogniSAT 等）。我们的贡献是测量的严谨性，不是问题本身的新颖性。</li>
+<li><strong>对 AI 载荷是擦边。</strong> 它假设探测器给出的数是对的，然后研究怎么用这些数做决策。 而把模型送上天的公司，最痛的地方在前一步。</li>
+</ul>
+<h3 id="2.2-触发转向的实验">2.2 触发转向的实验</h3>
+<p>转向不是想出来的，是被一个<strong>能证伪自己</strong>的实验逼出来的。</p>
+<p>给当时的系统注入一个探测器灵敏度衰退，<strong>真值一个字不改</strong>，看它会读成什么：</p>
+<div class="tw"><table><thead><tr><th class="n">月漂移</th><th class="n">真烧瓦片检出</th><th class="n">干净瓦片误报</th><th class="n">系统平均熵</th></tr></thead><tbody><tr><td class="n">0%</td><td class="n">76.2%</td><td class="n">1.4%</td><td class="n">0.376</td></tr><tr><td class="n">−10%</td><td class="n">71.4%</td><td class="n">1.4%</td><td class="n">0.296</td></tr><tr><td class="n">−30%</td><td class="n">61.9%</td><td class="n">1.4%</td><td class="n">0.317</td></tr><tr><td class="n">−50%</td><td class="n"><strong>42.9%</strong></td><td class="n"><strong>0.0%</strong></td><td class="n"><strong>0.253</strong></td></tr></tbody></table></div>
+<p>系统漏掉了 44% 的真火，误报率反而降到 0（在这个指标上看起来「变好了」）， 而它唯一的自我不确定性信号——熵——<strong>朝错误方向走</strong>：越坏越自信。</p>
+<blockquote><p><strong>必须先说明：这个实验后来被我们自己推翻了一部分。</strong>
+它是在<strong>特征层</strong>直接把火指数乘 0.5 的，那是非物理的注入。
+物理正确地在<strong>像元层</strong>注入之后，这个戏剧性结论不成立（见 §6.6）。
+但它指出的<strong>结构性问题</strong>是对的，而且更正之后指向了一个更好的答案。
+完整的更正见 §7.3。</p></blockquote>
+<h3 id="2.3-转向后的切口">2.3 转向后的切口</h3>
+<blockquote><p><strong>自主卫星在观测上无法区分「世界变了」和「我变了」。</strong></p></blockquote>
+<p>这是一个<strong>可识别性</strong>问题，不是精度问题：W 和 S 通过同一个观测通道纠缠， 盯得再久也分不开——<strong>必须靠动作</strong>。而每个动作都花任务本身的钱： 一轨、一次侧摆、一段功率、一段下行。于是它同时是一个<strong>决策</strong>问题： 该把多少稀缺能力花在「认识自己」上，而不是「干活」上。</p>
+<p>仓库名 <code>mission-self-aware-autonomy</code> 里的 <strong>self-aware</strong> 一直是空的。这条线把它填上。</p>
+<hr>
+<h2 id="3.-背景">3. 背景</h2>
+<h3 id="3.1-成像链路-从光子到瓦片统计量">3.1 成像链路：从光子到瓦片统计量</h3>
+<p>一个光学遥感器的数据链路大致是：</p>
+<pre><code>地表反射 → 大气 → 光学系统(MTF) → 探测器(增益/暗电流/坏元)
+        → 量化与压缩 → 星上处理(掩膜/指数/统计量) → 决策</code></pre>
+<p>本报告用的 Sentinel-2 L2A 是<strong>大气校正后的地表反射率</strong>， 统一重采样到 20 m 网格，取 6 个波段：<code>blue, green, red, nir08, swir16, swir22</code>。 下游派生量：</p>
+<ul>
+<li><strong>火指数</strong> = <code>swir22 / nir08</code>（限 <code>swir22 &gt; 0.05</code>）。高温像元在 SWIR 上异常亮， 用比值是为了对光照不敏感。</li>
+<li><strong>NBR</strong> = <code>(nir08 − swir22) / (nir08 + swir22)</code>，用于火烧迹地真值。</li>
+<li>瓦片统计量：把 AOI 切成 5 km 见方的瓦片（本例 91 块）， 每块取 <code>fire_p99</code>、<code>fire_mean</code>、<code>hot_frac</code>、<code>nbr_mean</code>、云/有效占比。</li>
+</ul>
+<p><strong>关键：这条链上任何一环的退化都会一路流到最后的统计量。</strong> 所以故障必须注入在<strong>像元层</strong>，不能在成品特征上乘系数——不同波段退化速率不同， 波段比值类指数会朝<strong>反直觉</strong>的方向偏（见 §5.1）。</p>
+<h3 id="3.2-在轨退化的物理">3.2 在轨退化的物理</h3>
+<div class="tw"><table><thead><tr><th class="">故障</th><th class="">机制</th><th class="">数学形式</th><th class="">空间结构</th></tr></thead><tbody><tr><td class="">增益漂移</td><td class="">光学污染、探测器响应度衰减</td><td class="">乘性，逐波段速率不同</td><td class="">共模</td></tr><tr><td class="">暗电流/加性偏置</td><td class="">热、累积辐照剂量</td><td class="">加性</td><td class="">共模</td></tr><tr><td class="">探测器条带</td><td class="">推扫式多模块之间相对定标漂移</td><td class="">列方向分块乘性</td><td class=""><strong>有结构</strong></td></tr><tr><td class="">死列</td><td class="">探测器像元永久失效</td><td class="">列置零</td><td class=""><strong>有结构</strong></td></tr><tr><td class="">MTF 退化</td><td class="">离焦、光学污染</td><td class="">空间低通</td><td class="">共模但<strong>破坏信息</strong></td></tr><tr><td class="">单粒子翻转</td><td class="">辐射（SAA 过境时率陡增）</td><td class="">稀疏大幅跳变</td><td class=""><strong>无结构、孤立</strong></td></tr></tbody></table></div>
+<p>蓝端退化最快是光学遥感器的普遍规律（紫外老化与污染对短波影响大）。 这个<strong>波段间的差分</strong>是后文的关键——它才是污染波段比值指数的那一项。</p>
+<h3 id="3.3-辐射定标场-pics">3.3 辐射定标场（PICS）</h3>
+<p>CEOS 认定了一批<strong>伪不变定标场</strong>（Pseudo-Invariant Calibration Sites）： 撒哈拉腹地的沙丘、南极高原的雪原。选它们的理由，就是它们能当定标场的理由—— 地表常年不变、云量极低、地形均一。</p>
+<p>Libya-4（28.55°N / 23.39°E）是其中的一级站点。我们下载了它九年的 Sentinel-2 序列： <strong>180 景，云量中位 0.0%，其中 178 景晴空可用</strong>。</p>
+<p>它的意义在于：<strong>「世界不变」在这里是可以成立的前提。</strong> 因此这一景上的任何表观变化，都只能归给仪器、大气或几何。 这是把 W 和 S 分开的最强手段——代价是它在利比亚，卫星得专门跑一趟（§6.4 算这个代价）。</p>
+<h3 id="3.4-两类载荷的差别">3.4 两类载荷的差别</h3>
+<p>这一条是本报告最重要的背景，也是最容易被忽略的：</p>
+<div class="tw"><table><thead><tr><th class=""></th><th class="">阈值/比值型检测器</th><th class="">AI 载荷（超分等）</th></tr></thead><tbody><tr><td class="">输入</td><td class="">波段比值、瓦片统计量</td><td class=""><strong>原始像元</strong></td></tr><tr><td class="">参照</td><td class="">每瓦片的历史基线</td><td class="">无</td></tr><tr><td class="">共模误差</td><td class="">被比值和基线<strong>两次约掉</strong></td><td class="">直接进入</td></tr><tr><td class="">失效方式</td><td class="">阈值偏移，可预期</td><td class="">分布外，自信地编造</td></tr></tbody></table></div>
+<p><strong>比值 + 基线是一个非常强的共模抑制结构。</strong> 而 AI 载荷没有这个结构： 它没有比值可以自归一，没有基线可以做差。§6.6 与 §6.7 分别量了这两者。</p>
+<h3 id="3.5-与已有工作的关系">3.5 与已有工作的关系</h3>
+<ul>
+<li><strong>航天 FDIR</strong>：成熟，但建在星务遥测的规则上，处理的是硬件故障的离散事件。 对连续的、静默的、发生在数据本身而非硬件计数器上的退化没有词表。</li>
+<li><strong>在轨辐射定标</strong>：成熟（PICS、月球定标、太阳漫射板），但它是<strong>地面驱动</strong>的 定期标定流程，不是星上自主的决策；也不覆盖「模型是否可信」。</li>
+<li><strong>OOD 检测 / 不确定性量化</strong>：机器学习领域成熟，但通常假设可以拿到分布内的验证集， 且几乎不考虑<strong>输入分布的偏移来自传感器自身退化</strong>这一情形。</li>
+<li><strong>本报告的位置</strong>：把三者的交叉处形式化，并给出一个可测量的框架—— 在只有星上可算信息、且真值永不到达的条件下，联合推断 (W, S) 并据此决策。</li>
+</ul>
+<hr>
+<h2 id="4.-问题形式化">4. 问题形式化</h2>
+<h3 id="4.1-联合状态与观测模型">4.1 联合状态与观测模型</h3>
+<p>设时刻 <code>t</code> 的世界状态 <code>W(t)</code>（每块瓦片属于 火 / 亮 / 云 / 无 之一） 与自身状态 <code>S(t)</code>（增益、偏置、锐度、空间完整性、模型分布内否）。观测</p>
+<pre><code>O(t) = f( W(t), S(t) ) + ε(t)</code></pre>
+<p><strong>核心困难</strong>：<code>f</code> 对 <code>(W, S)</code> 不是单射。存在 <code>(W,S) ≠ (W′,S′)</code> 使 <code>f(W,S) = f(W′,S′)</code>。「没检出火」与「探测器变钝了」就是这样一对。</p>
+<h3 id="4.2-可识别性-什么能分-什么不能">4.2 可识别性：什么能分，什么不能</h3>
+<p><strong>第一个抓手是空间结构。</strong> 仪器故障多为<strong>共模</strong>（所有瓦片一起变）， 世界事件多为<strong>差分</strong>（少数瓦片变）。但这不够：</p>
+<ul>
+<li>大火和大范围云<strong>也是共模的</strong>；</li>
+<li>死列和条带<strong>不是共模的</strong>；</li>
+<li>共模减法会摧毁你检测大范围事件的能力。</li>
+</ul>
+<p>所以：<strong>共模只给先验，要靠动作才能真正解开。</strong></p>
+<p><strong>第二个抓手是波段间的相对关系。</strong> 这一条是结构性的，而且有硬结论：</p>
+<blockquote><p>整体增益下降与「地面变暗 / 太阳角变低 / 大气变厚」在单景上<strong>完全同构</strong>。
+因此<strong>绝对增益在原理上不可识别</strong>，除非观测一个已知不变的目标。
+而波段之间的<strong>相对</strong>漂移会改变比值，地表与光照到一阶不会。</p></blockquote>
+<p>于是自检天然分成两半：</p>
+<div class="tw"><table><thead><tr><th class=""></th><th class="">内容</th><th class="">代价</th></tr></thead><tbody><tr><td class=""><strong>免费</strong></td><td class="">相对增益、锐度、空间结构、孤立异常</td><td class="">每轨都有，不花额外资源</td></tr><tr><td class=""><strong>要花一轨</strong></td><td class="">绝对增益、加性偏置</td><td class="">必须去定标场或对日/深空</td></tr></tbody></table></div>
+<p>§6.1 用实测确认了这个划分，§6.3 与 §6.4 分别量了两侧的代价。</p>
+<h3 id="4.3-可校正-vs-破坏性">4.3 可校正 vs 破坏性</h3>
+<p>这是本报告在方法上最重要的一个区分：</p>
+<ul>
+<li><strong>可校正的退化</strong>（增益漂移、加性偏置）：故障只是给观测加了一个偏置， <strong>信息没有损失</strong>。景内参考目标的共模漂移就是这个偏置的估计，减掉即可。</li>
+<li><strong>破坏性的退化</strong>（MTF 模糊、死列、单粒子翻转）：故障<strong>真的销毁了信息</strong>。 模糊把 p99 削平了，没有任何标量修正能把细节还回来。 正确的反应是<strong>放大不确定度、必要时弃权</strong>，而不是修正。</li>
+</ul>
+<blockquote><p><strong>一个把模糊误当偏置去「修正」的系统，会一边修一边更自信——比不修更危险。</strong></p></blockquote>
+<p>因此系统必须知道自己得的是哪一种。这就是诊断层存在的理由。</p>
+<h3 id="4.4-自检作为决策问题">4.4 自检作为决策问题</h3>
+<p>免费通道慢但连续，定标访问快但要花一轨。给定当前的自身证据强度， <strong>现在去定标，比等免费通道自己得出结论，能提前多少天？提前量值不值一轨？</strong></p>
+<pre><code>净价值 =  max(0, min(T_free − T_wait, T_horizon)) · ℓ   ←  提前解决省下的损失
+       −  n_pass · v_pass                              ←  占用的成像机会</code></pre>
+<p>其中 <code>T_free</code> 由 §6.3 实测，<code>T_wait</code> 由 §6.4 的真实轨道几何算出， <code>ℓ</code> 是带着未解决自身状态运行的每日性能损失。 <strong>两侧都是测出来的，不是假设的</strong>——这是这个决策能成立的前提。</p>
+<hr>
+<h2 id="5.-方法">5. 方法</h2>
+<h3 id="5.1-故障的物理参数化与像元级注入">5.1 故障的物理参数化与像元级注入</h3>
+<p>6 个故障模型（<code>src/orbital_triage/selfstate/faults.py</code>），全部作用在<strong>反射率数组</strong>上：</p>
+<pre><code>GainDrift(severity)          # 乘性，逐波段速率取自公开在轨退化文献的形状
+DarkOffset(rate_per_year)    # 加性
+DetectorStriping(amplitude)  # 12 个探测器模块，模块间相对增益随时间发散
+DeadColumns(n, onset_day)    # 列置零，离散不可逆
+MTFLoss(sigma_per_year)      # 可分离高斯低通
+BitErrors(rate_per_day)      # 稀疏大幅跳变</code></pre>
+<p><strong>为什么必须在像元层。</strong> 举一个具体的例子：蓝端年退化率约为 SWIR 的 5 倍。 400 天后 blue 增益 0.989、swir16 增益 0.998。如果在成品特征上乘一个统一系数， 这个差分完全丢失；而正是这个差分会让 NBR 与火指数朝<strong>「像烧过」</strong>的方向偏， 凭空造出火烧迹地。方向性只有在像元层注入才会出现。</p>
+<p><strong>一处刻意的保守简化</strong>：实验中云/有效掩膜仍取自 L2A 的 SCL，不受注入影响。 真实星上的云判是从同一批坏掉的反射率算出来的，会一起劣化—— 也就是说<strong>真实情况比本报告更糟</strong>，这里的结论是下界。</p>
+<h3 id="5.2-景内自检监视器">5.2 景内自检监视器</h3>
+<p><code>src/orbital_triage/selfstate/monitors.py</code> 定义 11 个标量，全部只用星上可算的信息：</p>
+<div class="tw"><table><thead><tr><th class="">监视器</th><th class="">定义</th><th class="">针对</th></tr></thead><tbody><tr><td class="">比值 × 5</td><td class="">稳定瓦片上的波段比值中位数</td><td class="">相对增益、偏置</td></tr><tr><td class="">锐度</td><td class="">相邻像元差分 / 隔 4 像元差分</td><td class="">MTF</td></tr><tr><td class="">模块 F</td><td class="">列中位数去低频后，模块间方差 / 模块内方差</td><td class="">条带</td></tr><tr><td class="">死列占比</td><td class="">列中位数塌到全场 5% 以下的比例</td><td class="">死列</td></tr><tr><td class="">列台阶</td><td class="">列残差的相对标准差</td><td class="">死列、条带</td></tr><tr><td class="">孤立极端</td><td class="">自身极端但四邻不极端的像元率</td><td class="">单粒子翻转</td></tr><tr><td class="">全场亮度</td><td class="">各波段中位数的中位数</td><td class="">（共模，<strong>与世界混淆，列出以示其不可用</strong>）</td></tr></tbody></table></div>
+<p>两处设计要点：</p>
+<ul>
+<li><strong>锐度用两个尺度的比值</strong>（1 像元 vs 4 像元差分），不是除以场景整体对比度。 离焦按尺度衰减，所以这个比值对模糊敏感、对「今天场景平淡」不敏感—— 后者两个尺度一起降，比值不变。</li>
+<li><strong>模块 F 是一个方差分析统计量</strong>。条带把能量集中到「模块之间」，地形不会。 <strong>没有任何自然地物会沿着探测器模块边界排列</strong>，所以这是最强的 「这是仪器不是世界」的证据。</li>
+</ul>
+<h3 id="5.3-诊断-广义似然比检验">5.3 诊断：广义似然比检验</h3>
+<p>观测量是各监视器的<strong>趋势 t 统计量</strong>（不是单景读数——慢漂移单景信噪比 &lt;0.3σ）。 在故障假设 <code>h</code> 下，<code>t</code> 向量服从 <code>N(a·s(h), I)</code>，<code>s(h)</code> 是该故障的单位签名、 <code>a ≥ 0</code> 是未知幅度。对 <code>a</code> 取剖面极大，得匹配滤波形式：</p>
+<pre><code>â(h)     = max(0,  tᵀ·s(h))
+log L(h) = −½ ‖ t − â(h)·s(h) ‖²</code></pre>
+<p><code>nominal</code> 的签名是零向量，于是 <code>log L(nominal) = −½‖t‖²</code>： 「一切偏离都要用噪声解释」。</p>
+<p><strong>一个必需的第八个假设：<code>unknown_fault</code>。</strong> 没有它，只要偏离足够大，<strong>任何有名字的假设都会赢过 nominal</strong>—— 于是目录外的异常必然被硬塞进某个已知标签，而且置信很高。 这是我们自己的测试抓到的：一个不属于任何签名的响应模式被以 <strong>0.992 的置信</strong> 标成「增益漂移」（§7.3）。</p>
+<p><code>unknown_fault</code> 假设存在某个未知方向能解释全部偏离，朴素对数似然为 0， 因此必须加惩罚——惩罚来自它多用掉的自由度，取 <code>χ²(d−1)</code> 的 99.9% 分位的一半：</p>
+<pre><code>log L(unknown) = −½ · q₀.₉₉₉( χ²(d−1) )</code></pre>
+<p>判据因此干净：<strong>当所有已知签名的残差都超过这个门槛，系统改口说「我不对劲， 但不知道是哪儿」。</strong> 它被刻意排除在「可校正」之外—— <strong>不知道自己怎么坏的，就不该去修正自己。</strong></p>
+<h3 id="5.4-自身信念如何改写世界信念">5.4 自身信念如何改写世界信念</h3>
+<p>诊断结果通过两个量进入世界似然：</p>
+<pre><code>z          = ( x − b_corr − μ_tile ) / σ_tile
+σ_eff²     = σ_base² + σ_extra²</code></pre>
+<ul>
+<li><strong>偏置修正</strong> <code>b_corr = b · P(可校正)</code>： 只在系统相信自己得的是可校正故障时才施加，按该信念加权。</li>
+<li><strong>额外方差</strong> <code>σ_extra² = (σ_b/σ_tile)² · P(可校正) + P(破坏性) · 1.0</code>。 第二项是关键：<strong>它让系统在自己变钝的时候变得不确定，而不是变自信。</strong></li>
+</ul>
+<p>偏置 <code>b</code> 由景内稳定参考瓦片的共模漂移直接估计，非参数、不依赖故障分类。</p>
+<h3 id="5.5-自检的经济学">5.5 自检的经济学</h3>
+<p>见 §4.4 的净价值式。三个输入分别来自：</p>
+<ul>
+<li><code>T_free</code> ← §6.3 的剂量响应曲线，按当前证据强度插值；</li>
+<li><code>T_wait</code> ← §6.4 的真实 TLE + SGP4 轨道几何；</li>
+<li><code>ℓ</code> ← §6.6 的闭环实测。</li>
+</ul>
+<h3 id="5.6-超分载荷与三个无参考信号">5.6 超分载荷与三个无参考信号</h3>
+<p>模型是轻量 EDSR（<strong>0.78 M 参数</strong>，8 个残差块），2× 超分，6 波段。 任务定义为 <strong>40 m → 20 m</strong>，真值是<strong>真实的 20 m Sentinel-2 影像</strong>； 低分输入由真 20 m 经<strong>抗混叠降采样</strong>（先高斯模糊再抽取）生成—— 模拟一个物理上更粗的探测器，而不是简单抽点。</p>
+<p>这样定义的价值不在于「能做多好」，而在于<strong>真值可以被留出</strong>： 我们知道正确答案，模型不知道。于是可以问真正的问题—— <strong>在拿不到真值的条件下，什么信号能预测这次输出有多不可信？</strong></p>
+<p>三个候选，全部星上可算：</p>
+<div class="tw"><table><thead><tr><th class="">信号</th><th class="">定义</th><th class="">直觉</th></tr></thead><tbody><tr><td class="">幻觉比</td><td class="">输出高频 / 输入高频（按尺度归一）</td><td class="">&gt;1 表示添加了输入中不存在的细节</td></tr><tr><td class="">循环误差</td><td class="">输出降采样回去与输入的差</td><td class="">编造的东西降采样后常与输入对不上</td></tr><tr><td class="">TTA 分歧</td><td class="">八个二面体对称变换下自我预测的标准差</td><td class="">不需要第二个模型的「集成分歧」</td></tr></tbody></table></div>
+<p><strong>一处必须更正的评测设计错误</strong>见 §7.3：最初我们把<strong>退化后的影像</strong>当成了真值。</p>
+<hr>
+<h2 id="6.-实验与结果">6. 实验与结果</h2>
+<h3 id="6.0-实验设置">6.0 实验设置</h3>
+<p><strong>数据。</strong> 5 个真实 Sentinel-2 L2A 档案，统一 20 m 网格：</p>
+<div class="tw"><table><thead><tr><th class="">档案</th><th class="">MGRS</th><th class="">景数</th><th class="">时间跨度</th><th class="">用途</th></tr></thead><tbody><tr><td class=""><code>la-fires-2025</code></td><td class="">11SLT</td><td class="">60（34 可用）</td><td class="">2024-09 ~ 2025-02</td><td class="">主实验、火点真值</td></tr><tr><td class=""><code>libya4-pics</code></td><td class="">34RGS</td><td class="">180（178 晴空）</td><td class="">2017-01 ~ 2025-12</td><td class=""><strong>真实漂移，零注入</strong></td></tr><tr><td class=""><code>boreal-canada</code></td><td class="">11VNC</td><td class="">16</td><td class="">2023-05 ~ 2023-09</td><td class="">分布外</td></tr><tr><td class=""><code>amazon-forest</code></td><td class="">20MRB</td><td class="">16（15 可用）</td><td class="">2023-07 ~ 2023-11</td><td class="">分布外</td></tr><tr><td class=""><code>tokyo-urban</code></td><td class="">54SUE</td><td class="">7</td><td class="">2024-03 ~ 2024-09</td><td class="">分布外（高频纹理）</td></tr></tbody></table></div>
+<p>另有真实 Celestrak TLE（SENTINEL-2A/2B/2C）用于轨道几何。</p>
+<p><strong>真值来源。</strong> 火点真值来自 dNBR（火后影像算出的烧伤指数）， 利用了「agent 看到的」与「评测者看到的」之间的时间差—— 21 块瓦片判定为烧过，70 块干净。超分真值靠<strong>留出</strong>：真实 20 m 影像。</p>
+<p><strong>训练/测试隔离。</strong> 超分模型只在洛杉矶<strong>火前</strong>影像、且只在网格<strong>左侧 2/3</strong> （列 &lt; 2200）上训练；右侧（列 &gt; 2400）作同分布验证，中间留 200 列缓冲带。 最终 <code>train_l1 = 0.01189</code>，<code>val_l1 = 0.01189</code>——无过拟合。</p>
+<p><strong>纪律测试。</strong> <code>tests/test_selfstate.py</code> 10 条，其中多条是<strong>攻击自己</strong>的： 目录外故障不得被自信误标、破坏性故障不得被当偏置修正、 自身状态层源码中不得出现真值文件或 <code>burned</code> 字段、故障注入必须可复现。 连同原有的 9 条，共 19 条全部通过。</p>
+<p><strong>可复现。</strong> <code>python tools/rebuild_all.py</code> 一次重建全部。</p>
+<hr>
+<h3 id="6.1-景内不变目标能提供多少信息">6.1 景内不变目标能提供多少信息</h3>
+<p><strong>问：</strong> 这景影像里有没有「自己不变」的东西可以当参照？</p>
+<p>在洛杉矶档案的 25 景火前影像上量各瓦片的时间变异系数（CV）：</p>
+<div class="tw"><table><thead><tr><th class="">量</th><th class="n">CV 中位数</th><th class="">相对原始反射率</th></tr></thead><tbody><tr><td class="">原始反射率（6 波段均）</td><td class="n">1.178</td><td class="">—</td></tr><tr><td class="">NDVI</td><td class="n">0.313</td><td class="">3.8× 稳</td></tr><tr><td class="">NBR</td><td class="n">0.457</td><td class="">2.6× 稳</td></tr><tr><td class="">SWIR16 / NIR</td><td class="n">0.094</td><td class="">12.6× 稳</td></tr><tr><td class=""><strong>红 / 绿</strong></td><td class="n"><strong>0.048</strong></td><td class=""><strong>24.8× 稳</strong></td></tr></tbody></table></div>
+<p><strong>结论。</strong> 差距是结构性的，不是调参得来的。这<strong>实测确认了 §4.2 的划分</strong>： 景内目标提供一条免费、每轨都有的通道，但它只能测<strong>波段间相对漂移</strong>， 测不了<strong>绝对增益</strong>。</p>
+<p>而免费那一半，恰好是污染 NBR 与火指数、凭空造出火烧迹地的那一类故障。</p>
+<p><strong>一个佐证。</strong> 在 Libya-4（<strong>真正不变</strong>的地表）上，同样的比值优势只有 1.7 倍 （绝对反射率残差 CV 0.0158 vs 比值 0.0091）。这完全自洽： 比值的优势来自抵消地表与光照变化，<strong>地表本身不变时就没什么可抵消的</strong>。 两个数字支持同一个机制。</p>
+<hr>
+<h3 id="6.2-监视器的选择性">6.2 监视器的选择性</h3>
+<p><strong>问：</strong> 每个监视器是不是只对属于它的那类故障响应？做不到就没有诊断力—— 只能说「有事」，说不出「什么事」，也就无从决定该修正还是该弃权。</p>
+<p>在真实像元上注入各故障（强度取到单景明显可见），量每个监视器相对无故障基线的响应， 单位是无故障时的景间正常波动（σ）：</p>
+<div class="tw"><table><thead><tr><th class="">注入的故障</th><th class="n">比值R/G</th><th class="n">锐度</th><th class="n">模块F</th><th class="n">死列占比</th><th class="n">列台阶</th><th class="n">孤立极端</th><th class="n">全场亮度</th></tr></thead><tbody><tr><td class="">无故障</td><td class="n">0.0</td><td class="n">0.0</td><td class="n">0.0</td><td class="n">0.0</td><td class="n">0.0</td><td class="n">0.0</td><td class="n">0.0</td></tr><tr><td class="">增益漂移 30×</td><td class="n">2.7</td><td class="n">0.0</td><td class="n">0.0</td><td class="n">0.0</td><td class="n">−0.0</td><td class="n">0.0</td><td class="n">−0.6</td></tr><tr><td class="">加性偏置 10×</td><td class="n">−0.8</td><td class="n">0.0</td><td class="n">0.0</td><td class="n">0.0</td><td class="n">−1.4</td><td class="n">0.0</td><td class="n">2.0</td></tr><tr><td class="">探测器条带</td><td class="n">−0.0</td><td class="n">−0.0</td><td class="n"><strong>9.8</strong></td><td class="n">0.0</td><td class="n">0.3</td><td class="n">0.0</td><td class="n">−0.0</td></tr><tr><td class="">死列</td><td class="n">0.0</td><td class="n">0.0</td><td class="n">−0.8</td><td class="n"><strong>23.6</strong></td><td class="n"><strong>4.2</strong></td><td class="n">−0.0</td><td class="n">−0.0</td></tr><tr><td class="">MTF 模糊</td><td class="n">−0.1</td><td class="n"><strong>−5.1</strong></td><td class="n">0.1</td><td class="n">0.0</td><td class="n">−0.1</td><td class="n">−0.4</td><td class="n">0.0</td></tr><tr><td class="">单粒子翻转</td><td class="n">−0.0</td><td class="n">0.0</td><td class="n">−0.1</td><td class="n">0.0</td><td class="n">0.0</td><td class="n"><strong>42.8</strong></td><td class="n">0.0</td></tr></tbody></table></div>
+<p>（粗体 = |z| &gt; 3；完整 11 列见 <code>runs/selfcheck/selectivity.json</code>）</p>
+<p><strong>两条结论。</strong></p>
+<ol>
+<li><strong>四类有空间结构 / 破坏性的故障有干净且极强的专属检测器</strong>， 对角线之外基本是空的。</li>
+<li><strong>两类共模的辐射故障，即使 30× / 10× 强度也过不了 3σ。</strong> 这不是监视器不行——是 §4.2 说的那条原理：共模项在单景上与世界同构。</li>
+</ol>
+<p>第 2 条独立佐证了免费/付费的划分，也直接引出下一节的问题：那要多久才看得见？</p>
+<hr>
+<h3 id="6.3-免费通道有多慢">6.3 免费通道有多慢</h3>
+<p><strong>问：</strong> 慢漂移既然单景看不见，攒多久能看见？</p>
+<p>设计上这条线<strong>错了两次，方向还相反</strong>（详见 §7.3）。最终做法是不联合拟合， 而是把两个成分分开测：</p>
+<ul>
+<li><strong>故障强度</strong>：配对注入——同一景、同一天，有故障与无故障的监视器读数之差。 这<strong>精确</strong>隔离出故障的贡献，不受季节与场景变化干扰。</li>
+<li><strong>监视器噪声</strong>：干净序列去掉线性趋势后的残差标准差，<strong>刻意保留季节</strong> （留在里面会让噪声偏大、检测时间偏长，即给出保守上界）。</li>
+</ul>
+<p>再按趋势检验的标度解析外推。均匀采样、跨度 <code>T</code>、重访 <code>r</code> 时 <code>Sxx = n·T²/12</code>，于是</p>
+<pre><code>t   = D(T)·√n / (2√3 · s)        其中  D(T) = rate · T,   n = T / r
+⟹  T₄ = ( 4 · 2√3 · s · √r / rate ) ^ (2/3)</code></pre>
+<div class="tw"><table><thead><tr><th class="">故障</th><th class="n">强度</th><th class="">最灵敏监视器</th><th class="n">每年信噪比</th><th class="">需要多久</th></tr></thead><tbody><tr><td class="">增益漂移</td><td class="n">1×（文献量级）</td><td class="">比值 红/绿</td><td class="n">0.039</td><td class=""><strong>12.0 年</strong></td></tr><tr><td class="">增益漂移</td><td class="n">3×</td><td class="">比值 红/绿</td><td class="n">0.118</td><td class="">5.8 年</td></tr><tr><td class="">增益漂移</td><td class="n">10×</td><td class="">比值 红/绿</td><td class="n">0.397</td><td class="">2.6 年</td></tr><tr><td class="">加性偏置</td><td class="n">1×</td><td class="">列台阶</td><td class="n">0.078</td><td class="">7.6 年</td></tr><tr><td class="">加性偏置</td><td class="n">10×</td><td class="">比值 NIR/红</td><td class="n">0.527</td><td class="">2.1 年</td></tr><tr><td class="">探测器条带</td><td class="n">1×</td><td class="">模块 F</td><td class="n">0.055</td><td class="">9.5 年</td></tr><tr><td class="">探测器条带</td><td class="n">4×</td><td class="">模块 F</td><td class="n">1.128</td><td class=""><strong>1.3 年</strong></td></tr><tr><td class="">探测器条带</td><td class="n">10×</td><td class="">模块 F</td><td class="n">6.971</td><td class=""><strong>0.4 年</strong></td></tr><tr><td class="">MTF 模糊</td><td class="n">3.5×</td><td class="">锐度</td><td class="n">1.099</td><td class=""><strong>1.3 年</strong></td></tr><tr><td class="">MTF 模糊</td><td class="n">10×</td><td class="">锐度</td><td class="n">2.043</td><td class=""><strong>0.9 年</strong></td></tr><tr><td class="">单粒子翻转</td><td class="n">1×</td><td class="">孤立极端</td><td class="n">0.826</td><td class="">1.6 年</td></tr><tr><td class="">单粒子翻转</td><td class="n">10×</td><td class="">孤立极端</td><td class="n">8.311</td><td class=""><strong>0.3 年</strong></td></tr></tbody></table></div>
+<p>信噪比 &lt; 1 表示单景完全看不见。</p>
+<p><strong>结论。</strong> 免费通道对<strong>有空间结构的故障</strong>很快（几个月）， 对<strong>共模的辐射漂移</strong>在文献量级下需要 <strong>12 年</strong>——超过卫星寿命。 这正是下一节要算的那件事该发生的地方。</p>
+<hr>
+<h3 id="6.4-定标场的真实代价">6.4 定标场的真实代价</h3>
+<p><strong>问：</strong> 跑一趟定标场要等多久？</p>
+<p>用真实 Sentinel-2 TLE + SGP4，算从一年中 400 个时刻出发到下一个可观测窗口的等待：</p>
+<div class="tw"><table><thead><tr><th class="">目标</th><th class="n">窗口/年</th><th class="">等待中位</th><th class="">p90</th><th class="">最长</th></tr></thead><tbody><tr><td class="">Libya-4（三星星座）</td><td class="n">142</td><td class=""><strong>1.49 天</strong></td><td class="">3.88 天</td><td class="">7.4 天</td></tr><tr><td class="">Libya-4（单星）</td><td class="n">47</td><td class=""><strong>4.07 天</strong></td><td class="">8.32 天</td><td class="">—</td></tr><tr><td class="">Algeria-3</td><td class="n">161</td><td class="">1.15 天</td><td class="">3.03 天</td><td class="">5.3 天</td></tr><tr><td class="">Dome C</td><td class="n">248</td><td class=""><strong>36.9 天</strong></td><td class=""><strong>182.5 天</strong></td><td class="">218.9 天</td></tr><tr><td class="">洛杉矶任务区（对照）</td><td class="n">165</td><td class="">1.16 天</td><td class="">3.00 天</td><td class="">4.9 天</td></tr></tbody></table></div>
+<p><strong>这一条推翻了我们自己的假设。</strong> 原以为要等几周，所以等待时间是主要成本。 实际上即便单星也只需 4.07 天。<strong>定标在时间上是便宜的；真正的成本是那一轨没去干任务。</strong></p>
+<p>Dome C 是反例：窗口数最多（248/年）但等待最久——极夜。 <strong>可达性由轨道和光照决定，不由任务需要决定。</strong></p>
+<p><strong>架构结论随之改写，而且比原来的干净：</strong></p>
+<blockquote><p><strong>景内免费通道不是用来定量的，是用来触发的。</strong>
+它每一轨都在低成本地问「有没有事」；证据累积到阈值，
+就花一轨去定标场把「是什么、多大」一次问清楚。</p></blockquote>
+<p>把 §6.3 和本节并排看：需要跑定标场的恰恰是<strong>共模辐射漂移</strong>（免费通道 12 年 vs 定标 4 天）， 而有空间结构的故障根本不用跑（免费通道几个月就抓到）。<strong>决策是有明确分界的。</strong></p>
+<hr>
+<h3 id="6.5-真实定标场上的真实漂移-零注入">6.5 真实定标场上的真实漂移（零注入）</h3>
+<p><strong>问：</strong> 前面全部建立在注入的故障上。真实的在轨漂移是什么样？</p>
+<p>Libya-4，178 景晴空，8.99 年。回归扣除年与半年谐波（沙漠也有 BRDF， 太阳天顶角随季节变化，不扣季节会把季节读成漂移），并<strong>逐平台分开估</strong> ——S2A/S2B/S2C 是三台不同的仪器，混在一起回归没有物理意义。</p>
+<div class="tw"><table><thead><tr><th class="">量</th><th class="">全部</th><th class="">S2A</th><th class="">S2B</th></tr></thead><tbody><tr><td class="">green</td><td class=""><strong>−0.172 %/yr</strong> (t=−3.4)</td><td class="">−0.128</td><td class="">−0.219</td></tr><tr><td class="">red</td><td class=""><strong>−0.138 %/yr</strong> (t=−3.1)</td><td class="">−0.124</td><td class="">−0.146</td></tr><tr><td class="">blue</td><td class="">+0.152</td><td class=""><strong>+0.220</strong> (t=3.0)</td><td class="">+0.076</td></tr><tr><td class=""><strong>blue / green</strong></td><td class=""><strong>+0.324 %/yr</strong> (t=7.8)</td><td class=""><strong>+0.348</strong> (t=7.2)</td><td class=""><strong>+0.296</strong> (t=6.3)</td></tr><tr><td class="">nir08 / red</td><td class=""><strong>+0.067 %/yr</strong> (t=5.8)</td><td class=""><strong>+0.062</strong> (t=4.1)</td><td class=""><strong>+0.085</strong> (t=5.4)</td></tr></tbody></table></div>
+<p><strong>三条读法。</strong></p>
+<ol>
+<li><strong>真实的波段差分漂移确实存在且可测</strong>：blue/green +0.324 %/yr， 在两台独立的仪器上各自显著。这正是 §5.1 说的那个「杀手项」。</li>
+<li><strong>量级与我们的注入模型 1× 强度吻合</strong>：模型给出的同一个量约 0.3 %/yr。 符号相反——因为 L2A 是<strong>大气校正后的地表反射率</strong>，包含 ESA 的定标更新， 不是原始探测器响应。<strong>这一点必须明确</strong>：这里测的是「数据用户实际看到的残余漂移」， 对下游系统而言恰恰是更相关的量，但它不等于探测器的裸退化。</li>
+<li><strong>残差 CV</strong>：绝对反射率 0.0158 vs 波段比值 0.0091（比值稳 1.7 倍）。 与 §6.1 的机制一致（见该节的佐证段）。</li>
+</ol>
+<hr>
+<h3 id="6.6-闭环-阈值型检测任务对仪器退化天然稳健-零结果">6.6 闭环：阈值型检测任务对仪器退化天然稳健（零结果）</h3>
+<p><strong>问：</strong> 仪器坏了，火点检测会崩吗？</p>
+<p>同一批真实像元、同一场真实火、同一套真值。唯一的差别是系统知不知道 「我自己可能坏了」。加速系数 4×（档案 170 天 → 等效 1.8 年在轨）。</p>
+<div class="tw"><table><thead><tr><th class="">注入的故障</th><th class="n">检出（盲）</th><th class="n">误报（盲）</th><th class="">平均熵 盲 → 自知</th><th class="">系统自诊断</th></tr></thead><tbody><tr><td class="">无故障</td><td class="n">76.2%</td><td class="n">1.4%</td><td class="">0.376 → 0.371</td><td class="">一切正常 p=0.74</td></tr><tr><td class="">增益漂移 1×</td><td class="n">76.2%</td><td class="n">1.4%</td><td class="">0.378 → 0.372</td><td class="">一切正常 p=0.75</td></tr><tr><td class="">增益漂移 3×</td><td class="n">76.2%</td><td class="n">1.4%</td><td class="">0.381 → 0.375</td><td class="">一切正常 p=0.76</td></tr><tr><td class="">增益漂移 10×</td><td class="n">76.2%</td><td class="n">0.0%</td><td class="">0.398 → 0.389</td><td class="">一切正常 p=0.78</td></tr><tr><td class="">加性偏置</td><td class="n">76.2%</td><td class="n">1.4%</td><td class="">0.367 → 0.359</td><td class="">一切正常 p=0.72</td></tr><tr><td class="">MTF 模糊</td><td class="n">76.2%</td><td class="n">1.4%</td><td class="">0.330 → <strong>0.343</strong></td><td class=""><strong>不知道哪儿坏了</strong> p=0.66</td></tr><tr><td class="">探测器条带</td><td class="n">76.2%</td><td class="n">1.4%</td><td class="">0.376 → 0.378</td><td class=""><strong>探测器条带</strong> p=0.62</td></tr><tr><td class="">死列</td><td class="n">76.2%</td><td class="n">2.9%</td><td class="">0.376 → 0.381</td><td class=""><strong>死列</strong> p=0.78</td></tr></tbody></table></div>
+<p><strong>检出率纹丝不动。</strong> 这是个零结果，但它不是 bug——原因可以精确说清楚。 直接量瓦片特征（onset 后一景，等效 1.8 年）：</p>
+<div class="tw"><table><thead><tr><th class="">条件</th><th class="n">烧过瓦片 fire_p99 变化</th><th class="n">干净瓦片 fire_p99 变化</th></tr></thead><tbody><tr><td class="">增益漂移 10×</td><td class="n"><strong>+1.40%</strong></td><td class="n"><strong>+1.40%</strong></td></tr><tr><td class="">加性偏置</td><td class="n">−5.30%</td><td class="n">−0.77%</td></tr><tr><td class="">MTF 模糊</td><td class="n">−4.67%</td><td class="n">−4.04%</td></tr><tr><td class="">死列</td><td class="n">−0.03%</td><td class="n">−0.01%</td></tr></tbody></table></div>
+<p>增益漂移在烧过与干净瓦片上的影响<strong>完全相同</strong>——纯共模。 因为火指数是波段比值（SWIR22/NIR），它自己就把共模增益约掉了； 而每瓦片基线又在同一尺度上做了差。<strong>比值 + 基线这个组合把共模项约掉了两次。</strong> 加上后验本身是双峰的，几个百分点的扰动翻不动任何一块瓦片。</p>
+<p><strong>但诊断层是工作的</strong>：条带被认出（p=0.62）、死列被认出（p=0.78）、 MTF 被归到「不知道哪儿坏了」（p=0.66，破坏性概率 1.00）。 最后一条恰恰是想要的行为——MTF 的签名在这组监视器上确实不够独特， 系统承认不知道，而不是硬贴标签。</p>
+<p>还可以看到一处正确的定性行为：<strong>MTF 下盲系统的熵从 0.376 降到 0.330</strong> （变钝反而更自信），而<strong>自知系统把它拉回 0.343</strong>——方向对，只是幅度小。</p>
+<p><strong>零结果的价值在于它指向了正确的地方。</strong></p>
+<hr>
+<h3 id="6.7-真正脆弱的是-ai-载荷">6.7 真正脆弱的是 AI 载荷</h3>
+<p><strong>问：</strong> 那谁会崩？</p>
+<p>同一个模型，放到四种它没见过的地表，再加一种它没见过的<strong>仪器状态</strong>：</p>
+<div class="tw"><table><thead><tr><th class="">测试域</th><th class=""></th><th class="n">PSNR</th><th class="n">RMSE</th><th class="n">相对双线性</th></tr></thead><tbody><tr><td class="">洛杉矶·同分布</td><td class="">分布内</td><td class="n">32.43</td><td class="n">0.01622</td><td class="n">+41.6%</td></tr><tr><td class="">洛杉矶·空间留出</td><td class="">分布内</td><td class="n">32.54</td><td class="n">0.01529</td><td class="n">+41.6%</td></tr><tr><td class="">利比亚沙漠</td><td class="">分布外</td><td class="n">39.54</td><td class="n">0.00768</td><td class="n">+23.8%</td></tr><tr><td class="">北方针叶林</td><td class="">分布外</td><td class="n">37.28</td><td class="n">0.00601</td><td class="n"><strong>+43.6%</strong></td></tr><tr><td class="">亚马逊雨林</td><td class="">分布外</td><td class="n">37.19</td><td class="n">0.00953</td><td class="n"><strong>+46.3%</strong></td></tr><tr><td class="">东京城区</td><td class="">分布外</td><td class="n">33.48</td><td class="n">0.02072</td><td class="n">+34.8%</td></tr><tr><td class="">洛杉矶 · MTF 轻度</td><td class="">仪器分布外</td><td class="n">31.53</td><td class="n">0.01723</td><td class="n">+35.7%</td></tr><tr><td class=""><strong>洛杉矶 · MTF 重度</strong></td><td class=""><strong>仪器分布外</strong></td><td class="n"><strong>26.52</strong></td><td class="n"><strong>0.03043</strong></td><td class="n"><strong>+6.4%</strong></td></tr></tbody></table></div>
+<p><strong>一个非显然的发现：地表分布外不是问题，仪器分布外才是问题。</strong> 北方针叶林和亚马逊上的增益（+43.6% / +46.3%）甚至高于分布内。 对 2× 多光谱超分这种低层任务，局部图像统计（边缘、纹理）比预想的更通用。 但<strong>仪器</strong>一变，输入统计就以模型从未见过的方式偏移，价值几乎清零。</p>
+<p><strong>这把两条线锁死在一起：光学 MTF 退化 = 超分模型输入的分布外。 硬件故障和模型幻觉是同一个问题的两面。</strong></p>
+<p><strong>那模型能不能自己察觉？</strong> 三个无参考信号：</p>
+<div class="tw"><table><thead><tr><th class="">信号</th><th class="n">域内相关（中位）</th><th class="n">跨域汇总相关</th><th class="n">识别「仪器已退化」的 AUC</th></tr></thead><tbody><tr><td class="">幻觉比</td><td class="n">0.278</td><td class="n">−0.186</td><td class="n"><strong>0.079</strong></td></tr><tr><td class="">循环误差</td><td class="n"><strong>0.829</strong></td><td class="n">0.024</td><td class="n"><strong>0.161</strong></td></tr><tr><td class="">TTA 分歧</td><td class="n"><strong>0.895</strong></td><td class="n">0.375</td><td class="n"><strong>0.262</strong></td></tr></tbody></table></div>
+<p>三列越往右越糟：</p>
+<ul>
+<li><strong>域内</strong>：在同一片地表上，循环误差与 TTA 分歧都很能排序（0.83 / 0.90）。</li>
+<li><strong>跨域</strong>：换一片地表就崩了。信号的绝对水平被地表纹理主导，不可跨域比较。</li>
+<li><strong>识别仪器退化</strong>：AUC 全部<strong>低于 0.5</strong>——是<strong>反向的</strong>。 镜头一糊，输入变平滑，模型对所有增广变换给出一致的、自信的、错误的输出。 <strong>信号恰好在最不该说「可信」的时候说「可信」。</strong></li>
+</ul>
+<hr>
+<h3 id="6.8-决定性对照-该问模型-还是该问仪器">6.8 决定性对照：该问模型，还是该问仪器</h3>
+<p><strong>问：</strong> 要判断 AI 载荷现在还可不可信，该问模型自己，还是问仪器？</p>
+<p>把两个轴叉开：<strong>5 种真实地表 × 4 档 MTF 退化 = 20 个格点</strong>，配对设计 （所有剂量用同一批位置）。真值（超分相对双线性的增益）需要地面真值才能算， 星上算不出来；下面每个预测器都是星上可算的。</p>
+<div class="tw"><table><thead><tr><th class="">预测器</th><th class="n">跨场景（真问题）</th><th class="n">同场景内</th></tr></thead><tbody><tr><td class="">模型自省 · TTA 分歧</td><td class="n">0.576</td><td class="n">1.000</td></tr><tr><td class="">模型自省 · 幻觉比</td><td class="n">0.053</td><td class="n">1.000</td></tr><tr><td class="">模型自省 · 循环误差</td><td class="n">0.000</td><td class="n">1.000</td></tr><tr><td class=""><strong>仪器自检 · 锐度监视器</strong></td><td class="n"><strong>0.823</strong></td><td class="n">1.000</td></tr></tbody></table></div>
+<p><strong>同场景内所有信号都是满分</strong>——沿单调剂量轴，任何单调变化的量都「预测」得完美。 <strong>跨场景才是真问题</strong>，因为星上不知道自己在拍什么地表。</p>
+<p><strong>混淆在数据里看得见，而且能找到排序被排反的具体对子：</strong></p>
+<div class="tw"><table><thead><tr><th class="">格点</th><th class="n">模型自省 TTA</th><th class="n">仪器锐度</th><th class="n">超分真实价值</th></tr></thead><tbody><tr><td class=""><strong>退化 3 年 · 拍东京城区</strong></td><td class="n"><strong>0.00796</strong></td><td class="n">0.3599</td><td class="n"><strong>+23.2%</strong></td></tr><tr><td class=""><strong>健康 · 拍北方针叶林</strong></td><td class="n">0.00521</td><td class="n"><strong>0.5238</strong></td><td class="n"><strong>+45.8%</strong></td></tr></tbody></table></div>
+<p>第一行的模型自省信号<strong>更高</strong>（0.00796 &gt; 0.00521），真实价值却只有第二行的一半。 <strong>按模型自省排序，这一对是反的。</strong> 原因很直接：东京是人工结构主导的高频纹理， 即便镜头糊了，模型在上面的分歧仍然大于它在平坦针叶林上的分歧—— <strong>信号被地表纹理主导，而不是被仪器状态主导。</strong></p>
+<p>而仪器锐度把这一对排对了（0.3599 &lt; 0.5238），因为它做了尺度归一。</p>
+<p><strong>结论是架构性的：不能问模型自己可不可信，要问仪器。</strong> 而问仪器这条通道是<strong>免费</strong>的——它每一轨都在那儿。</p>
+<p>一处需要诚实标注的边界：0.823 也不是 1.0。锐度监视器同样受地表纹理影响 （沙漠本来就平滑），只是因为它做了<strong>尺度归一</strong>（1 像元 vs 4 像元差分） 而受影响小得多。这是一个「明显更好」的结论，不是「已解决」的结论。</p>
+<hr>
+<h2 id="7.-讨论">7. 讨论</h2>
+<h3 id="7.1-so-what-三条可以直接用的结论">7.1 So what：三条可以直接用的结论</h3>
+<p><strong>其一 · 把 AI 载荷送上轨道，缺的不是更好的模型，是一条独立于模型的自检通道。</strong></p>
+<p>这是本报告最直接的可操作结论。链条是完整的：</p>
+<ul>
+<li>客户问「这个超分输出是真的还是编的」，轨道上没有真值 → 无法直接回答；</li>
+<li>那就问模型自己 → <strong>不行</strong>，跨场景秩相关 0.000 ~ 0.576，识别仪器退化时 AUC <strong>反向</strong>；</li>
+<li>那就问仪器 → <strong>可行</strong>，0.823，而且这条通道<strong>每一轨都免费在跑</strong>。</li>
+</ul>
+<p>反过来说：<strong>一个只有模型自省、没有仪器侧自检的星上 AI 系统， 在最该报警的时候最安静。</strong> 这不是可以靠调参解决的，是信号本身的性质。</p>
+<p><strong>其二 · 自检的经济学有明确分界，不需要拍脑袋。</strong></p>
+<div class="tw"><table><thead><tr><th class="">故障类型</th><th class="">免费通道</th><th class="">该怎么办</th></tr></thead><tbody><tr><td class="">有空间结构（条带、死列、翻转）</td><td class="">几个月内判定</td><td class=""><strong>不用跑定标场</strong>，等着就行</td></tr><tr><td class="">共模辐射漂移（增益、偏置）</td><td class="">文献量级需 12 年</td><td class=""><strong>值得花一轨</strong>（Libya-4 等待中位 4 天）</td></tr></tbody></table></div>
+<p>这条分界是两个独立实验（§6.3 与 §6.4）交叉出来的，两侧都是实测。 落到工程上就是一条规则：<strong>空间类监视器触发就自己处理，辐射类监视器一旦累积到 阈值就排一次定标场过境。</strong></p>
+<p><strong>其三 · 检测器很稳，别在它身上找问题。</strong></p>
+<p>比值 + 每瓦片基线是一个非常强的共模抑制结构，把共模项约掉了两次。 8 类物理注入下检出率纹丝不动。<strong>如果一个团队的星上系统只有阈值型检测器， 仪器退化这件事的优先级可以往后放；一旦上了直接吃像元的 AI 载荷， 优先级立刻变成第一。</strong></p>
+<h3 id="7.2-为什么这是-ai-载荷上星的关键路径">7.2 为什么这是 AI 载荷上星的关键路径</h3>
+<p>把 §6.7 和 §6.8 合起来看，会得到一个不太舒服但很清楚的图景：</p>
+<ol>
+<li>超分模型在<strong>地表</strong>分布外上表现得挺好（甚至更好）——所以团队很容易 在多样地表上验证一遍，得出「泛化没问题」的结论；</li>
+<li>但它在<strong>仪器</strong>分布外上崩溃（+41.6% → +6.4%，沙漠上到 −1.35% 即不如插值）；</li>
+<li>而仪器退化是<strong>缓慢、单调、静默</strong>的——发射后一两年才显现；</li>
+<li>到那时，模型的自省信号会说一切正常，因为输入变平滑让它更「自洽」；</li>
+<li>于是<strong>产品在无人察觉的情况下持续退化</strong>，而所有星上指标都是绿的。</li>
+</ol>
+<p>这个失效模式的可怕之处在于它<strong>没有告警</strong>。它不像硬件故障那样触发阈值， 也不像分布外那样在验证集上暴露。<strong>唯一能提前发现它的，是一条不依赖模型的仪器侧通道。</strong></p>
+<h3 id="7.3-四次自我纠正">7.3 四次自我纠正</h3>
+<p>这条线上我们错了四次。写下来是因为其中三次的错误结论一度看起来很有说服力， 而且都是<strong>方法层面</strong>的错，不是数值层面的。</p>
+<p><strong>其一 · 「世界模型」这个词用错了，而且那个模型在这个重访率下不可能有用。</strong></p>
+<p>第一条研究线里叫「世界模型」的东西，全部内容是三个拟合参数（云的两状态转移） 加一个手设常数。它预测的只有「下一次还能不能看见」，不预测「会看见什么」—— 准确的名字是<strong>机会模型</strong>。</p>
+<p>更要命的是一个 20 行的判决性测试：用当前可见性预测 5/10/15 天后的可见性， 和「永远猜 65%」比。Brier 分数 0.382 vs <strong>0.287</strong>——<strong>我们的模型比不看当前状态还差</strong>。 转移概率也说明原因：今天能看清→78% 明天还能看清，今天看不清→74% 明天能看清， 气候平均 65%。三个数挨得极近，<strong>云在 5 天尺度上没有记忆</strong> （天气系统相关时间 1–3 天，5 天采样已越过去相关尺度）。</p>
+<p>原先「世界模型在 9/25 格点有用」里那 9 个是噪声。<strong>教训</strong>：一个弱正面结论， 在做判决性检验之前不该被当成结论。</p>
+<p><strong>其二 · 检测时间实验错了两次，方向还相反。</strong></p>
+<ul>
+<li>第一版：把 34 景真实影像<strong>循环使用</strong> 3.2 遍来「模拟多年在轨」。循环制造出 周期 170 天的锯齿，回归残差被撑爆，所有慢漂移「未检出」。</li>
+<li>第二版：改用真实日期序列并扣除年/半年谐波。但档案只有 170 天， <strong>年谐波在半个周期内与线性项近似共线</strong>——回归把漂移整个吃进谐波项， 于是 30× 增益漂移与无故障给出<strong>同样的 t = −1.35</strong>。</li>
+</ul>
+<p>根子在数据，不在写法：<strong>观测窗短于约一年时，线性漂移与年周期在原理上不可分。</strong> 第三版因此不联合拟合，改为分开测两个成分再解析外推（§6.3）。 代码里加了硬护栏：<code>fit_trend</code> 在跨度 &lt; 1.2 年时自动退回纯线性。</p>
+<p><strong>教训</strong>：一个「强负面结论」出现时，先怀疑自己的实验设计，再怀疑物理。 这与第一条线上「Planet 16 == Planet 3」（60 秒采样步过了 6.7 秒的穿越） 是同一类错误：<strong>采样方式伪造了结论。</strong></p>
+<p><strong>其三 · 诊断器没有「以上皆非」，就会自信地贴错标签。</strong></p>
+<p>被我们自己写的测试抓到：一个不属于任何签名的响应模式，被以 <strong>0.992 的置信</strong> 标成「增益漂移」。根因是 GLRT 里 <code>nominal</code> 的对数似然是 <code>−½‖t‖²</code>， 偏离一大，<strong>任何有名字的假设都赢它</strong>。修法见 §5.3。</p>
+<p><strong>教训</strong>：<strong>一个只会在自己目录里挑答案的诊断系统，比不诊断更危险</strong>—— 它给出的是有置信度的错误，而不是诚实的沉默。</p>
+<p><strong>其四 · 超分评测把退化后的影像当成了真值。</strong></p>
+<p>最初把 HR 影像先模糊、再降采样得到输入，然后拿<strong>模糊后的 HR</strong> 当真值。 模糊图本身更容易重建，于是得到「MTF 退化下超分增益 <strong>+64.6%</strong>，比分布内还高」 这种荒谬结论。</p>
+<p>物理上错在哪：<strong>镜头糊了不代表地表糊了。客户要的始终是真实地表。</strong> 正确设定是故障只作用在<strong>成像链路</strong>上，真值保持清晰。 修正后同一条件从 +64.6% 翻转到 <strong>+8.0%</strong>。</p>
+<p><strong>教训</strong>：当一个指标给出「故障让性能变好」时，几乎一定是评测定义错了。</p>
+<p><strong>其五（次要）· 一份陈旧的产出。</strong> 写这份报告时发现 <code>selectivity.json</code> 是在监视器修复<strong>之前</strong>生成的， 里面还是旧的监视器名。这正是第一条线上记录过的「三份产出显示不同数字」那个坑 ——已重跑，本报告用的是重跑后的值。<strong>教训</strong>：报告要从产出文件里读数， 不要从记忆里写数；写之前先确认产出与代码同代。</p>
+<h3 id="7.4-局限">7.4 局限</h3>
+<p>按重要性排序，而不是按好写的程度排序：</p>
+<ol>
+<li><strong>硬件故障是合成的。</strong> 故障模型的形式取自公开在轨退化文献，注入是我们做的。 §6.5 是唯一完全真实的一节。缓解：§6.5 实测的 blue/green 漂移量级 （0.324 %/yr）与注入模型 1× 强度（约 0.3 %/yr）吻合，给了合成实验一个真实锚点。</li>
+<li><strong>云掩膜没有跟着坏。</strong> 实验中云/有效掩膜取自 L2A 的 SCL，不受注入影响。 真实星上云判从同一批坏掉的反射率算出，会一起劣化——<strong>真实情况更糟</strong>， 本报告是下界。</li>
+<li><strong>只有一场火、一个 AOI。</strong> 21 块真烧瓦片，样本小。所有百分比应按这个 n 读。 §6.6 的零结果尤其需要在更多事件上复核。</li>
+<li><strong>超分任务是 40 m → 20 m，不是 10 m → 2.5 m。</strong> 受档案分辨率所限。 量级关系应保持，绝对数字不可外推。模型也只有 0.78 M 参数， 商业超分模型的行为可能不同（更大的模型可能幻觉更严重，也可能更鲁棒，未测）。</li>
+<li><strong>L2A 不等于裸探测器响应。</strong> §6.5 测的是大气校正后的残余漂移， 对数据用户更相关，但不能直接解读为探测器退化率。</li>
+<li><strong>锐度监视器的 0.823 不是 1.0。</strong> 它同样受地表纹理影响，只是受影响小得多。 这是「明显更好」，不是「已解决」。</li>
+<li><strong>还没有敏捷侧摆。</strong> 固定天底成像意味着「往哪看」不是决策， 这限制了自检预算能被优化的空间——见 §7.5。</li>
+</ol>
+<h3 id="7.5-下一步">7.5 下一步</h3>
+<p>按「能解开多少个死结」排序：</p>
+<p><strong>一 · 敏捷侧摆下的自检预算（推荐先做）</strong></p>
+<p>现在的自检决策只有「去/不去定标场」这一个二元选择，因为 Sentinel-2 不侧摆。 真实商业遥感卫星（包括本项目的目标场景）都会侧摆 ±30~45°。侧摆一旦引入：</p>
+<ul>
+<li>重访率上去，<strong>云才重新有记忆</strong>（§7.3 其一说的那个耦合），机会模型才有意义；</li>
+<li>「这一轨拍任务目标还是拍定标场」成为<strong>有真实灵敏度的连续决策</strong>；</li>
+<li>多个客户订单与自检需求在同一个资源上竞争——这才是完整的问题。</li>
+</ul>
+<p><strong>二 · 用 Libya-4 的真实漂移驱动闭环</strong></p>
+<p>现在闭环用的是注入的故障。既然 §6.5 已经量出真实漂移的量级和形状， 可以直接用它来驱动一次「零注入的闭环」——把九年的真实漂移轨迹叠到火点实验上， 看自检系统能否在真实速率下按时发现。这会让整条线从「合成 + 一个真实锚点」 变成「真实驱动」。</p>
+<p><strong>三 · 更大的超分模型与真实的 10 m → 2.5 m</strong></p>
+<p>当前模型只有 0.78 M 参数。商业模型大得多，而<strong>模型越大越可能自信地编造</strong>—— 这是个应当被测量而不是假设的问题。需要更高分辨率的配对数据（如 Planet / WorldView 与 Sentinel-2 的同时相配对）。</p>
+<p><strong>四 · 多事件泛化</strong></p>
+<p>3–5 场不同气候区、不同燃料类型的火，把 §6.6 的零结果从「这个案例」 变成「这一类」。成本最低，可信度提升最直接。</p>
+<hr>
+<h2 id="8.-附录">8. 附录</h2>
+<h3 id="8.1-复现">8.1 复现</h3>
+<pre><code>python tools/rebuild_all.py          # 一次重建全部（含第一条研究线）
+python -m pytest tests/ -q           # 19 条纪律测试</code></pre>
+<p>单独重跑某一节：</p>
+<div class="tw"><table><thead><tr><th class="">节</th><th class="">脚本</th><th class="">产出</th></tr></thead><tbody><tr><td class="">§6.1</td><td class="">（内嵌于 <code>stability.json</code> 生成）</td><td class=""><code>data/archive/*/stability.json</code></td></tr><tr><td class="">§6.2</td><td class=""><code>tools/selectivity.py</code></td><td class=""><code>runs/selfcheck/selectivity.json</code></td></tr><tr><td class="">§6.3</td><td class=""><code>tools/detection_time.py</code></td><td class=""><code>runs/selfcheck/detection_time.json</code></td></tr><tr><td class="">§6.4</td><td class=""><code>tools/calibration_cost.py</code></td><td class=""><code>runs/selfcheck/calibration_cost.json</code></td></tr><tr><td class="">§6.5</td><td class=""><code>tools/real_drift.py</code></td><td class=""><code>runs/selfcheck/real_drift.json</code></td></tr><tr><td class="">§6.6</td><td class=""><code>tools/closed_loop.py</code></td><td class=""><code>runs/selfcheck/closed_loop.json</code></td></tr><tr><td class="">§6.7</td><td class=""><code>tools/train_sr.py</code> → <code>tools/sr_ood.py</code></td><td class=""><code>runs/payload/sr_ood.json</code></td></tr><tr><td class="">§6.8</td><td class=""><code>tools/payload_guard.py</code></td><td class=""><code>runs/payload/payload_guard.json</code></td></tr><tr><td class="">页面</td><td class=""><code>tools/collect_selfaware.py</code> → <code>tools/build_selfaware.py</code></td><td class=""><code>runs/report/selfaware.html</code></td></tr></tbody></table></div>
+<h3 id="8.2-代码结构">8.2 代码结构</h3>
+<pre><code>src/orbital_triage/selfstate/
+    faults.py      6 类故障的物理参数化模型，像元级注入
+    monitors.py    11 个景内自检监视器
+    belief.py      联合 (W,S) 信念，GLRT 诊断 + unknown_fault
+    faulted.py     与 Archive 同接口的带故障档案
+    trend.py       趋势检验（含 1.2 年谐波护栏与两次踩坑的记录）
+    policy.py      自检的经济学
+src/orbital_triage/payload/
+    sr.py          EDSR 超分模型 + 三个无参考可信度信号
+tests/test_selfstate.py    10 条纪律测试</code></pre>
+<h3 id="8.3-数据来源与许可">8.3 数据来源与许可</h3>
+<ul>
+<li><strong>Copernicus Sentinel-2 L2A</strong> — 免费开放（Legal Notice on Sentinel data use）， 经 AWS Earth Search STAC 获取</li>
+<li><strong>Celestrak TLE</strong> — SENTINEL-2A / 2B / 2C</li>
+<li><strong>CEOS 辐射定标场</strong> — Libya-4 (28.55°N, 23.39°E)、Algeria-3、Dome C 的坐标为公开信息</li>
+</ul>
+<p>本报告不含任何非公开数据、私有端点或第三方凭据。</p>
+<h3 id="8.4-相关文档">8.4 相关文档</h3>
+<ul>
+<li><a href="TECHNICAL_REPORT.md">第一条研究线的技术报告</a> — 星上取舍</li>
+<li><a href="DECISIONS.md">决策与推翻记录</a> — 24 条，含本报告 §7.3 的完整原始记录</li>
+<li><a href="https://xuangu-fang.github.io/mission-studio-showcase/reports/">可视化页面</a> — 五个交互页面</li>
+</ul>
+<footer>本文全部数字由 <code>runs/</code> 下的产出文件直接引用，可用
+<code>python tools/rebuild_all.py</code> 一次重建。数据来源为 Copernicus Sentinel-2 L2A、
+Celestrak TLE 与 CEOS 辐射定标场，均为公开数据。</footer>
+</main>
+</div>
